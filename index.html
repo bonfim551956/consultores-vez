@@ -611,13 +611,25 @@ let SES = null;
 const SES_KEY = 'iz_session';
 
 function saveSession(user) {
-  localStorage.setItem(SES_KEY, JSON.stringify({ u: user.u, role: user.role, name: user.name, consName: user.consName }));
+  const expires = Date.now() + (12 * 60 * 60 * 1000); // 12 horas
+  localStorage.setItem(SES_KEY, JSON.stringify({
+    u: user.u, role: user.role, name: user.name, consName: user.consName, expires
+  }));
 }
 function clearSession() {
   localStorage.removeItem(SES_KEY);
 }
 function getSavedSession() {
-  try { return JSON.parse(localStorage.getItem(SES_KEY)); } catch { return null; }
+  try {
+    const data = JSON.parse(localStorage.getItem(SES_KEY));
+    if (!data) return null;
+    // Verifica expiração — sessão dura 12h (um expediente completo)
+    if (data.expires && Date.now() > data.expires) {
+      clearSession();
+      return null;
+    }
+    return data;
+  } catch { return null; }
 }
 let metP = 'day', mgrP = 'day';
 let customDe = '', customAte = '';
@@ -660,10 +672,11 @@ async function initApp() {
   }
   showLoading(false);
   // Restaura sessão salva (F5 não desloga)
+  // Sessão expira em 12h — ao abrir novo dia, pede login novamente
   const saved = getSavedSession();
   if (saved && _users) {
     const user = _users.find(x => x.u === saved.u);
-    if (user) {
+    if (user && user.p) { // Valida que usuário ainda existe e tem senha
       SES = { ...user, consName: user.role === 'consultor' ? user.name : null };
       startQueueListener();
       startRecsListener();
@@ -710,9 +723,27 @@ function startQueueListener() {
     _queue.sort((a,b) => (a.joinedAt?.seconds||0) - (b.joinedAt?.seconds||0));
     const active = document.querySelector('.scr.on');
     if (!active) return;
+    // Consultor: atualiza hero + mini fila
     if (active.id === 's-cons' && SES) renderCons();
-    if (active.id === 's-ger') { renderFilaView('fila-body', false); }
-    if (active.id === 's-gest') { renderFilaView('fila2-body', true); }
+    // Gerente: atualiza fila ao vivo + ranking + supervisão em tempo real
+    if (active.id === 's-ger') {
+      const filaTab = document.getElementById('gv-fila');
+      if (filaTab && filaTab.classList.contains('on')) renderFilaView('fila-body', false);
+      // Atualiza ranking e supervisão silenciosamente (sem trocar aba)
+      const rankTab = document.getElementById('gv-ranking');
+      if (rankTab && rankTab.classList.contains('on')) renderRank(mgrP, 'rank-body');
+      const supTab = document.getElementById('gv-supervisao');
+      if (supTab && supTab.classList.contains('on')) renderSup(mgrP, 'sup-body');
+    }
+    // Gestor: igual ao gerente
+    if (active.id === 's-gest') {
+      const filaTab = document.getElementById('sv-fila2');
+      if (filaTab && filaTab.classList.contains('on')) renderFilaView('fila2-body', true);
+      const rankTab = document.getElementById('sv-ranking2');
+      if (rankTab && rankTab.classList.contains('on')) renderRank(mgrP, 'rank2-body');
+      const supTab = document.getElementById('sv-supervisao2');
+      if (supTab && supTab.classList.contains('on')) renderSup(mgrP, 'sup2-body');
+    }
   });
 }
 
@@ -724,7 +755,22 @@ function startRecsListener() {
       _recs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       const active = document.querySelector('.scr.on');
       if (!active) return;
-      if (active.id === 's-cons' && SES) renderMet();
+      // Consultor: atualiza métricas
+      if (active.id === 's-cons' && SES) { renderMet(); renderMiniQ(); }
+      // Gerente: atualiza aba ativa
+      if (active.id === 's-ger') {
+        const rankTab = document.getElementById('gv-ranking');
+        if (rankTab && rankTab.classList.contains('on')) renderRank(mgrP, 'rank-body');
+        const supTab = document.getElementById('gv-supervisao');
+        if (supTab && supTab.classList.contains('on')) renderSup(mgrP, 'sup-body');
+      }
+      // Gestor: atualiza aba ativa
+      if (active.id === 's-gest') {
+        const rankTab = document.getElementById('sv-ranking2');
+        if (rankTab && rankTab.classList.contains('on')) renderRank(mgrP, 'rank2-body');
+        const supTab = document.getElementById('sv-supervisao2');
+        if (supTab && supTab.classList.contains('on')) renderSup(mgrP, 'sup2-body');
+      }
     }
   );
 }
