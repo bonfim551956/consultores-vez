@@ -2,9 +2,12 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Idealize — Sistema Operacional</title>
-<!-- v20260514-0446 -->
+<!-- build:20260514050626 -->
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700;1,800&family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -834,7 +837,7 @@ async function initApp() {
     if (user) {
       SES = { ...user, consName: user.role==='consultor'?user.display_name:null };
       startPolling();
-      routeUser(); return;
+      await routeUser(); return;
     }
   }
   // Atualiza textos dinâmicos por loja
@@ -866,10 +869,10 @@ async function doLogin() {
   SES = { ...user, consName: user.role==='consultor'?user.display_name:null };
   saveSession(SES);
   startPolling();
-  routeUser();
+  await routeUser();
 }
 
-function routeUser() {
+async function routeUser() {
   if (SES.role==='consultor') {
     document.getElementById('c-hdr-n').textContent = SES.display_name;
     document.querySelectorAll('.mtab').forEach((t,i)=>t.classList.toggle('on',i===0));
