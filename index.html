@@ -460,14 +460,14 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
     </div>
   </div>
 
-<div id="loja-filter-bar-sup" style="display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:.625rem 1rem;overflow-x:auto;white-space:nowrap">
-  <span style="font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.08em;margin-right:.75rem">Loja</span>
-  <button class="loja-fbtn on" id="lfb-all" onclick="setLojaFilter(null)">Rede</button>
-  <button class="loja-fbtn" id="lfb-sv" onclick="setLojaFilter('sv')">São Vicente</button>
-  <button class="loja-fbtn" id="lfb-campinas" onclick="setLojaFilter('campinas')">Campinas</button>
-  <button class="loja-fbtn" id="lfb-sorocaba" onclick="setLojaFilter('sorocaba')">Sorocaba</button>
-  <button class="loja-fbtn" id="lfb-piracicaba" onclick="setLojaFilter('piracicaba')">Piracicaba</button>
-</div>
+  <div id="filter-bar-sup" style="display:none;background:var(--surface);border-bottom:2px solid var(--teal-b);padding:.625rem 1rem;overflow-x:auto;white-space:nowrap;position:sticky;top:52px;z-index:40">
+    <span style="font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.08em;margin-right:.75rem">Unidade</span>
+    <button class="loja-fbtn on" id="filter-bar-sup-all" onclick="setLojaFilter(null,'filter-bar-sup')">Rede</button>
+    <button class="loja-fbtn" id="filter-bar-sup-sv" onclick="setLojaFilter('sv','filter-bar-sup')">São Vicente</button>
+    <button class="loja-fbtn" id="filter-bar-sup-campinas" onclick="setLojaFilter('campinas','filter-bar-sup')">Campinas</button>
+    <button class="loja-fbtn" id="filter-bar-sup-sorocaba" onclick="setLojaFilter('sorocaba','filter-bar-sup')">Sorocaba</button>
+    <button class="loja-fbtn" id="filter-bar-sup-piracicaba" onclick="setLojaFilter('piracicaba','filter-bar-sup')">Piracicaba</button>
+  </div>
   <div class="gtabs-bar">
     <button class="suptab on" onclick="showSupTab('ranking',this)">Ranking</button>
     <button class="suptab" onclick="showSupTab('supervisao',this)">Supervisão</button>
@@ -510,14 +510,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
     </div>
   </div>
 
-<div id="loja-filter-bar" style="display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:.625rem 1rem;overflow-x:auto;white-space:nowrap">
-  <span style="font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.08em;margin-right:.75rem">Loja</span>
-  <button class="loja-fbtn on" id="lfb-all" onclick="setLojaFilter(null)">Rede</button>
-  <button class="loja-fbtn" id="lfb-sv" onclick="setLojaFilter('sv')">São Vicente</button>
-  <button class="loja-fbtn" id="lfb-campinas" onclick="setLojaFilter('campinas')">Campinas</button>
-  <button class="loja-fbtn" id="lfb-sorocaba" onclick="setLojaFilter('sorocaba')">Sorocaba</button>
-  <button class="loja-fbtn" id="lfb-piracicaba" onclick="setLojaFilter('piracicaba')">Piracicaba</button>
-</div>
   <div class="gtabs-bar">
     <button class="gtab on" onclick="showGTab('ranking',this)">Ranking</button>
     <button class="gtab" onclick="showGTab('supervisao',this)">Supervisão</button>
@@ -556,6 +548,14 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
       <button class="ah-exp" onclick="exportCSV()">Exportar CSV</button>
       <button class="ah-logout" onclick="doLogout()">Sair</button>
     </div>
+  </div>
+  <div id="filter-bar-gest" style="display:none;background:var(--surface);border-bottom:2px solid var(--teal-b);padding:.625rem 1rem;overflow-x:auto;white-space:nowrap;position:sticky;top:52px;z-index:40">
+    <span style="font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.08em;margin-right:.75rem">Unidade</span>
+    <button class="loja-fbtn on" id="filter-bar-gest-all" onclick="setLojaFilter(null,'filter-bar-gest')">Rede</button>
+    <button class="loja-fbtn" id="filter-bar-gest-sv" onclick="setLojaFilter('sv','filter-bar-gest')">São Vicente</button>
+    <button class="loja-fbtn" id="filter-bar-gest-campinas" onclick="setLojaFilter('campinas','filter-bar-gest')">Campinas</button>
+    <button class="loja-fbtn" id="filter-bar-gest-sorocaba" onclick="setLojaFilter('sorocaba','filter-bar-gest')">Sorocaba</button>
+    <button class="loja-fbtn" id="filter-bar-gest-piracicaba" onclick="setLojaFilter('piracicaba','filter-bar-gest')">Piracicaba</button>
   </div>
   <div class="stabs-bar">
     <button class="stab on" onclick="showSTab('ranking2',this)">Ranking</button>
@@ -1675,12 +1675,15 @@ window.saveSupCode=saveSupCode;
 window.setLojaFilter=setLojaFilter;
 
 // ════ SELETOR DE LOJA (Supervisor/Diretor) ════
-function setLojaFilter(loja) {
+function setLojaFilter(loja, barId) {
   LOJA_FILTER = loja;
-  // Atualiza botões
-  document.querySelectorAll('.loja-fbtn').forEach(b => b.classList.remove('on'));
-  const activeId = loja ? `lfb-${loja}` : 'lfb-all';
-  document.querySelectorAll(`#${activeId}, [id="${activeId}"]`).forEach(b => b.classList.add('on'));
+  // Atualiza botões da barra correta
+  const bar = barId ? document.getElementById(barId) : document.querySelector('.loja-fbtn')?.closest('div');
+  if (bar) {
+    bar.querySelectorAll('.loja-fbtn').forEach(b => b.classList.remove('on'));
+    const btn = loja ? bar.querySelector(`[id$="-${loja}"]`) : bar.querySelector(`[id$="-all"]`);
+    if (btn) btn.classList.add('on');
+  }
   // Re-renderiza a aba ativa
   const active = document.querySelector('.scr.on');
   if (!active) return;
@@ -1707,7 +1710,8 @@ function setLojaFilter(loja) {
 // Mostra barra de filtro de lojas para supervisor/diretor
 function showLojaFilterBar() {
   const isSuperDir = SES && (SES.role==='supervisor'||SES.role==='diretor');
-  document.querySelectorAll('#loja-filter-bar,#loja-filter-bar-sup').forEach(el => {
+  ['filter-bar-gest','filter-bar-sup'].forEach(id => {
+    const el = document.getElementById(id);
     if (el) el.style.display = isSuperDir ? 'block' : 'none';
   });
 }
