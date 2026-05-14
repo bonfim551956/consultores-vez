@@ -1568,13 +1568,21 @@ async function addUser(){
   const p=document.getElementById('gu-pass').value;
   const role=document.getElementById('gu-role').value;
   const lojaEl=document.getElementById('gu-loja');
-  const lojaUser=lojaEl?lojaEl.value:LOJA;
+  // supervisor e diretor ficam sem loja (null)
+  const selectedRole=document.getElementById('gu-role').value;
+  const lojaRaw=lojaEl?lojaEl.value:LOJA;
+  const lojaUser=(selectedRole==='supervisor'||selectedRole==='diretor')?null:lojaRaw;
   if(!name||!u||!p){toast('Preencha todos os campos','err');return;}
   if(p.length<4){toast('Senha mínimo 4 caracteres','err');return;}
   if(_users.find(x=>x.username===u&&x.loja===lojaUser)){toast('Usuário já existe nesta loja','err');return;}
   try{
-    const nu={username:u,password:p,role,display_name:name,loja:lojaUser};
-    await sbPost('iz_users',nu);_users.push(nu);
+    const nu={username:u,password:p,role,display_name:name,loja:lojaUser||null};
+    // Usa upsert para evitar erros de constraint
+    const saved = await sbUpsert('iz_users', nu);
+    if (!saved || (Array.isArray(saved) && !saved.length)) {
+      throw new Error('Erro ao salvar usuário no banco');
+    }
+    _users.push(nu);
     // Se consultor, adiciona à lista de consultores da loja correta
     if(role==='consultor'){
       // Carrega config da loja do usuário e adiciona o consultor
@@ -1604,8 +1612,22 @@ async function delUser(username){
   if(!u){toast('Usuário não encontrado','err');return;}
   if(u.role==='diretor'||u.role==='supervisor'){toast('Não é possível remover este perfil de rede','err');return;}
   if(!confirm(`Remover @${username}?`))return;
-  try{await sbDelete('iz_users',`username=eq.${encodeURIComponent(username)}&loja=eq.${LOJA}`);_users=_users.filter(x=>x.username!==username);toast('Removido');renderConfig();}
-  catch(e){toast('Erro','err');}
+  try{
+    // Busca o ID do usuário para deletar com precisão
+    const userToDelete = _users.find(x=>x.username===username);
+    if (!userToDelete) { toast('Usuário não encontrado','err'); return; }
+    // Monta filtro correto considerando loja null
+    let delFilter = `username=eq.${encodeURIComponent(username)}`;
+    if (userToDelete.loja) {
+      delFilter += `&loja=eq.${encodeURIComponent(userToDelete.loja)}`;
+    } else {
+      delFilter += `&loja=is.null`;
+    }
+    await sbDelete('iz_users', delFilter);
+    _users=_users.filter(x=>!(x.username===username && x.loja===userToDelete.loja));
+    toast('Removido');renderConfig();
+  }
+  catch(e){toast('Erro ao remover','err');console.error('delUser:',e);}
 }
 function openPwd(username){
   pwdTargetUser=username;const u=_users.find(x=>x.username===username);
@@ -1621,7 +1643,15 @@ async function savePwd(){
   if(np!==cp){document.getElementById('err-pwd2').classList.add('on');ok=false;}else document.getElementById('err-pwd2').classList.remove('on');
   if(!ok)return;
   try{
-    await sbPatch('iz_users',`username=eq.${encodeURIComponent(pwdTargetUser)}&loja=eq.${LOJA}`,{password:np});
+    // Monta filtro correto para alterar senha (considera loja null)
+  const pwdUser = _users.find(x=>x.username===pwdTargetUser);
+  let pwdFilter = `username=eq.${encodeURIComponent(pwdTargetUser)}`;
+  if (pwdUser?.loja) {
+    pwdFilter += `&loja=eq.${encodeURIComponent(pwdUser.loja)}`;
+  } else {
+    pwdFilter += `&loja=is.null`;
+  }
+  await sbPatch('iz_users', pwdFilter, {password:np});
     const u=_users.find(x=>x.username===pwdTargetUser);if(u)u.password=np;
     closeOv('ov-pwd');toast('Senha alterada','ok');
   }catch(e){toast('Erro ao alterar senha','err');}
