@@ -346,6 +346,10 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 .suptab.on{color:#6B46C1;border-bottom-color:#6B46C1;background:rgba(107,70,193,.06)}
 .supview{display:none;flex:1;overflow-y:auto}.supview.on{display:block}
 .rp-sup{background:rgba(107,70,193,.12);color:#6B46C1}
+
+.loja-fbtn{display:inline-block;padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--tx3);font-family:var(--fb);margin-right:4px;transition:all .15s}
+.loja-fbtn.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.loja-fbtn:hover:not(.on){background:var(--teal-l);color:var(--teal-dd)}
 </style>
 </head>
 <body>
@@ -455,6 +459,15 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
       <button class="ah-logout" onclick="doLogout()">Sair</button>
     </div>
   </div>
+
+<div id="loja-filter-bar-sup" style="display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:.625rem 1rem;overflow-x:auto;white-space:nowrap">
+  <span style="font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.08em;margin-right:.75rem">Loja</span>
+  <button class="loja-fbtn on" id="lfb-all" onclick="setLojaFilter(null)">Todas</button>
+  <button class="loja-fbtn" id="lfb-sv" onclick="setLojaFilter('sv')">São Vicente</button>
+  <button class="loja-fbtn" id="lfb-campinas" onclick="setLojaFilter('campinas')">Campinas</button>
+  <button class="loja-fbtn" id="lfb-sorocaba" onclick="setLojaFilter('sorocaba')">Sorocaba</button>
+  <button class="loja-fbtn" id="lfb-piracicaba" onclick="setLojaFilter('piracicaba')">Piracicaba</button>
+</div>
   <div class="gtabs-bar">
     <button class="suptab on" onclick="showSupTab('ranking',this)">Ranking</button>
     <button class="suptab" onclick="showSupTab('supervisao',this)">Supervisão</button>
@@ -496,6 +509,15 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
       <button class="ah-logout" onclick="doLogout()">Sair</button>
     </div>
   </div>
+
+<div id="loja-filter-bar" style="display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:.625rem 1rem;overflow-x:auto;white-space:nowrap">
+  <span style="font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.08em;margin-right:.75rem">Loja</span>
+  <button class="loja-fbtn on" id="lfb-all" onclick="setLojaFilter(null)">Todas</button>
+  <button class="loja-fbtn" id="lfb-sv" onclick="setLojaFilter('sv')">São Vicente</button>
+  <button class="loja-fbtn" id="lfb-campinas" onclick="setLojaFilter('campinas')">Campinas</button>
+  <button class="loja-fbtn" id="lfb-sorocaba" onclick="setLojaFilter('sorocaba')">Sorocaba</button>
+  <button class="loja-fbtn" id="lfb-piracicaba" onclick="setLojaFilter('piracicaba')">Piracicaba</button>
+</div>
   <div class="gtabs-bar">
     <button class="gtab on" onclick="showGTab('ranking',this)">Ranking</button>
     <button class="gtab" onclick="showGTab('supervisao',this)">Supervisão</button>
@@ -636,18 +658,35 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 
 const SB_URL  = 'https://hqfxefdeivygcsetaknz.supabase.co';
 const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxZnhlZmRlaXZ5Z2NzZXRha256Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MTExNjMsImV4cCI6MjA5NDI4NzE2M30.KRtG-iAMKxBbKcChcWe5n58kkLWBKahYCf3gKXQzDcg';
-// LOJA vem do perfil do usuário logado — único link para todas as lojas
 const LOJA_NAMES = {
   sv: 'São Vicente', campinas: 'Campinas',
   sorocaba: 'Sorocaba', piracicaba: 'Piracicaba', santos: 'Santos'
 };
-// LOJA e LOJA_NAME são definidos após o login (ver setLojaCtx)
+const ALL_LOJAS = Object.keys(LOJA_NAMES);
+
+// LOJA do usuário logado (null para supervisor/diretor)
 let LOJA = 'sv';
 let LOJA_NAME = 'São Vicente';
+// Filtro de loja selecionado no painel do supervisor/diretor (null = todas)
+let LOJA_FILTER = null;
 
 function setLojaCtx(lojaCode) {
   LOJA = lojaCode || 'sv';
   LOJA_NAME = LOJA_NAMES[LOJA] || LOJA;
+}
+
+// Retorna os registros filtrados pela loja ativa (LOJA_FILTER ou LOJA)
+function lojaAtiva() {
+  const isSuperDir = SES && (SES.role==='supervisor'||SES.role==='diretor');
+  if (isSuperDir) return LOJA_FILTER; // null = todas, 'sv' = só SV etc
+  return LOJA; // sempre a loja do usuário
+}
+
+// Filtra array de registros pela loja ativa
+function filtLoja(arr) {
+  const la = lojaAtiva();
+  if (!la) return arr; // null = todas
+  return arr.filter(r => r.loja === la);
 }
 
 // ── REST helpers ──
@@ -778,8 +817,18 @@ let _users=[], _cons=DEF_CONS, _authCode=DEF_CODE, _queue=[], _recs=[];
 async function loadUsers()  {
   try {
     const isSuperDir = SES && (SES.role==='supervisor'||SES.role==='diretor');
-    const params = isSuperDir ? 'order=loja,display_name' : `loja=eq.${LOJA}&order=display_name`;
+    // Supervisor/Diretor: carrega todos; outros: só sua loja
+    const params = isSuperDir
+      ? 'order=loja,display_name'
+      : `loja=eq.${encodeURIComponent(LOJA)}&order=display_name`;
     _users = await sbGet('iz_users', params);
+    // Remove duplicatas por username+loja
+    const seen = new Set();
+    _users = _users.filter(u => {
+      const key = u.username + '|' + (u.loja||'');
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
+    });
   } catch { _users=DEF_USERS; }
 }
 async function loadConfig() {
@@ -829,7 +878,13 @@ async function saveConfig() {
 
 // Getters
 const getUsers   = () => _users.length ? _users : DEF_USERS;
-const getCons    = () => _cons;
+const getCons = () => {
+  const la = lojaAtiva();
+  if (!la) return _cons; // todas as lojas — _cons já tem todos consolidados
+  // Filtra consultores da loja ativa a partir dos configs
+  const cfg = _allConfigs.find(c => c.loja === la);
+  return cfg ? (cfg.consultants || []) : _cons;
+};
 const getQ       = () => _queue;
 const getRecs    = () => _recs;
 const getCode    = () => _authCode || DEF_CODE;
@@ -884,9 +939,9 @@ async function doLogin() {
   errEl.classList.remove('on'); passEl.classList.remove('err');
   SES = { ...user, consName: user.role==='consultor'?user.display_name:null };
   // Define contexto de loja pelo perfil do usuário
-  // Supervisor e Diretor não têm loja fixa — veem todas
   const isSuperDir = user.role==='supervisor' || user.role==='diretor';
   setLojaCtx(isSuperDir ? null : (user.loja || 'sv'));
+  LOJA_FILTER = null; // reset filtro ao logar
   saveSession(SES);
   startPolling();
   await routeUser();
@@ -905,22 +960,25 @@ async function routeUser() {
     if (cn) cn.textContent = SES.display_name;
     renderCons(); showScr('s-cons');
   } else if (SES.role==='gerente') {
-    mgrP='day';
+    mgrP='day'; LOJA_FILTER=null;
     const gs = document.getElementById('ger-sub');
     if (gs) gs.textContent = 'Gerente · Idealize ' + LOJA_NAME;
+    showLojaFilterBar();
     renderRank('day','rank-body'); renderSup('day','sup-body'); renderFilaView('fila-body',false);
     showGTab('ranking',null); showScr('s-ger');
   } else if (SES.role==='supervisor') {
-    mgrP='day';
+    mgrP='day'; LOJA_FILTER=null;
     const ss = document.getElementById('sup-sub');
     if (ss) ss.textContent = 'Supervisor · Todas as lojas';
+    showLojaFilterBar();
     await loadAllRecs(); await loadAllQueues();
     renderRank('day','rank-sup-body'); renderSup('day','sup-sup-body'); renderFilaView('fila-sup-body',false);
     showSupTab('ranking',null); showScr('s-sup');
   } else if (SES.role==='diretor') {
-    mgrP='day';
+    mgrP='day'; LOJA_FILTER=null;
     const ds = document.getElementById('dir-sub');
     if (ds) ds.textContent = 'Diretor · Todas as lojas';
+    showLojaFilterBar();
     await loadAllRecs(); await loadAllQueues(); await loadAllUsers();
     renderRank('day','rank2-body'); renderSup('day','sup2-body'); renderFilaView('fila2-body',true);
     renderConfig(); showSTab('ranking2',null); showScr('s-gest');
@@ -1276,7 +1334,7 @@ function applyMgrCustom(crId,fnR,fnS){
 // ════ RANKING com taxas de repique e conversão ════
 function renderRank(p,bodyId){
   if(p)mgrP=p;
-  const recs=getRecs(),cons=getCons(),all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
+  const recs=filtLoja(getRecs()),cons=getCons(),all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
   const tot=all.length,v=all.filter(r=>r.situacao==='VENDA').length;
   const fat=all.reduce((s,r)=>s+(r.valor||0),0),ent=all.reduce((s,r)=>s+(r.entrada||0),0);
   const tmed=v>0?fat/v:0,tx=tot>0?Math.round(v/tot*100):0;
@@ -1333,7 +1391,7 @@ function rRankGest(p){renderRank(p,'rank2-body');}
 // ════ SUPERVISÃO ════
 function renderSup(p,bodyId){
   if(p)mgrP=p;
-  const recs=getRecs(),cons=getCons(),all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
+  const recs=filtLoja(getRecs()),cons=getCons(),all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
   const pLbl={day:'Hoje',week:'Esta semana',month:'Este mês',custom:mgrCustomDe&&mgrCustomAte?`${fmtDate(mgrCustomDe)} a ${fmtDate(mgrCustomAte)}`:'Período personalizado'};
   const isGest=bodyId==='sup2-body',isSup=bodyId==='sup-sup-body';
   const fnR=isGest?'rRankGest':isSup?'rRankSup':'rRankGer';
@@ -1592,6 +1650,45 @@ async function saveSupCode(){
   document.getElementById('sup-code').value='';toast('Código atualizado','ok');
 }
 window.saveSupCode=saveSupCode;
+window.setLojaFilter=setLojaFilter;
+
+// ════ SELETOR DE LOJA (Supervisor/Diretor) ════
+function setLojaFilter(loja) {
+  LOJA_FILTER = loja;
+  // Atualiza botões
+  document.querySelectorAll('.loja-fbtn').forEach(b => b.classList.remove('on'));
+  const activeId = loja ? `lfb-${loja}` : 'lfb-all';
+  document.querySelectorAll(`#${activeId}, [id="${activeId}"]`).forEach(b => b.classList.add('on'));
+  // Re-renderiza a aba ativa
+  const active = document.querySelector('.scr.on');
+  if (!active) return;
+  if (active.id === 's-ger') {
+    const rv = document.querySelector('.gview.on');
+    if (rv?.id==='gv-ranking')    renderRank(mgrP,'rank-body');
+    if (rv?.id==='gv-supervisao') renderSup(mgrP,'sup-body');
+    if (rv?.id==='gv-fila')       renderFilaView('fila-body',false);
+  }
+  if (active.id === 's-sup') {
+    const rv = document.querySelector('.supview.on');
+    if (rv?.id==='sv-sup-ranking')    renderRank(mgrP,'rank-sup-body');
+    if (rv?.id==='sv-sup-supervisao') renderSup(mgrP,'sup-sup-body');
+    if (rv?.id==='sv-sup-fila')       renderFilaView('fila-sup-body',false);
+  }
+  if (active.id === 's-gest') {
+    const rv = document.querySelector('.sview.on');
+    if (rv?.id==='sv-ranking2')    renderRank(mgrP,'rank2-body');
+    if (rv?.id==='sv-supervisao2') renderSup(mgrP,'sup2-body');
+    if (rv?.id==='sv-fila2')       renderFilaView('fila2-body',true);
+  }
+}
+
+// Mostra barra de filtro de lojas para supervisor/diretor
+function showLojaFilterBar() {
+  const isSuperDir = SES && (SES.role==='supervisor'||SES.role==='diretor');
+  document.querySelectorAll('#loja-filter-bar,#loja-filter-bar-sup').forEach(el => {
+    if (el) el.style.display = isSuperDir ? 'block' : 'none';
+  });
+}
 
 // ════ EXPÕE FUNÇÕES PARA onclick no HTML ════
 window.doLogin=doLogin;
@@ -1635,6 +1732,7 @@ window.exportCSV=exportCSV;
 window.deleteAllRecs=deleteAllRecs;
 window.renderConfig=renderConfig;
 window.saveSupCode=saveSupCode;
+window.setLojaFilter=setLojaFilter;
 
 // ════ INIT ════
 window.addEventListener('load', initApp);
