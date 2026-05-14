@@ -378,7 +378,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
         <!-- Texto IDEALIZE -->
         <text x="175" y="88" font-family="Barlow Condensed, sans-serif" font-size="52" font-weight="800" font-style="italic" fill="#2BBFB3" letter-spacing="1">IDEAL<tspan fill="#F5A623">I</tspan>ZE</text>
       </svg>
-      <div class="login-location">Sistema Operacional · ' + LOJA_NAME + '</div>
+      <div class="login-location" id="login-location">Sistema Operacional · São Vicente</div>
     </div>
     <div class="lc-divider"></div>
     <div class="field-grp">
@@ -400,7 +400,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   <div class="app-hdr">
     <div class="ah-brand">
       <div class="ah-logo-bar"></div>
-      <div class="ah-texts"><div class="at-n" id="c-hdr-n">—</div><div class="at-s">' + 'Consultor · Idealize ' + LOJA_NAME + '</div></div>
+      <div class="ah-texts"><div class="at-n" id="c-hdr-n">—</div><div class="at-s" id="cons-sub">Consultor · Idealize SV</div></div>
     </div>
     <div class="ah-right">
       <span class="ah-badge badge-cons">Consultor</span>
@@ -921,30 +921,66 @@ function renderMet() {
 
 // ════ FILA ACTIONS ════
 async function enterQ() {
-  const name=SES.consName;
-  if(_queue.find(x=>x.consultant_name===name)){toast('Você já está na fila','warn');return;}
+  const name = SES.consName;
+  if (_queue.find(x => x.consultant_name === name)) { toast('Você já está na fila','warn'); return; }
   try {
-    // Tenta deletar entrada antiga e inserir nova (evita conflito de unique)
-    try { await sbDelete('iz_queue', `consultant_name=eq.${encodeURIComponent(name)}&loja=eq.${LOJA}`); } catch {}
-    await sbPost('iz_queue', {consultant_name:name, loja:LOJA, status:'queue', joined_at:new Date().toISOString()});
-    await loadQueue(); renderCons(); toast('Você entrou na fila','ok');
-  } catch(e){
-    console.error('enterQ error:', e);
-    toast('Verifique sua conexão e tente novamente','err');
+    // Remove qualquer entrada antiga deste consultor nesta loja
+    await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(name)}&loja=eq.${encodeURIComponent(LOJA)}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    // Insere nova entrada
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_queue`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ consultant_name: name, loja: LOJA, status: 'queue', joined_at: new Date().toISOString() })
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(err);
+    }
+    await loadQueue();
+    renderCons();
+    toast('Você entrou na fila', 'ok');
+  } catch(e) {
+    console.error('enterQ:', e);
+    toast('Erro ao entrar na fila. Verifique o console.', 'err');
   }
 }
 async function leaveQ() {
-  if(!confirm('Confirma saída da fila?'))return;
+  if (!confirm('Confirma saída da fila?')) return;
   try {
-    await sbDelete('iz_queue',`consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${LOJA}`);
-    await loadQueue(); renderCons(); toast('Você saiu da fila');
-  } catch(e){toast('Erro','err');}
+    await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${encodeURIComponent(LOJA)}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    await loadQueue();
+    renderCons();
+    toast('Você saiu da fila');
+  } catch(e) { toast('Erro','err'); console.error('leaveQ:', e); }
 }
 async function startAtt() {
   try {
-    await sbPatch('iz_queue',`consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${LOJA}`,{status:'attending'});
-    await loadQueue(); renderCons(); toast('Bom atendimento');
-  } catch(e){toast('Erro','err');console.error(e);}
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${encodeURIComponent(LOJA)}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ status: 'attending' })
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    await loadQueue();
+    renderCons();
+    toast('Bom atendimento');
+  } catch(e) { toast('Erro','err'); console.error('startAtt:', e); }
 }
 
 // ════ MODAL REGISTRO ════
@@ -1039,8 +1075,14 @@ async function submitReg(){
   try {
     await sbPost('iz_records', rec);
     // Volta pro final da fila
-    await sbDelete('iz_queue',`consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${LOJA}`);
-    await sbPost('iz_queue',{consultant_name:SES.consName,loja:LOJA,status:'queue',joined_at:new Date().toISOString()});
+    await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${encodeURIComponent(LOJA)}`, {
+      method: 'DELETE', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    await fetch(`${SB_URL}/rest/v1/iz_queue`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ consultant_name: SES.consName, loja: LOJA, status: 'queue', joined_at: new Date().toISOString() })
+    });
     await loadQueue(); await loadRecs();
     closeOv('ov-reg');
     toast(selSit_==='VENDA'?'Venda registrada com sucesso':'Atendimento registrado','ok');
