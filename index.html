@@ -671,15 +671,18 @@ let LOJA_NAME = 'São Vicente';
 let LOJA_FILTER = null;
 
 function setLojaCtx(lojaCode) {
-  LOJA = lojaCode || 'sv';
-  LOJA_NAME = LOJA_NAMES[LOJA] || LOJA;
+  LOJA = lojaCode || null; // null para supervisor/diretor
+  LOJA_NAME = (LOJA ? LOJA_NAMES[LOJA] : 'Todas as lojas') || LOJA || 'Idealize';
 }
 
 // Retorna os registros filtrados pela loja ativa (LOJA_FILTER ou LOJA)
 function lojaAtiva() {
-  const isSuperDir = SES && (SES.role==='supervisor'||SES.role==='diretor');
-  if (isSuperDir) return LOJA_FILTER; // null = todas, 'sv' = só SV etc
-  return LOJA; // sempre a loja do usuário
+  if (!SES) return LOJA;
+  const isSuperDir = SES.role==='supervisor'||SES.role==='diretor';
+  // Supervisor/Diretor: usa o filtro selecionado (null = todas)
+  if (isSuperDir) return LOJA_FILTER;
+  // Outros: sempre a loja do usuário
+  return SES.loja || LOJA;
 }
 
 // Filtra array de registros pela loja ativa
@@ -843,13 +846,30 @@ async function loadConfig() {
       // Consolida todos os consultores de todas as lojas
       _cons = [...new Set(r.flatMap(cfg => cfg.consultants || []))];
     } else {
-      const r = await sbGet('iz_config', `loja=eq.${LOJA}`);
-      if (r.length) { _cons = r[0].consultants || DEF_CONS; _authCode = r[0].auth_code || DEF_CODE; }
+      const r = await sbGet('iz_config', LOJA ? `loja=eq.${LOJA}` : 'order=loja');
+      if (r.length) {
+        _authCode = r[0].auth_code || DEF_CODE;
+        _cons = LOJA ? (r[0].consultants || DEF_CONS)
+                     : [...new Set(r.flatMap(cfg => cfg.consultants || []))];
+        _allConfigs = r;
+      }
     }
   } catch { _cons=DEF_CONS; _authCode=DEF_CODE; }
 }
-async function loadQueue()  { try { _queue = await sbGet('iz_queue', `loja=eq.${LOJA}&order=joined_at`); } catch {} }
-async function loadRecs()   { try { _recs  = await sbGet('iz_records', `loja=eq.${LOJA}&order=created_at.desc&limit=500`); } catch {} }
+async function loadQueue()  {
+  try {
+    const params = LOJA ? `loja=eq.${LOJA}&order=joined_at` : `order=joined_at`;
+    _queue = await sbGet('iz_queue', params);
+  } catch {}
+}
+async function loadRecs() {
+  try {
+    const params = LOJA
+      ? `loja=eq.${LOJA}&order=created_at.desc&limit=500`
+      : `order=created_at.desc&limit=1000`;
+    _recs = await sbGet('iz_records', params);
+  } catch {}
+}
 
 // Carrega dados de TODAS as lojas (para Supervisor/Diretor)
 async function loadAllRecs() {
@@ -927,11 +947,13 @@ async function doLogin() {
   const p = document.getElementById('l-pass').value;
   const errEl = document.getElementById('login-err'), passEl = document.getElementById('l-pass');
 
+  // Busca local sem filtrar loja (supervisor/diretor têm loja null)
   let user = getUsers().find(x => x.username===u && x.password===p);
   if (!user) {
     // Tenta buscar direto no banco
     try {
-      const r = await sbGet('iz_users', `username=eq.${encodeURIComponent(u)}&password=eq.${encodeURIComponent(p)}&loja=eq.${LOJA}`);
+      // Busca sem filtro de loja — supervisor/diretor têm loja null
+      const r = await sbGet('iz_users', `username=eq.${encodeURIComponent(u)}&password=eq.${encodeURIComponent(p)}`);
       if (r.length) user = r[0];
     } catch {}
   }
