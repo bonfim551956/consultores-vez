@@ -462,7 +462,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 
 <div id="loja-filter-bar-sup" style="display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:.625rem 1rem;overflow-x:auto;white-space:nowrap">
   <span style="font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.08em;margin-right:.75rem">Loja</span>
-  <button class="loja-fbtn on" id="lfb-all" onclick="setLojaFilter(null)">Todas</button>
+  <button class="loja-fbtn on" id="lfb-all" onclick="setLojaFilter(null)">Rede</button>
   <button class="loja-fbtn" id="lfb-sv" onclick="setLojaFilter('sv')">São Vicente</button>
   <button class="loja-fbtn" id="lfb-campinas" onclick="setLojaFilter('campinas')">Campinas</button>
   <button class="loja-fbtn" id="lfb-sorocaba" onclick="setLojaFilter('sorocaba')">Sorocaba</button>
@@ -512,7 +512,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 
 <div id="loja-filter-bar" style="display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:.625rem 1rem;overflow-x:auto;white-space:nowrap">
   <span style="font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.08em;margin-right:.75rem">Loja</span>
-  <button class="loja-fbtn on" id="lfb-all" onclick="setLojaFilter(null)">Todas</button>
+  <button class="loja-fbtn on" id="lfb-all" onclick="setLojaFilter(null)">Rede</button>
   <button class="loja-fbtn" id="lfb-sv" onclick="setLojaFilter('sv')">São Vicente</button>
   <button class="loja-fbtn" id="lfb-campinas" onclick="setLojaFilter('campinas')">Campinas</button>
   <button class="loja-fbtn" id="lfb-sorocaba" onclick="setLojaFilter('sorocaba')">Sorocaba</button>
@@ -785,7 +785,7 @@ const DEF_USERS = [
   {username:'fernanda',  password:'1234',         role:'consultor', display_name:'Fernanda',  loja:LOJA},
   {username:'gerente',   password:'idealize2025', role:'gerente',   display_name:'Gerente',   loja:LOJA},
   {username:'supervisor',password:'super2025',    role:'supervisor',display_name:'Supervisor',loja:LOJA},
-  {username:'diretor',    password:'admin2025',    role:'diretor',    display_name:'Diretor',    loja:LOJA},
+  {username:'diego',      password:'admin2025',    role:'diretor',   display_name:'Diego',      loja:null},
 ];
 const DEF_CONS = ['Daynara','Ana Paula','Carlos','Fernanda'];
 const DEF_CODE = '1234';
@@ -1521,7 +1521,7 @@ function renderConfig(){
           <div class="cfg-meta">
             <span class="cfg-role-pill ${u.role==='diretor'?'rp-gest':u.role==='supervisor'?'rp-sup':u.role==='gerente'?'rp-ger':'rp-cons'}">${u.role==='diretor'?'Diretor':u.role==='supervisor'?'Supervisor':u.role==='gerente'?'Gerente':'Consultor'}</span>
             <span style="font-family:var(--fm);font-size:10px">@${u.username}</span>
-            <span style="font-size:10px;background:var(--teal-m);color:var(--teal-dd);padding:1px 7px;border-radius:99px;font-weight:600">${LOJA_NAMES[u.loja]||u.loja||'—'}</span>
+            <span style="font-size:10px;background:${u.loja?'var(--teal-m)':'var(--purple-m)'};color:${u.loja?'var(--teal-dd)':'var(--purple)'};padding:1px 7px;border-radius:99px;font-weight:600">${u.loja?(LOJA_NAMES[u.loja]||u.loja):'Rede'}</span>
           </div>
         </div>
         <div class="cfg-actions">
@@ -1602,7 +1602,7 @@ async function addUser(){
 async function delUser(username){
   const u=_users.find(x=>x.username===username);
   if(!u){toast('Usuário não encontrado','err');return;}
-  if(u.role==='diretor'){toast('Não é possível remover o diretor','err');return;}
+  if(u.role==='diretor'||u.role==='supervisor'){toast('Não é possível remover este perfil de rede','err');return;}
   if(!confirm(`Remover @${username}?`))return;
   try{await sbDelete('iz_users',`username=eq.${encodeURIComponent(username)}&loja=eq.${LOJA}`);_users=_users.filter(x=>x.username!==username);toast('Removido');renderConfig();}
   catch(e){toast('Erro','err');}
