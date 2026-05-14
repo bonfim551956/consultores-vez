@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+=<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -900,10 +900,14 @@ async function saveConfig() {
 const getUsers   = () => _users.length ? _users : DEF_USERS;
 const getCons = () => {
   const la = lojaAtiva();
-  if (!la) return _cons; // todas as lojas — _cons já tem todos consolidados
+  if (!la) return _cons; // null = rede — retorna todos consolidados
   // Filtra consultores da loja ativa a partir dos configs
   const cfg = _allConfigs.find(c => c.loja === la);
-  return cfg ? (cfg.consultants || []) : _cons;
+  if (cfg) return cfg.consultants || [];
+  // Se não tem config desta loja, pega consultores dos usuários
+  return _users
+    .filter(u => u.role==='consultor' && u.loja===la)
+    .map(u => u.display_name);
 };
 const getQ       = () => _queue;
 const getRecs    = () => _recs;
@@ -1367,14 +1371,18 @@ function renderRank(p,bodyId){
   const fnS=isGest?'rSupGest':isSup?'rSupSup':'rSupGer';
   const crId=isGest?'cr-rank2':isSup?'cr-rank-sup':'cr-rank';
 
-  const rows=cons.map(name=>{
+  // Consultores: combina lista do config + consultores com registros no período
+  const consFromRecs = [...new Set(all.map(r=>r.consultant_name).filter(Boolean))];
+  const allCons = [...new Set([...cons, ...consFromRecs])];
+
+  const rows=allCons.map(name=>{
     const r2=all.filter(r=>r.consultant_name===name);
     const t2=r2.length,v2=r2.filter(r=>r.situacao==='VENDA').length,p2=r2.filter(r=>r.situacao==='PERDIDA').length;
     const tx2=t2>0?Math.round(v2/t2*100):0;
     const f2=r2.reduce((s,r)=>s+(r.valor||0),0),c2=r2.reduce((s,r)=>s+(r.entrada||0),0);
     const rep2=r2.filter(r=>r.repique==='SIM').length;
-    const txRepA=t2>0?Math.round(rep2/t2*100):0; // repique/atendimentos
-    const txRepV=v2>0?Math.round(rep2/v2*100):0; // repique/vendas
+    const txRepA=t2>0?Math.round(rep2/t2*100):0;
+    const txRepV=v2>0?Math.round(rep2/v2*100):0;
     return{name,tot:t2,vend:v2,perd:p2,tx:tx2,fat:f2,tmed:v2>0?f2/v2:0,com:c2,rep:rep2,txRepA,txRepV};
   }).sort((a,b)=>b.tx-a.tx||b.fat-a.fat);
   const maxTx=Math.max(...rows.map(r=>r.tx),1);
@@ -1388,6 +1396,7 @@ function renderRank(p,bodyId){
       <div class="ov-card o"><div class="ov-lbl">Ticket médio</div><div class="ov-val o" style="font-size:16px">${fmt(tmed)}</div><div class="ov-sub">Comissão ${fmt(ent)}</div></div>
     </div>
     <div class="sec-lbl">Ranking por consultor — ${pLbl[mgrP]}</div>
+    ${rows.length===0?`<div style="text-align:center;padding:3rem;color:var(--tx4);font-size:13px;background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border)">Nenhum registro nesta unidade para o período selecionado</div>`:''}
     ${rows.map((r,i)=>`<div class="rep-card">
       <div class="rep-top">
         <span style="font-family:var(--fm);font-size:12px;color:var(--tx4);min-width:22px">#${i+1}</span>
@@ -1424,7 +1433,11 @@ function renderSup(p,bodyId){
   const fat=all.reduce((s,r)=>s+(r.valor||0),0),com=all.reduce((s,r)=>s+(r.entrada||0),0);
   const repTot=all.filter(r=>r.repique==='SIM').length;
   const txRepG=tot>0?Math.round(repTot/tot*100):0;
-  const rows=cons.map(name=>{
+  // Combina consultores do config + consultores com registros
+  const consFromRecs2 = [...new Set(all.map(r=>r.consultant_name).filter(Boolean))];
+  const allCons2 = [...new Set([...cons, ...consFromRecs2])];
+
+  const rows=allCons2.map(name=>{
     const r2=all.filter(r=>r.consultant_name===name);
     const t2=r2.length,v2=r2.filter(r=>r.situacao==='VENDA').length,p2=r2.filter(r=>r.situacao==='PERDIDA').length;
     const rep2=r2.filter(r=>r.repique==='SIM').length;
@@ -1479,7 +1492,11 @@ function rSupGest(p){renderSup(p,'sup2-body');}
 
 // ════ FILA AO VIVO ════
 function renderFilaView(bodyId,canClear){
-  const q=getQ(),cons=getCons(),recs=getRecs(),today=dStr(new Date());
+  const la=lojaAtiva();
+  const allQ=getQ();
+  // Filtra fila pela loja ativa
+  const q=la?allQ.filter(x=>x.loja===la):allQ;
+  const cons=getCons(),recs=la?getRecs().filter(r=>r.loja===la):getRecs(),today=dStr(new Date());
   const att=q.filter(x=>x.status==='attending'),inQ=q.filter(x=>x.status==='queue'),off=cons.filter(n=>!q.find(x=>x.consultant_name===n));
   const mkCard=(e,st,pos)=>{
     const mr=recs.filter(r=>r.consultant_name===e.consultant_name&&r.data===today);
