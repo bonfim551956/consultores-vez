@@ -6,7 +6,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>Idealize — Sistema Operacional</title>
+<title>Idealize — Sistema Comercial</title>
 <!-- build:20260514050626 -->
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700;1,800&family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -382,7 +382,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
         <!-- Texto IDEALIZE -->
         <text x="175" y="88" font-family="Barlow Condensed, sans-serif" font-size="52" font-weight="800" font-style="italic" fill="#2BBFB3" letter-spacing="1">IDEAL<tspan fill="#F5A623">I</tspan>ZE</text>
       </svg>
-      <div class="login-location" id="login-location">Sistema Operacional · São Vicente</div>
+      <div class="login-location" id="login-location">Sistema Operacional · Idealize</div>
     </div>
     <div class="lc-divider"></div>
     <div class="field-grp">
@@ -395,7 +395,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
     </div>
     <button class="lc-btn" onclick="doLogin()">Acessar sistema</button>
     <div class="lc-err" id="login-err">Usuário ou senha incorretos. Verifique e tente novamente.</div>
-    <div class="lc-footer" id="login-footer">Acesso restrito — colaboradores Idealize São Vicente</div>
+    <div class="lc-footer" id="login-footer">Acesso restrito — colaboradores Idealize</div>
   </div>
 </div>
 
@@ -404,7 +404,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   <div class="app-hdr">
     <div class="ah-brand">
       <div class="ah-logo-bar"></div>
-      <div class="ah-texts"><div class="at-n" id="c-hdr-n">—</div><div class="at-s" id="cons-sub">Consultor · Idealize São Vicente</div></div>
+      <div class="ah-texts"><div class="at-n" id="c-hdr-n">—</div><div class="at-s" id="cons-sub">Consultor · Idealize</div></div>
     </div>
     <div class="ah-right">
       <span class="ah-badge badge-cons">Consultor</span>
@@ -447,7 +447,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   <div class="app-hdr">
     <div class="ah-brand">
       <div class="ah-logo-bar" style="background:#6B46C1"></div>
-      <div class="ah-texts"><div class="at-n" style="color:#6B46C1">Supervisor</div><div class="at-s">Gestão · Idealize SV</div></div>
+      <div class="ah-texts"><div class="at-n" style="color:#6B46C1">Supervisor</div><div class="at-s" id="sup-sub">Gestão · Idealize</div></div>
     </div>
     <div class="ah-right">
       <span class="ah-badge" style="background:rgba(107,70,193,.12);color:#6B46C1">Supervisor</span>
@@ -488,7 +488,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   <div class="app-hdr">
     <div class="ah-brand">
       <div class="ah-logo-bar" style="background:var(--orange)"></div>
-      <div class="ah-texts"><div class="at-n" style="color:var(--orange-dd)">Painel Gerente</div><div class="at-s">Visualização · Idealize SV</div></div>
+      <div class="ah-texts"><div class="at-n" style="color:var(--orange-dd)">Painel Gerente</div><div class="at-s" id="ger-sub">Visualização · Idealize</div></div>
     </div>
     <div class="ah-right">
       <span class="ah-badge badge-ger">Gerente</span>
@@ -527,7 +527,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   <div class="app-hdr">
     <div class="ah-brand">
       <div class="ah-logo-bar" style="background:var(--purple)"></div>
-      <div class="ah-texts"><div class="at-n" style="color:var(--purple)">Diretor</div><div class="at-s">Direção · Idealize SV</div></div>
+      <div class="ah-texts"><div class="at-n" style="color:var(--purple)">Diretor</div><div class="at-s" id="dir-sub">Direção · Idealize — Todas as lojas</div></div>
     </div>
     <div class="ah-right">
       <span class="ah-badge badge-gest">Diretor</span>
@@ -636,22 +636,19 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 
 const SB_URL  = 'https://hqfxefdeivygcsetaknz.supabase.co';
 const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxZnhlZmRlaXZ5Z2NzZXRha256Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MTExNjMsImV4cCI6MjA5NDI4NzE2M30.KRtG-iAMKxBbKcChcWe5n58kkLWBKahYCf3gKXQzDcg';
-// LOJA detectada automaticamente pelo subdomínio
-// comercialsaovicente → sv | comercialcampinas → campinas | etc
-function detectLoja() {
-  const host = window.location.hostname;
-  if (host.includes('campinas'))   return 'campinas';
-  if (host.includes('sorocaba'))   return 'sorocaba';
-  if (host.includes('piracicaba')) return 'piracicaba';
-  if (host.includes('santos'))     return 'santos';
-  return 'sv'; // padrão: São Vicente (localhost e comercialsaovicente)
-}
-const LOJA = detectLoja();
+// LOJA vem do perfil do usuário logado — único link para todas as lojas
 const LOJA_NAMES = {
   sv: 'São Vicente', campinas: 'Campinas',
   sorocaba: 'Sorocaba', piracicaba: 'Piracicaba', santos: 'Santos'
 };
-const LOJA_NAME = LOJA_NAMES[LOJA] || 'São Vicente';
+// LOJA e LOJA_NAME são definidos após o login (ver setLojaCtx)
+let LOJA = 'sv';
+let LOJA_NAME = 'São Vicente';
+
+function setLojaCtx(lojaCode) {
+  LOJA = lojaCode || 'sv';
+  LOJA_NAME = LOJA_NAMES[LOJA] || LOJA;
+}
 
 // ── REST helpers ──
 const sbH = () => ({ 'Content-Type':'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY });
@@ -756,13 +753,16 @@ let SES = null;
 const SES_KEY = 'iz_ses_v2';
 function saveSession(u) {
   const exp = Date.now() + 12*60*60*1000;
-  localStorage.setItem(SES_KEY, JSON.stringify({ ...u, exp }));
+  // Salva loja atual no contexto da sessão
+  localStorage.setItem(SES_KEY, JSON.stringify({ ...u, _loja: LOJA, exp }));
 }
 function clearSession() { localStorage.removeItem(SES_KEY); }
 function getSavedSession() {
   try {
     const d = JSON.parse(localStorage.getItem(SES_KEY));
     if (!d || (d.exp && Date.now() > d.exp)) { clearSession(); return null; }
+    // Restaura contexto de loja salvo
+    if (d._loja) setLojaCtx(d._loja);
     return d;
   } catch { return null; }
 }
@@ -775,11 +775,28 @@ let pwdTargetUser=null;
 let _users=[], _cons=DEF_CONS, _authCode=DEF_CODE, _queue=[], _recs=[];
 
 // ════ LOAD ════
-async function loadUsers()  { try { _users  = await sbGet('iz_users', `loja=eq.${LOJA}&order=display_name`); } catch { _users=DEF_USERS; } }
+async function loadUsers()  {
+  try {
+    const isSuperDir = SES && (SES.role==='supervisor'||SES.role==='diretor');
+    const params = isSuperDir ? 'order=loja,display_name' : `loja=eq.${LOJA}&order=display_name`;
+    _users = await sbGet('iz_users', params);
+  } catch { _users=DEF_USERS; }
+}
 async function loadConfig() {
   try {
-    const r = await sbGet('iz_config', `loja=eq.${LOJA}`);
-    if (r.length) { _cons = r[0].consultants || DEF_CONS; _authCode = r[0].auth_code || DEF_CODE; }
+    // Para supervisor/diretor, carrega config de todas as lojas
+    const isSuperDir = SES && (SES.role==='supervisor'||SES.role==='diretor');
+    if (isSuperDir) {
+      const r = await sbGet('iz_config', 'order=loja');
+      _allConfigs = r;
+      // Usa primeira loja como referência para auth_code global
+      if (r.length) _authCode = r[0].auth_code || DEF_CODE;
+      // Consolida todos os consultores de todas as lojas
+      _cons = [...new Set(r.flatMap(cfg => cfg.consultants || []))];
+    } else {
+      const r = await sbGet('iz_config', `loja=eq.${LOJA}`);
+      if (r.length) { _cons = r[0].consultants || DEF_CONS; _authCode = r[0].auth_code || DEF_CODE; }
+    }
   } catch { _cons=DEF_CONS; _authCode=DEF_CODE; }
 }
 async function loadQueue()  { try { _queue = await sbGet('iz_queue', `loja=eq.${LOJA}&order=joined_at`); } catch {} }
@@ -805,7 +822,9 @@ async function loadAllConfigs() {
 let _allConfigs = [];
 
 async function saveConfig() {
-  try { await sbUpsert('iz_config', { loja:LOJA, consultants:_cons, auth_code:_authCode }); } catch(e) { console.error(e); }
+  try {
+    await sbUpsert('iz_config', { loja:LOJA, consultants:_cons, auth_code:_authCode, loja_name:LOJA_NAME });
+  } catch(e) { console.error('saveConfig:', e); }
 }
 
 // Getters
@@ -836,15 +855,12 @@ async function initApp() {
     const user = getUsers().find(x => x.username === saved.username);
     if (user) {
       SES = { ...user, consName: user.role==='consultor'?user.display_name:null };
+      const isSD = user.role==='supervisor' || user.role==='diretor';
+      setLojaCtx(isSD ? null : (user.loja || 'sv'));
       startPolling();
       await routeUser(); return;
     }
   }
-  // Atualiza textos dinâmicos por loja
-  const ll = document.getElementById('login-location');
-  const lf = document.getElementById('login-footer');
-  if (ll) ll.textContent = 'Sistema Operacional · ' + LOJA_NAME;
-  if (lf) lf.textContent = 'Acesso restrito — colaboradores Idealize ' + LOJA_NAME;
   document.getElementById('l-user').focus();
 }
 
@@ -867,6 +883,10 @@ async function doLogin() {
   if (!user) { errEl.classList.add('on'); passEl.classList.add('err'); passEl.value=''; passEl.focus(); return; }
   errEl.classList.remove('on'); passEl.classList.remove('err');
   SES = { ...user, consName: user.role==='consultor'?user.display_name:null };
+  // Define contexto de loja pelo perfil do usuário
+  // Supervisor e Diretor não têm loja fixa — veem todas
+  const isSuperDir = user.role==='supervisor' || user.role==='diretor';
+  setLojaCtx(isSuperDir ? null : (user.loja || 'sv'));
   saveSession(SES);
   startPolling();
   await routeUser();
@@ -880,19 +900,27 @@ async function routeUser() {
     document.getElementById('cr-cons').classList.remove('on');
     const cs = document.getElementById('cons-sub');
     if (cs) cs.textContent = 'Consultor · Idealize ' + LOJA_NAME;
+    // Header do consultor mostra a loja
+    const cn = document.getElementById('c-hdr-n');
+    if (cn) cn.textContent = SES.display_name;
     renderCons(); showScr('s-cons');
   } else if (SES.role==='gerente') {
-    mgrP='day'; renderRank('day','rank-body'); renderSup('day','sup-body'); renderFilaView('fila-body',false);
+    mgrP='day';
+    const gs = document.getElementById('ger-sub');
+    if (gs) gs.textContent = 'Gerente · Idealize ' + LOJA_NAME;
+    renderRank('day','rank-body'); renderSup('day','sup-body'); renderFilaView('fila-body',false);
     showGTab('ranking',null); showScr('s-ger');
   } else if (SES.role==='supervisor') {
     mgrP='day';
-    // Supervisor vê todas as lojas
+    const ss = document.getElementById('sup-sub');
+    if (ss) ss.textContent = 'Supervisor · Todas as lojas';
     await loadAllRecs(); await loadAllQueues();
     renderRank('day','rank-sup-body'); renderSup('day','sup-sup-body'); renderFilaView('fila-sup-body',false);
     showSupTab('ranking',null); showScr('s-sup');
   } else if (SES.role==='diretor') {
     mgrP='day';
-    // Diretor vê todas as lojas
+    const ds = document.getElementById('dir-sub');
+    if (ds) ds.textContent = 'Diretor · Todas as lojas';
     await loadAllRecs(); await loadAllQueues(); await loadAllUsers();
     renderRank('day','rank2-body'); renderSup('day','sup2-body'); renderFilaView('fila2-body',true);
     renderConfig(); showSTab('ranking2',null); showScr('s-gest');
@@ -1350,7 +1378,7 @@ function renderSup(p,bodyId){
     </table></div>
     <div class="sec-lbl" style="margin-top:.25rem">Registros recentes</div>
     <div class="tbl-wrap"><table class="sup-tbl">
-      <thead><tr><th>Data/Hora</th><th>Consultor</th><th>Situação</th><th>Cliente</th><th>Origem</th><th>Repique</th><th class="nr">Valor</th><th class="nr">Comissão</th></tr></thead>
+      <thead><tr><th>Data/Hora</th><th>Consultor</th><th>Loja</th><th>Situação</th><th>Cliente</th><th>Origem</th><th>Repique</th><th class="nr">Valor</th><th class="nr">Comissão</th></tr></thead>
       <tbody>${all.slice(0,60).map(r=>`<tr>
         <td style="font-family:var(--fm);font-size:11px;color:var(--tx4)">${r.data?r.data.split('-').reverse().join('/'):'—'} ${r.hora||''}</td>
         <td style="font-weight:600;font-size:12px">${r.consultant_name}</td>
@@ -1413,6 +1441,7 @@ function renderConfig(){
           <div class="cfg-meta">
             <span class="cfg-role-pill ${u.role==='diretor'?'rp-gest':u.role==='supervisor'?'rp-sup':u.role==='gerente'?'rp-ger':'rp-cons'}">${u.role==='diretor'?'Diretor':u.role==='supervisor'?'Supervisor':u.role==='gerente'?'Gerente':'Consultor'}</span>
             <span style="font-family:var(--fm);font-size:10px">@${u.username}</span>
+            <span style="font-size:10px;background:var(--teal-m);color:var(--teal-dd);padding:1px 7px;border-radius:99px;font-weight:600">${LOJA_NAMES[u.loja]||u.loja||'—'}</span>
           </div>
         </div>
         <div class="cfg-actions">
@@ -1424,6 +1453,13 @@ function renderConfig(){
         <div class="cfg-grid"><input class="cfg-inp" type="text" id="gu-name" placeholder="Nome completo"><input class="cfg-inp" type="text" id="gu-user" placeholder="usuario.login" autocapitalize="none" autocorrect="off"></div>
         <div class="cfg-inp-row"><input class="cfg-inp" type="password" id="gu-pass" placeholder="Senha inicial" style="flex:1">
           <select class="cfg-role-select" id="gu-role"><option value="consultor">Consultor</option><option value="gerente">Gerente</option><option value="supervisor">Supervisor</option><option value="diretor">Diretor</option></select>
+          <select class="cfg-role-select" id="gu-loja">
+            <option value="sv">São Vicente</option>
+            <option value="campinas">Campinas</option>
+            <option value="sorocaba">Sorocaba</option>
+            <option value="piracicaba">Piracicaba</option>
+            <option value="santos">Santos</option>
+          </select>
           <button class="cfg-add-btn" onclick="addUser()">Criar</button>
         </div>
       </div>
@@ -1447,15 +1483,40 @@ function renderConfig(){
 async function addCons(){const inp=document.getElementById('gi-cons'),name=inp.value.trim();if(!name){toast('Digite o nome','err');return;}if(_cons.map(c=>c.toLowerCase()).includes(name.toLowerCase())){toast('Já existe','err');return;}_cons.push(name);await saveConfig();inp.value='';toast('Adicionado','ok');renderConfig();}
 async function delCons(i){if(!confirm('Remover?'))return;_cons.splice(i,1);await saveConfig();toast('Removido');renderConfig();}
 async function addUser(){
-  const name=document.getElementById('gu-name').value.trim(),u=document.getElementById('gu-user').value.trim().toLowerCase(),p=document.getElementById('gu-pass').value,role=document.getElementById('gu-role').value;
-  if(!name||!u||!p){toast('Preencha todos os campos','err');return;}if(p.length<4){toast('Senha mínimo 4 caracteres','err');return;}
-  if(_users.find(x=>x.username===u)){toast('Usuário já existe','err');return;}
+  const name=document.getElementById('gu-name').value.trim();
+  const u=document.getElementById('gu-user').value.trim().toLowerCase();
+  const p=document.getElementById('gu-pass').value;
+  const role=document.getElementById('gu-role').value;
+  const lojaEl=document.getElementById('gu-loja');
+  const lojaUser=lojaEl?lojaEl.value:LOJA;
+  if(!name||!u||!p){toast('Preencha todos os campos','err');return;}
+  if(p.length<4){toast('Senha mínimo 4 caracteres','err');return;}
+  if(_users.find(x=>x.username===u&&x.loja===lojaUser)){toast('Usuário já existe nesta loja','err');return;}
   try{
-    const nu={username:u,password:p,role,display_name:name,loja:LOJA};
+    const nu={username:u,password:p,role,display_name:name,loja:lojaUser};
     await sbPost('iz_users',nu);_users.push(nu);
-    if(role==='consultor'&&!_cons.map(c=>c.toLowerCase()).includes(name.toLowerCase())){_cons.push(name);await saveConfig();}
+    // Se consultor, adiciona à lista de consultores da loja correta
+    if(role==='consultor'){
+      // Carrega config da loja do usuário e adiciona o consultor
+      try {
+        const cfgR = await sbGet('iz_config', `loja=eq.${lojaUser}`);
+        if(cfgR.length){
+          const cfg=cfgR[0];
+          const cons=cfg.consultants||[];
+          if(!cons.map(c=>c.toLowerCase()).includes(name.toLowerCase())){
+            cons.push(name);
+            await sbUpsert('iz_config',{loja:lojaUser,consultants:cons,auth_code:cfg.auth_code||DEF_CODE,loja_name:LOJA_NAMES[lojaUser]||lojaUser});
+          }
+        } else {
+          // Cria config da loja se não existe
+          await sbUpsert('iz_config',{loja:lojaUser,consultants:[name],auth_code:DEF_CODE,loja_name:LOJA_NAMES[lojaUser]||lojaUser});
+        }
+        if(lojaUser===LOJA&&!_cons.includes(name)) _cons.push(name);
+      } catch(e){console.error('addUser config:', e);}
+    }
     ['gu-name','gu-user','gu-pass'].forEach(id=>document.getElementById(id).value='');
-    toast('Usuário criado','ok');renderConfig();
+    toast(`Usuário criado — ${LOJA_NAMES[lojaUser]||lojaUser}`,'ok');
+    await loadUsers();renderConfig();
   }catch(e){toast('Erro ao criar usuário','err');console.error(e);}
 }
 async function delUser(username){
