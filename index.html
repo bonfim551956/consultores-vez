@@ -337,13 +337,23 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 .toast.err{background:var(--red-d)}.toast.warn{background:var(--orange-dd)}.toast.ok{background:var(--green)}
 
 @media(min-width:540px){.mg{grid-template-columns:repeat(4,1fr)}.mg .mi.w2{grid-column:span 1}.mg .mi.w3{grid-column:span 2}}
+
+.suptab{flex:1;min-width:80px;padding:.75rem .5rem;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx4);cursor:pointer;border:none;background:none;font-family:var(--fb);transition:all .15s;border-bottom:3px solid transparent;white-space:nowrap}
+.suptab.on{color:#6B46C1;border-bottom-color:#6B46C1;background:rgba(107,70,193,.06)}
+.supview{display:none;flex:1;overflow-y:auto}.supview.on{display:block}
+.rp-sup{background:rgba(107,70,193,.12);color:#6B46C1}
 </style>
 </head>
 <body>
 
 <!-- ═══ LOGIN ═══ -->
 <div id="loading-bar" style="display:none;position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--teal-d));z-index:9999;animation:loadbar 1s infinite linear"></div>
-<style>@keyframes loadbar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}</style>
+<style>@keyframes loadbar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.suptab{flex:1;min-width:80px;padding:.75rem .5rem;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx4);cursor:pointer;border:none;background:none;font-family:var(--fb);transition:all .15s;border-bottom:3px solid transparent;white-space:nowrap}
+.suptab.on{color:#6B46C1;border-bottom-color:#6B46C1;background:rgba(107,70,193,.06)}
+.supview{display:none;flex:1;overflow-y:auto}.supview.on{display:block}
+.rp-sup{background:rgba(107,70,193,.12);color:#6B46C1}
+</style>
 <div class="scr on" id="s-login">
   <div class="login-card">
     <div class="login-logo-area">
@@ -423,6 +433,48 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
     <div class="mqw">
       <div class="sec-lbl" style="margin-bottom:.875rem">Fila em tempo real</div>
       <div id="mini-q"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SUPERVISOR ═══ -->
+<div class="scr" id="s-sup">
+  <div class="app-hdr">
+    <div class="ah-brand">
+      <div class="ah-logo-bar" style="background:#6B46C1"></div>
+      <div class="ah-texts"><div class="at-n" style="color:#6B46C1">Supervisor</div><div class="at-s">Gestão · Idealize SV</div></div>
+    </div>
+    <div class="ah-right">
+      <span class="ah-badge" style="background:rgba(107,70,193,.12);color:#6B46C1">Supervisor</span>
+      <button class="ah-exp" onclick="exportCSV()">Exportar CSV</button>
+      <button class="ah-logout" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+  <div class="gtabs-bar">
+    <button class="suptab on" onclick="showSupTab('ranking',this)">Ranking</button>
+    <button class="suptab" onclick="showSupTab('supervisao',this)">Supervisão</button>
+    <button class="suptab" onclick="showSupTab('fila',this)">Fila ao vivo</button>
+    <button class="suptab" onclick="showSupTab('autorizacao',this)">Autorização</button>
+  </div>
+  <div class="supview on" id="sv-sup-ranking"><div class="bwrap wide" id="rank-sup-body"></div></div>
+  <div class="supview" id="sv-sup-supervisao"><div class="bwrap wide" id="sup-sup-body"></div></div>
+  <div class="supview" id="sv-sup-fila"><div class="bwrap wide" id="fila-sup-body"></div></div>
+  <div class="supview" id="sv-sup-autorizacao">
+    <div class="bwrap">
+      <div class="cfg-section" style="margin-top:1rem">
+        <div class="cfg-hd"><span class="cfg-hd-title">Autorização — Finalizar sem repique</span></div>
+        <div style="padding:1rem">
+          <div class="auth-section">
+            <div class="auth-sec-title">Código de autorização (4 dígitos)</div>
+            <div class="auth-sec-row">
+              <input type="password" id="sup-code" class="auth-code-inp" maxlength="4" inputmode="numeric" placeholder="••••">
+              <button class="auth-save-btn" onclick="saveSupCode()">Salvar</button>
+            </div>
+            <p class="auth-sec-hint">Este código é solicitado ao consultor quando uma venda perdida não teve repique. Somente o supervisor/gerente deve conhecê-lo.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -556,619 +608,484 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 
 <div class="toast" id="toast"></div>
 
-<script type="module">
+<script>
 // ════════════════════════════════════════════════
-// FIREBASE — Óticas Idealize São Vicente
+// SUPABASE — Óticas Idealize | Fila de Vez
+// Projeto: Fila Consultores | hqfxefdeivygcsetaknz
 // ════════════════════════════════════════════════
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
-  collection, addDoc, getDocs, onSnapshot, query, orderBy, where,
-  serverTimestamp, Timestamp
-} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDBDCEey5Vgm3ljAIQk67skmxPtn_yHxo4",
-  authDomain: "rodizio-vez.firebaseapp.com",
-  projectId: "rodizio-vez",
-  storageBucket: "rodizio-vez.firebasestorage.app",
-  messagingSenderId: "391605872746",
-  appId: "1:391605872746:web:33d9f439600d370fa08213"
-};
+const SB_URL  = 'https://hqfxefdeivygcsetaknz.supabase.co';
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxZnhlZmRlaXZ5Z2NzZXRha256Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MTExNjMsImV4cCI6MjA5NDI4NzE2M30.KRtG-iAMKxBbKcChcWe5n58kkLWBKahYCf3gKXQzDcg';
+const LOJA    = 'sv'; // São Vicente — trocar por 'campinas', 'sorocaba', etc nas outras lojas
 
-const app  = initializeApp(firebaseConfig);
+// ── REST helpers ──
+const sbH = () => ({ 'Content-Type':'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY });
+const sbHP = () => ({ ...sbH(), 'Prefer': 'return=representation' });
 
-// Proxy seguro: fila de chamadas enquanto módulo não carregou
-const _Q = {};
-const _proxy = name => (...args) => {
-  if (window['__' + name]) return window['__' + name](...args);
-  // Se ainda não carregou, aguarda 200ms e tenta novamente
-  setTimeout(() => { if(window['__' + name]) window['__' + name](...args); }, 200);
-};
-const db   = getFirestore(app);
+async function sbGet(table, params='') {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { headers: sbH() });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPost(table, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method:'POST', headers: sbHP(), body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPatch(table, params, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { method:'PATCH', headers: sbHP(), body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbDelete(table, params) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { method:'DELETE', headers: sbH() });
+  if (!r.ok) throw new Error(await r.text());
+}
+async function sbUpsert(table, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method:'POST', headers: { ...sbHP(), 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
 
-// ════ COLEÇÕES ════
-const COL_USERS  = 'users_sv';
-const COL_QUEUE  = 'queue_sv';
-const COL_RECS   = 'records_sv';
-const DOC_CONFIG = 'config_sv';
-const DOC_CONS   = 'consultants_sv';
+// ── Realtime via polling (Supabase Realtime requer WebSocket — polling é mais simples no HTML puro) ──
+let _pollInterval = null;
+function startPolling() {
+  if (_pollInterval) clearInterval(_pollInterval);
+  _pollInterval = setInterval(async () => {
+    await loadQueue();
+    await loadRecs();
+    const active = document.querySelector('.scr.on');
+    if (!active) return;
+    if (active.id === 's-cons' && SES) renderCons();
+    if (active.id === 's-ger' || active.id === 's-gest') refreshMgrView();
+  }, 5000); // atualiza a cada 5 segundos
+}
+function stopPolling() {
+  if (_pollInterval) { clearInterval(_pollInterval); _pollInterval = null; }
+}
+function refreshMgrView() {
+  const active = document.querySelector('.scr.on');
+  if (!active) return;
+  const isGer = active.id === 's-ger', isGest = active.id === 's-gest';
+  if (!isGer && !isGest) return;
+  const suf = isGest ? '2' : '';
+  const bodyMap = { ranking: isGest?'rank2-body':'rank-body', supervisao: isGest?'sup2-body':'sup-body', fila: isGest?'fila2-body':'fila-body' };
+  const tabMap  = { ranking: isGest?'sv-ranking2':'gv-ranking', supervisao: isGest?'sv-supervisao2':'gv-supervisao', fila: isGest?'sv-fila2':'gv-fila' };
+  for (const [name, tabId] of Object.entries(tabMap)) {
+    const el = document.getElementById(tabId);
+    if (el && el.classList.contains('on')) {
+      if (name === 'fila') renderFilaView(bodyMap.fila, isGest);
+      if (name === 'ranking') renderRank(mgrP, bodyMap.ranking);
+      if (name === 'supervisao') renderSup(mgrP, bodyMap.supervisao);
+    }
+  }
+}
 
-// ════ DADOS PADRÃO ════
+// ════ DEFAULTS ════
 const DEF_USERS = [
-  {u:'daynara',   p:'1234',         role:'consultor', name:'Daynara'},
-  {u:'ana.paula', p:'1234',         role:'consultor', name:'Ana Paula'},
-  {u:'carlos',    p:'1234',         role:'consultor', name:'Carlos'},
-  {u:'fernanda',  p:'1234',         role:'consultor', name:'Fernanda'},
-  {u:'gerente',   p:'idealize2025', role:'gerente',   name:'Gerente'},
-  {u:'gestor',    p:'admin2025',    role:'gestor',    name:'Gestor'},
+  {username:'daynara',   password:'1234',         role:'consultor', display_name:'Daynara',   loja:LOJA},
+  {username:'ana.paula', password:'1234',         role:'consultor', display_name:'Ana Paula', loja:LOJA},
+  {username:'carlos',    password:'1234',         role:'consultor', display_name:'Carlos',    loja:LOJA},
+  {username:'fernanda',  password:'1234',         role:'consultor', display_name:'Fernanda',  loja:LOJA},
+  {username:'gerente',   password:'idealize2025', role:'gerente',   display_name:'Gerente',   loja:LOJA},
+  {username:'supervisor',password:'super2025',    role:'supervisor',display_name:'Supervisor',loja:LOJA},
+  {username:'gestor',    password:'admin2025',    role:'gestor',    display_name:'Gestor',    loja:LOJA},
 ];
-const DEF_CONS  = ['Daynara','Ana Paula','Carlos','Fernanda'];
-const DEF_CODE  = '1234';
+const DEF_CONS = ['Daynara','Ana Paula','Carlos','Fernanda'];
+const DEF_CODE = '1234';
 
-// ════ STATE ════
+// ════ SESSION ════
 let SES = null;
-const SES_KEY = 'iz_session';
-
-function saveSession(user) {
-  const expires = Date.now() + (12 * 60 * 60 * 1000); // 12 horas
-  localStorage.setItem(SES_KEY, JSON.stringify({
-    u: user.u, role: user.role, name: user.name, consName: user.consName, expires
-  }));
+const SES_KEY = 'iz_ses_v2';
+function saveSession(u) {
+  const exp = Date.now() + 12*60*60*1000;
+  localStorage.setItem(SES_KEY, JSON.stringify({ ...u, exp }));
 }
-function clearSession() {
-  localStorage.removeItem(SES_KEY);
-}
+function clearSession() { localStorage.removeItem(SES_KEY); }
 function getSavedSession() {
   try {
-    const data = JSON.parse(localStorage.getItem(SES_KEY));
-    if (!data) return null;
-    // Verifica expiração — sessão dura 12h (um expediente completo)
-    if (data.expires && Date.now() > data.expires) {
-      clearSession();
-      return null;
-    }
-    return data;
+    const d = JSON.parse(localStorage.getItem(SES_KEY));
+    if (!d || (d.exp && Date.now() > d.exp)) { clearSession(); return null; }
+    return d;
   } catch { return null; }
 }
-let metP = 'day', mgrP = 'day';
-let customDe = '', customAte = '';
-let mgrCustomDe = '', mgrCustomAte = '';
-let selSit_ = null, selMeio_ = null, selRep_ = null, authOk = false;
-let pwdTargetIdx = null;
 
-// Cache local para evitar leituras desnecessárias
-let _users = null, _cons = null, _authCode = null;
-let _queue = [], _recs = [];
+// ════ STATE ════
+let metP='day', mgrP='day', customDe='', customAte='', mgrCustomDe='', mgrCustomAte='';
+let selSit_=null, selMeio_=null, selRep_=null, authOk=false;
+let pwdTargetUser=null;
+let _users=[], _cons=DEF_CONS, _authCode=DEF_CODE, _queue=[], _recs=[];
 
-// Listeners em tempo real
-let unsubQueue = null, unsubRecs = null;
+// ════ LOAD ════
+async function loadUsers()  { try { _users  = await sbGet('iz_users', `loja=eq.${LOJA}&order=display_name`); } catch { _users=DEF_USERS; } }
+async function loadConfig() {
+  try {
+    const r = await sbGet('iz_config', `loja=eq.${LOJA}`);
+    if (r.length) { _cons = r[0].consultants || DEF_CONS; _authCode = r[0].auth_code || DEF_CODE; }
+  } catch { _cons=DEF_CONS; _authCode=DEF_CODE; }
+}
+async function loadQueue()  { try { _queue = await sbGet('iz_queue', `loja=eq.${LOJA}&order=joined_at`); } catch {} }
+async function loadRecs()   { try { _recs  = await sbGet('iz_records', `loja=eq.${LOJA}&order=created_at.desc&limit=500`); } catch {} }
 
-// ════ INIT — carrega configurações base ════
+async function saveConfig() {
+  try { await sbUpsert('iz_config', { loja:LOJA, consultants:_cons, auth_code:_authCode }); } catch(e) { console.error(e); }
+}
+
+// Getters
+const getUsers   = () => _users.length ? _users : DEF_USERS;
+const getCons    = () => _cons;
+const getQ       = () => _queue;
+const getRecs    = () => _recs;
+const getCode    = () => _authCode || DEF_CODE;
+
+// ════ INIT ════
 async function initApp() {
   showLoading(true);
   try {
-    // Inicializa usuários se não existem
-    const cfgRef = doc(db, 'config', DOC_CONFIG);
-    const cfgSnap = await getDoc(cfgRef);
-    if (!cfgSnap.exists()) {
-      await setDoc(cfgRef, { authCode: DEF_CODE, cons: DEF_CONS });
-      // Cria usuários padrão
-      for (const u of DEF_USERS) {
-        await setDoc(doc(db, COL_USERS, u.u), u);
-      }
+    await Promise.all([loadUsers(), loadConfig(), loadQueue(), loadRecs()]);
+    // Seed usuários padrão se banco vazio
+    if (!_users.length) {
+      for (const u of DEF_USERS) { try { await sbPost('iz_users', u); } catch {} }
+      _users = [...DEF_USERS];
     }
-    // Carrega config
-    const cfg = cfgSnap.exists() ? cfgSnap.data() : { authCode: DEF_CODE, cons: DEF_CONS };
-    _authCode = cfg.authCode || DEF_CODE;
-    _cons = cfg.cons || DEF_CONS;
-    // Carrega usuários
-    const usersSnap = await getDocs(collection(db, COL_USERS));
-    _users = usersSnap.empty ? DEF_USERS : usersSnap.docs.map(d => d.data());
-  } catch(e) {
-    console.error('Init error:', e);
-    // Fallback offline
-    _users = DEF_USERS; _cons = DEF_CONS; _authCode = DEF_CODE;
-  }
+    if (!_cons.length) { await saveConfig(); }
+  } catch(e) { console.error('Init:', e); }
+
   showLoading(false);
-  // Restaura sessão salva (F5 não desloga)
-  // Sessão expira em 12h — ao abrir novo dia, pede login novamente
+
+  // Restaura sessão
   const saved = getSavedSession();
-  if (saved && _users) {
-    const user = _users.find(x => x.u === saved.u);
-    if (user && user.p) { // Valida que usuário ainda existe e tem senha
-      SES = { ...user, consName: user.role === 'consultor' ? user.name : null };
-      startQueueListener();
-      startRecsListener();
-      if (SES.role === 'consultor') {
-        document.getElementById('c-hdr-n').textContent = SES.name;
-        document.querySelectorAll('.mtab').forEach((t,i) => t.classList.toggle('on', i===0));
-        metP = 'day';
-        document.getElementById('cr-cons').classList.remove('on');
-        renderCons();
-        showScr('s-cons');
-        return;
-      } else if (SES.role === 'gerente') {
-        mgrP = 'day';
-        renderRank('day','rank-body'); renderSup('day','sup-body'); renderFilaView('fila-body',false);
-        showGTab('ranking',null); showScr('s-ger');
-        return;
-      } else if (SES.role === 'gestor') {
-        mgrP = 'day';
-        renderRank('day','rank2-body'); renderSup('day','sup2-body'); renderFilaView('fila2-body',true);
-        renderConfig(); showSTab('ranking2',null); showScr('s-gest');
-        return;
-      }
+  if (saved) {
+    const user = getUsers().find(x => x.username === saved.username);
+    if (user) {
+      SES = { ...user, consName: user.role==='consultor'?user.display_name:null };
+      startPolling();
+      routeUser(); return;
     }
   }
   document.getElementById('l-user').focus();
 }
 
-function showLoading(show) {
-  document.getElementById('loading-bar').style.display = show ? 'block' : 'none';
-}
-
-// ════ GETTERS ════
-const getUsers   = () => _users || DEF_USERS;
-const getCons    = () => _cons  || DEF_CONS;
-const getQ       = () => _queue;
-const getRecs    = () => _recs;
-const getCode    = () => _authCode || DEF_CODE;
-
-// ════ LISTENERS TEMPO REAL ════
-function startQueueListener() {
-  if (unsubQueue) unsubQueue();
-  unsubQueue = onSnapshot(collection(db, COL_QUEUE), snap => {
-    _queue = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    _queue.sort((a,b) => (a.joinedAt?.seconds||0) - (b.joinedAt?.seconds||0));
-    const active = document.querySelector('.scr.on');
-    if (!active) return;
-    // Consultor: atualiza hero + mini fila
-    if (active.id === 's-cons' && SES) renderCons();
-    // Gerente: atualiza fila ao vivo + ranking + supervisão em tempo real
-    if (active.id === 's-ger') {
-      const filaTab = document.getElementById('gv-fila');
-      if (filaTab && filaTab.classList.contains('on')) renderFilaView('fila-body', false);
-      // Atualiza ranking e supervisão silenciosamente (sem trocar aba)
-      const rankTab = document.getElementById('gv-ranking');
-      if (rankTab && rankTab.classList.contains('on')) renderRank(mgrP, 'rank-body');
-      const supTab = document.getElementById('gv-supervisao');
-      if (supTab && supTab.classList.contains('on')) renderSup(mgrP, 'sup-body');
-    }
-    // Gestor: igual ao gerente
-    if (active.id === 's-gest') {
-      const filaTab = document.getElementById('sv-fila2');
-      if (filaTab && filaTab.classList.contains('on')) renderFilaView('fila2-body', true);
-      const rankTab = document.getElementById('sv-ranking2');
-      if (rankTab && rankTab.classList.contains('on')) renderRank(mgrP, 'rank2-body');
-      const supTab = document.getElementById('sv-supervisao2');
-      if (supTab && supTab.classList.contains('on')) renderSup(mgrP, 'sup2-body');
-    }
-  });
-}
-
-function startRecsListener() {
-  if (unsubRecs) unsubRecs();
-  unsubRecs = onSnapshot(
-    query(collection(db, COL_RECS), orderBy('ts', 'desc')),
-    snap => {
-      _recs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const active = document.querySelector('.scr.on');
-      if (!active) return;
-      // Consultor: atualiza métricas
-      if (active.id === 's-cons' && SES) { renderMet(); renderMiniQ(); }
-      // Gerente: atualiza aba ativa
-      if (active.id === 's-ger') {
-        const rankTab = document.getElementById('gv-ranking');
-        if (rankTab && rankTab.classList.contains('on')) renderRank(mgrP, 'rank-body');
-        const supTab = document.getElementById('gv-supervisao');
-        if (supTab && supTab.classList.contains('on')) renderSup(mgrP, 'sup-body');
-      }
-      // Gestor: atualiza aba ativa
-      if (active.id === 's-gest') {
-        const rankTab = document.getElementById('sv-ranking2');
-        if (rankTab && rankTab.classList.contains('on')) renderRank(mgrP, 'rank2-body');
-        const supTab = document.getElementById('sv-supervisao2');
-        if (supTab && supTab.classList.contains('on')) renderSup(mgrP, 'sup2-body');
-      }
-    }
-  );
-}
-
-function stopListeners() {
-  if (unsubQueue) { unsubQueue(); unsubQueue = null; }
-  if (unsubRecs)  { unsubRecs();  unsubRecs  = null; }
-}
-
-// ════ NAV ════
-const showScr = id => {
-  document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
-};
+function showLoading(v) { document.getElementById('loading-bar').style.display = v?'block':'none'; }
 
 // ════ LOGIN ════
 async function doLogin() {
   const u = document.getElementById('l-user').value.trim().toLowerCase();
   const p = document.getElementById('l-pass').value;
+  const errEl = document.getElementById('login-err'), passEl = document.getElementById('l-pass');
 
-  const errEl  = document.getElementById('login-err');
-  const passEl = document.getElementById('l-pass');
-
-  // Busca usuário no cache ou Firestore
-  let user = getUsers().find(x => x.u === u && x.p === p);
+  let user = getUsers().find(x => x.username===u && x.password===p);
   if (!user) {
+    // Tenta buscar direto no banco
     try {
-      const snap = await getDoc(doc(db, COL_USERS, u));
-      if (snap.exists() && snap.data().p === p) user = snap.data();
-    } catch(e) {}
+      const r = await sbGet('iz_users', `username=eq.${encodeURIComponent(u)}&password=eq.${encodeURIComponent(p)}&loja=eq.${LOJA}`);
+      if (r.length) user = r[0];
+    } catch {}
   }
-
-  if (!user) {
-    errEl.classList.add('on');
-    passEl.classList.add('err');
-    passEl.value = ''; passEl.focus(); return;
-  }
+  if (!user) { errEl.classList.add('on'); passEl.classList.add('err'); passEl.value=''; passEl.focus(); return; }
   errEl.classList.remove('on'); passEl.classList.remove('err');
-  SES = { ...user, consName: user.role === 'consultor' ? user.name : null };
+  SES = { ...user, consName: user.role==='consultor'?user.display_name:null };
   saveSession(SES);
+  startPolling();
+  routeUser();
+}
 
-  startQueueListener();
-  startRecsListener();
-
-  if (user.role === 'consultor') {
-    document.getElementById('c-hdr-n').textContent = user.name;
-    document.querySelectorAll('.mtab').forEach((t,i) => t.classList.toggle('on', i===0));
-    metP = 'day'; customDe = ''; customAte = '';
+function routeUser() {
+  if (SES.role==='consultor') {
+    document.getElementById('c-hdr-n').textContent = SES.display_name;
+    document.querySelectorAll('.mtab').forEach((t,i)=>t.classList.toggle('on',i===0));
+    metP='day'; customDe=''; customAte='';
     document.getElementById('cr-cons').classList.remove('on');
     renderCons(); showScr('s-cons');
-  } else if (user.role === 'gerente') {
-    mgrP = 'day'; mgrCustomDe = ''; mgrCustomAte = '';
-    renderRank('day','rank-body'); renderSup('day','sup-body'); renderFilaView('fila-body',false);
+  } else if (SES.role==='gerente') {
+    mgrP='day'; renderRank('day','rank-body'); renderSup('day','sup-body'); renderFilaView('fila-body',false);
     showGTab('ranking',null); showScr('s-ger');
-  } else if (user.role === 'gestor') {
-    mgrP = 'day'; mgrCustomDe = ''; mgrCustomAte = '';
-    renderRank('day','rank2-body'); renderSup('day','sup2-body'); renderFilaView('fila2-body',true);
+  } else if (SES.role==='supervisor') {
+    mgrP='day'; renderRank('day','rank-body'); renderSup('day','sup-body'); renderFilaView('fila-body',false);
+    showGTab('ranking',null); showScr('s-sup');
+  } else if (SES.role==='gestor') {
+    mgrP='day'; renderRank('day','rank2-body'); renderSup('day','sup2-body'); renderFilaView('fila2-body',true);
     renderConfig(); showSTab('ranking2',null); showScr('s-gest');
   }
 }
 
 function doLogout() {
-  stopListeners();
-  SES = null;
-  clearSession();
-  document.getElementById('l-user').value = '';
-  document.getElementById('l-pass').value = '';
-  showScr('s-login');
-  setTimeout(() => document.getElementById('l-user').focus(), 200);
+  stopPolling(); SES=null; clearSession();
+  document.getElementById('l-user').value=''; document.getElementById('l-pass').value='';
+  showScr('s-login'); setTimeout(()=>document.getElementById('l-user').focus(),200);
 }
 
-// ════ CONSULTOR — RENDER ════
+const showScr = id => { document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on')); document.getElementById(id).classList.add('on'); };
+
+// ════ CONSULTOR ════
 function renderCons() {
-  const name = SES.consName, q = getQ();
-  const e    = q.find(x => x.name === name);
-  const inQ  = q.filter(x => x.status === 'queue');
-  const pos  = inQ.findIndex(x => x.name === name);
-  const isNext = pos === 0 && e?.status === 'queue';
-
-  const hero = document.getElementById('hero');
-  hero.className = 'hero';
-  hero.querySelector('.h-pill')?.remove();
-
-  const eye = document.getElementById('h-eye');
-  const ttl = document.getElementById('h-ttl');
-  const sub = document.getElementById('h-sub');
-
-  if (!e) {
-    eye.textContent = 'Status atual'; ttl.textContent = 'Fora da fila';
-    sub.textContent = 'Toque abaixo para entrar na fila e começar a atender.';
-  } else if (e.status === 'attending') {
-    hero.classList.add('ha');
-    eye.textContent = 'Em atendimento'; ttl.textContent = 'Atendendo cliente';
-    sub.textContent = 'Registre o resultado ao finalizar para retornar à fila.';
-  } else if (isNext) {
-    hero.classList.add('hn');
-    eye.textContent = 'Sua vez'; ttl.textContent = 'Próximo da fila';
-    sub.textContent = 'Chame o cliente e inicie o atendimento agora.';
-    hero.insertAdjacentHTML('beforeend', `<div class="h-pill">Posição #1</div>`);
-  } else {
-    eye.textContent = 'Na fila'; ttl.textContent = `${pos+1}º na fila`;
-    sub.textContent = `Você ocupa a ${pos+1}ª posição. Aguarde.`;
-    hero.insertAdjacentHTML('beforeend', `<div class="h-pill">Posição #${pos+1}</div>`);
-  }
-
-  const ac = document.getElementById('act-col');
-  if (!e)
-    ac.innerHTML = `<button class="abtn abt" onclick="enterQ()">Entrar na fila</button>`;
-  else if (e.status === 'attending')
-    ac.innerHTML = `<button class="abtn abt" onclick="openReg()">Finalizar e registrar</button>`;
-  else if (isNext)
-    ac.innerHTML = `<button class="abtn abo" onclick="startAtt()">Iniciar atendimento</button><button class="abtn abr" onclick="leaveQ()">Sair da fila</button>`;
-  else
-    ac.innerHTML = `<button class="abtn abr" onclick="leaveQ()">Sair da fila</button>`;
-
-  renderMet();
-  renderMiniQ();
+  const name=SES.consName, q=getQ();
+  const e=q.find(x=>x.consultant_name===name);
+  const inQ=q.filter(x=>x.status==='queue');
+  const pos=inQ.findIndex(x=>x.consultant_name===name);
+  const isNext=pos===0&&e?.status==='queue';
+  const hero=document.getElementById('hero');
+  hero.className='hero'; hero.querySelector('.h-pill')?.remove();
+  const eye=document.getElementById('h-eye'),ttl=document.getElementById('h-ttl'),sub=document.getElementById('h-sub');
+  if(!e){eye.textContent='Status atual';ttl.textContent='Fora da fila';sub.textContent='Toque abaixo para entrar na fila e começar a atender.';}
+  else if(e.status==='attending'){hero.classList.add('ha');eye.textContent='Em atendimento';ttl.textContent='Atendendo cliente';sub.textContent='Registre o resultado ao finalizar para retornar à fila.';}
+  else if(isNext){hero.classList.add('hn');eye.textContent='Sua vez';ttl.textContent='Próximo da fila';sub.textContent='Chame o cliente e inicie o atendimento agora.';hero.insertAdjacentHTML('beforeend',`<div class="h-pill">Posição #1</div>`);}
+  else{eye.textContent='Na fila';ttl.textContent=`${pos+1}º na fila`;sub.textContent=`Você ocupa a ${pos+1}ª posição. Aguarde.`;hero.insertAdjacentHTML('beforeend',`<div class="h-pill">Posição #${pos+1}</div>`);}
+  const ac=document.getElementById('act-col');
+  if(!e) ac.innerHTML=`<button class="abtn abt" onclick="enterQ()">Entrar na fila</button>`;
+  else if(e.status==='attending') ac.innerHTML=`<button class="abtn abt" onclick="openReg()">Finalizar e registrar</button>`;
+  else if(isNext) ac.innerHTML=`<button class="abtn abo" onclick="startAtt()">Iniciar atendimento</button><button class="abtn abr" onclick="leaveQ()">Sair da fila</button>`;
+  else ac.innerHTML=`<button class="abtn abr" onclick="leaveQ()">Sair da fila</button>`;
+  renderMet(); renderMiniQ();
 }
 
 function renderMiniQ() {
-  const q   = getQ();
-  const att = q.filter(x => x.status === 'attending');
-  const inQ = q.filter(x => x.status === 'queue');
-  const all = [...att, ...inQ];
-  const myName = SES.consName;
-  let h = '';
-  all.forEach((e, i) => {
-    const isA = e.status === 'attending';
-    const isN = !isA && i === att.length;
-    const isMe = e.name === myName;
-    const p = isA ? '>' : isN ? '1' : String(i - att.length + 1);
-    h += `<div class="mq-row"><span class="mq-pos">${p}</span><div class="mq-av ${isA?'o':isN?'t':''}">${ini(e.name)}</div><span class="mq-name ${isMe?'me':''}">${e.name}${isMe?' (você)':''}</span>${isA?`<span class="mq-tag">Atendendo</span>`:''}</div>`;
+  const q=getQ(),att=q.filter(x=>x.status==='attending'),inQ=q.filter(x=>x.status==='queue');
+  const all=[...att,...inQ],myName=SES.consName;
+  let h='';
+  all.forEach((e,i)=>{
+    const isA=e.status==='attending',isN=!isA&&i===att.length,isMe=e.consultant_name===myName;
+    const p=isA?'>':isN?'1':String(i-att.length+1);
+    h+=`<div class="mq-row"><span class="mq-pos">${p}</span><div class="mq-av ${isA?'o':isN?'t':''}">${ini(e.consultant_name)}</div><span class="mq-name ${isMe?'me':''}">${e.consultant_name}${isMe?' (você)':''}</span>${isA?`<span class="mq-tag">Atendendo</span>`:''}</div>`;
   });
-  document.getElementById('mini-q').innerHTML = h || `<div style="text-align:center;padding:1.25rem;color:var(--tx4);font-size:13px">Nenhum consultor na fila</div>`;
+  document.getElementById('mini-q').innerHTML=h||`<div style="text-align:center;padding:1.25rem;color:var(--tx4);font-size:13px">Nenhum consultor na fila</div>`;
 }
 
-function setMP(p, el) {
-  metP = p;
-  document.querySelectorAll('#s-cons .mtab').forEach(t => t.classList.remove('on'));
-  el.classList.add('on');
-  const cr = document.getElementById('cr-cons');
-  if (p === 'custom') { cr.classList.add('on'); }
-  else { cr.classList.remove('on'); customDe = ''; customAte = ''; renderMet(); }
+function setMP(p,el){
+  metP=p;
+  document.querySelectorAll('#s-cons .mtab').forEach(t=>t.classList.remove('on')); el.classList.add('on');
+  const cr=document.getElementById('cr-cons');
+  if(p==='custom'){cr.classList.add('on');}else{cr.classList.remove('on');customDe='';customAte='';renderMet();}
 }
-function applyCustomCons() {
-  customDe = document.getElementById('cr-cons-de').value;
-  customAte = document.getElementById('cr-cons-ate').value;
-  if (!customDe || !customAte) { toast('Selecione as duas datas','err'); return; }
-  renderMet();
+function applyCustomCons(){
+  customDe=document.getElementById('cr-cons-de').value; customAte=document.getElementById('cr-cons-ate').value;
+  if(!customDe||!customAte){toast('Selecione as duas datas','err');return;} renderMet();
 }
-
 function renderMet() {
-  const base = getRecs().filter(r => r.consultor === SES.consName);
-  const mr   = filtP(base, metP, customDe, customAte);
-  const tot  = mr.length;
-  const v    = mr.filter(r => r.situacao === 'VENDA').length;
-  const p    = mr.filter(r => r.situacao === 'PERDIDA').length;
-  const tx   = tot > 0 ? Math.round(v/tot*100) : 0;
-  const fat  = mr.reduce((s,r) => s+(r.valor||0), 0);
-  const ent  = mr.reduce((s,r) => s+(r.entrada||0), 0);
-  const tmed = v > 0 ? fat/v : 0;
-  document.getElementById('met-body').innerHTML = `
+  const base=getRecs().filter(r=>r.consultant_name===SES.consName);
+  const mr=filtP(base,metP,customDe,customAte);
+  const tot=mr.length,v=mr.filter(r=>r.situacao==='VENDA').length,p=mr.filter(r=>r.situacao==='PERDIDA').length;
+  const tx=tot>0?Math.round(v/tot*100):0;
+  const fat=mr.reduce((s,r)=>s+(r.valor||0),0),ent=mr.reduce((s,r)=>s+(r.entrada||0),0);
+  const tmed=v>0?fat/v:0;
+  const repSim=mr.filter(r=>r.repique==='SIM').length;
+  const txRepAtend=tot>0?Math.round(repSim/tot*100):0;
+  const txRepVenda=v>0?Math.round(repSim/v*100):0;
+  document.getElementById('met-body').innerHTML=`
     <div class="mg">
       <div class="mi"><div class="mv">${tot}</div><div class="ml">Atendimentos</div></div>
       <div class="mi"><div class="mv t">${v}</div><div class="ml">Vendas</div></div>
       <div class="mi"><div class="mv ${tx>=50?'t':'o'}">${tx}%</div><div class="ml">Conversão</div></div>
       <div class="mi"><div class="mv r">${p}</div><div class="ml">Perdidas</div></div>
-      <div class="mi w2"><div class="mv b" style="font-size:13px">${fmtK(tmed)}</div><div class="ml">Ticket médio</div></div>
+      <div class="mi"><div class="mv b" style="font-size:14px">${fmtK(tmed)}</div><div class="ml">Ticket médio</div></div>
       <div class="mi"><div class="mv o" style="font-size:13px">${fmt(ent)}</div><div class="ml">Comissão</div></div>
+      <div class="mi"><div class="mv ${txRepAtend>=30?'t':'o'}">${txRepAtend}%</div><div class="ml">Repique/Atend.</div></div>
+      <div class="mi"><div class="mv ${txRepVenda>=50?'t':'o'}">${txRepVenda}%</div><div class="ml">Repique/Venda</div></div>
       <div class="mi w3"><div class="mv t" style="font-size:14px">${fmt(fat)}</div><div class="ml">Faturado</div></div>
     </div>`;
 }
 
-// ════ FILA — AÇÕES FIRESTORE ════
+// ════ FILA ACTIONS ════
 async function enterQ() {
-  const name = SES.consName;
-  if (_queue.find(x => x.name === name)) return;
+  const name=SES.consName;
+  if(_queue.find(x=>x.consultant_name===name)){toast('Você já está na fila','warn');return;}
   try {
-    await setDoc(doc(db, COL_QUEUE, name), {
-      name, status: 'queue', joinedAt: serverTimestamp()
-    });
-    toast('Você entrou na fila', 'ok');
-  } catch(e) { toast('Erro ao entrar na fila','err'); }
+    await sbUpsert('iz_queue',{consultant_name:name,loja:LOJA,status:'queue',joined_at:new Date().toISOString()});
+    await loadQueue(); renderCons(); toast('Você entrou na fila','ok');
+  } catch(e){toast('Erro ao entrar na fila','err');console.error(e);}
 }
-
 async function leaveQ() {
-  if (!confirm('Confirma saída da fila?')) return;
+  if(!confirm('Confirma saída da fila?'))return;
   try {
-    await deleteDoc(doc(db, COL_QUEUE, SES.consName));
-    toast('Você saiu da fila');
-  } catch(e) { toast('Erro ao sair da fila','err'); }
+    await sbDelete('iz_queue',`consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${LOJA}`);
+    await loadQueue(); renderCons(); toast('Você saiu da fila');
+  } catch(e){toast('Erro','err');}
 }
-
 async function startAtt() {
   try {
-    await updateDoc(doc(db, COL_QUEUE, SES.consName), { status: 'attending' });
-    toast('Bom atendimento');
-  } catch(e) { toast('Erro','err'); }
+    await sbPatch('iz_queue',`consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${LOJA}`,{status:'attending'});
+    await loadQueue(); renderCons(); toast('Bom atendimento');
+  } catch(e){toast('Erro','err');console.error(e);}
 }
 
 // ════ MODAL REGISTRO ════
-function openReg() {
-  selSit_ = null; selMeio_ = null; selRep_ = null; authOk = false;
-  document.querySelectorAll('.sit-chip').forEach(c => c.className = 'sit-chip');
-  ['t-ri','t-re','t-rsim','t-rnao'].forEach(id => { const el = document.getElementById(id); if(el) el.className = 'tbtn'; });
-  ['m-val','m-ent','m-cli','m-pro','m-mot'].forEach(id => { document.getElementById(id).value = ''; document.getElementById(id).classList.remove('err'); });
-  document.querySelectorAll('.emsg').forEach(e => e.classList.remove('on'));
-  document.getElementById('fg-rep').style.display = 'none';
+function openReg(){
+  selSit_=null;selMeio_=null;selRep_=null;authOk=false;
+  document.querySelectorAll('.sit-chip').forEach(c=>c.className='sit-chip');
+  ['t-ri','t-re','t-rsim','t-rnao'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='tbtn';});
+  ['m-val','m-ent','m-cli','m-pro','m-mot'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id).classList.remove('err');});
+  document.querySelectorAll('.emsg').forEach(e=>e.classList.remove('on'));
+  document.getElementById('fg-rep').style.display='none';
   document.getElementById('auth-banner').classList.remove('on');
-  document.getElementById('mot-req').style.display = 'inline';
-  document.getElementById('mot-opt').style.display = 'none';
-  document.getElementById('m-mot').placeholder = 'Descreva o motivo da perda...';
-  document.getElementById('reg-sub').textContent = `${SES.consName} — campos com * são obrigatórios`;
+  document.getElementById('mot-req').style.display='inline';
+  document.getElementById('mot-opt').style.display='none';
+  document.getElementById('m-mot').placeholder='Descreva o motivo da perda...';
+  document.getElementById('reg-sub').textContent=`${SES.consName} — campos com * são obrigatórios`;
   document.getElementById('ov-reg').classList.add('on');
 }
-
-function selSit(s) {
-  selSit_ = s; selRep_ = null; authOk = false;
-  document.querySelectorAll('.sit-chip').forEach(c => c.className = 'sit-chip');
+function selSit(s){
+  selSit_=s;selRep_=null;authOk=false;
+  document.querySelectorAll('.sit-chip').forEach(c=>c.className='sit-chip');
   document.getElementById(s==='VENDA'?'sc-v':'sc-p').classList.add(s==='VENDA'?'sv':'sp');
   document.getElementById('err-sit').classList.remove('on');
-  document.querySelectorAll('.sit-chip').forEach(c => c.classList.remove('serr'));
-  document.getElementById('fg-rep').style.display = 'block';
+  document.querySelectorAll('.sit-chip').forEach(c=>c.classList.remove('serr'));
+  document.getElementById('fg-rep').style.display='block';
   document.getElementById('auth-banner').classList.remove('on');
-  document.getElementById('t-rsim').className = 'tbtn';
-  document.getElementById('t-rnao').className = 'tbtn';
+  document.getElementById('t-rsim').className='tbtn';
+  document.getElementById('t-rnao').className='tbtn';
   document.getElementById('err-rep').classList.remove('on');
-  document.getElementById('tog-rep').querySelectorAll('.tbtn').forEach(b => b.classList.remove('terr'));
-  // PERDIDA sem repique exige auth. VENDA: livre
-  document.getElementById('t-rnao').textContent = s==='PERDIDA' ? 'Não — requer autorização' : 'Não';
-  const lost = s === 'PERDIDA';
-  document.getElementById('mot-req').style.display = lost ? 'inline' : 'none';
-  document.getElementById('mot-opt').style.display = lost ? 'none' : 'inline';
-  document.getElementById('m-mot').placeholder = lost ? 'Descreva o motivo da perda...' : 'Observações (opcional)';
+  document.getElementById('tog-rep').querySelectorAll('.tbtn').forEach(b=>b.classList.remove('terr'));
+  document.getElementById('t-rnao').textContent=s==='PERDIDA'?'Não — requer autorização':'Não';
+  const lost=s==='PERDIDA';
+  document.getElementById('mot-req').style.display=lost?'inline':'none';
+  document.getElementById('mot-opt').style.display=lost?'none':'inline';
+  document.getElementById('m-mot').placeholder=lost?'Descreva o motivo da perda...':'Observações (opcional)';
 }
-function selMeio(m) {
-  selMeio_ = m;
-  document.getElementById('t-ri').className = 'tbtn'+(m==='RI'?' selt':'');
-  document.getElementById('t-re').className = 'tbtn'+(m==='RE'?' selt':'');
+function selMeio(m){
+  selMeio_=m;
+  document.getElementById('t-ri').className='tbtn'+(m==='RI'?' selt':'');
+  document.getElementById('t-re').className='tbtn'+(m==='RE'?' selt':'');
   document.getElementById('err-meio').classList.remove('on');
-  document.getElementById('tog-meio').querySelectorAll('.tbtn').forEach(b => b.classList.remove('terr'));
+  document.getElementById('tog-meio').querySelectorAll('.tbtn').forEach(b=>b.classList.remove('terr'));
 }
-function selRep(r) {
-  selRep_ = r; authOk = false;
-  document.getElementById('t-rsim').className = 'tbtn'+(r==='SIM'?' selt':'');
-  document.getElementById('t-rnao').className = 'tbtn'+(r==='NÃO'?' selt':'');
+function selRep(r){
+  selRep_=r;authOk=false;
+  document.getElementById('t-rsim').className='tbtn'+(r==='SIM'?' selt':'');
+  document.getElementById('t-rnao').className='tbtn'+(r==='NÃO'?' selt':'');
   document.getElementById('err-rep').classList.remove('on');
   document.getElementById('auth-banner').classList.remove('on');
 }
-function trySelNao() {
-  if (selSit_ === 'PERDIDA') {
-    document.getElementById('auth-inp').value = '';
-    document.getElementById('err-auth').classList.remove('on');
-    document.getElementById('ov-auth').classList.add('on');
-  } else {
-    selRep('NÃO');
-  }
+function trySelNao(){
+  if(selSit_==='PERDIDA'){document.getElementById('auth-inp').value='';document.getElementById('err-auth').classList.remove('on');document.getElementById('ov-auth').classList.add('on');}
+  else{selRep('NÃO');}
 }
-function tryNoRep() { trySelNao(); }
-
-function checkAuth() {
-  const c = document.getElementById('auth-inp').value.trim();
-  if (c === getCode()) {
-    authOk = true; closeOv('ov-auth'); selRep_ = 'NÃO';
-    document.getElementById('t-rsim').className = 'tbtn';
-    document.getElementById('t-rnao').className = 'tbtn selt';
-    document.getElementById('err-rep').classList.remove('on');
-    document.getElementById('auth-banner').classList.add('on');
-    toast('Autorizado pelo gerente', 'ok');
-  } else {
-    document.getElementById('err-auth').classList.add('on');
-    document.getElementById('auth-inp').value = '';
-    toast('Código incorreto', 'err');
-  }
+function tryNoRep(){trySelNao();}
+function checkAuth(){
+  const c=document.getElementById('auth-inp').value.trim();
+  if(c===getCode()){authOk=true;closeOv('ov-auth');selRep_='NÃO';document.getElementById('t-rsim').className='tbtn';document.getElementById('t-rnao').className='tbtn selt';document.getElementById('err-rep').classList.remove('on');document.getElementById('auth-banner').classList.add('on');toast('Autorizado pelo gerente','ok');}
+  else{document.getElementById('err-auth').classList.add('on');document.getElementById('auth-inp').value='';toast('Código incorreto','err');}
 }
-function closeOv(id) { document.getElementById(id).classList.remove('on'); }
+function closeOv(id){document.getElementById(id).classList.remove('on');}
 
-async function submitReg() {
-  let ok = true;
-  if (!selSit_) { document.getElementById('err-sit').classList.add('on'); document.querySelectorAll('.sit-chip').forEach(c=>c.classList.add('serr')); ok=false; }
-  if (!selMeio_) { document.getElementById('err-meio').classList.add('on'); document.getElementById('tog-meio').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr')); ok=false; }
-  if (!selRep_) { document.getElementById('err-rep').classList.add('on'); document.getElementById('tog-rep').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr')); ok=false; }
-  if (selSit_==='PERDIDA' && selRep_==='NÃO' && !authOk) { toast('Necessária autorização do gerente para perdida sem repique','warn'); return; }
-  [['m-val','err-val',v=>v.trim()!==''&&parseFloat(v)>=0],['m-ent','err-ent',v=>v.trim()!==''&&parseFloat(v)>=0],['m-cli','err-cli',v=>v.trim().length>0],['m-pro','err-pro',v=>v.trim().length>0]].forEach(([fid,eid,fn])=>{
-    const el=document.getElementById(fid);
-    if(!fn(el.value)){el.classList.add('err');document.getElementById(eid).classList.add('on');ok=false;}
-    else{el.classList.remove('err');document.getElementById(eid).classList.remove('on');}
-  });
-  const motEl = document.getElementById('m-mot');
-  if (selSit_==='PERDIDA' && !motEl.value.trim()) { motEl.classList.add('err'); document.getElementById('err-mot').classList.add('on'); ok=false; }
-  else { motEl.classList.remove('err'); document.getElementById('err-mot').classList.remove('on'); }
-  if (!ok) { toast('Preencha os campos obrigatórios','err'); return; }
+async function submitReg(){
+  let ok=true;
+  if(!selSit_){document.getElementById('err-sit').classList.add('on');document.querySelectorAll('.sit-chip').forEach(c=>c.classList.add('serr'));ok=false;}
+  if(!selMeio_){document.getElementById('err-meio').classList.add('on');document.getElementById('tog-meio').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr'));ok=false;}
+  if(!selRep_){document.getElementById('err-rep').classList.add('on');document.getElementById('tog-rep').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr'));ok=false;}
+  if(selSit_==='PERDIDA'&&selRep_==='NÃO'&&!authOk){toast('Necessária autorização do gerente','warn');return;}
+  [['m-val','err-val',v=>v.trim()!==''&&parseFloat(v)>=0],['m-ent','err-ent',v=>v.trim()!==''&&parseFloat(v)>=0],['m-cli','err-cli',v=>v.trim().length>0],['m-pro','err-pro',v=>v.trim().length>0]].forEach(([fid,eid,fn])=>{const el=document.getElementById(fid);if(!fn(el.value)){el.classList.add('err');document.getElementById(eid).classList.add('on');ok=false;}else{el.classList.remove('err');document.getElementById(eid).classList.remove('on');}});
+  const motEl=document.getElementById('m-mot');
+  if(selSit_==='PERDIDA'&&!motEl.value.trim()){motEl.classList.add('err');document.getElementById('err-mot').classList.add('on');ok=false;}
+  else{motEl.classList.remove('err');document.getElementById('err-mot').classList.remove('on');}
+  if(!ok){toast('Preencha os campos obrigatórios','err');return;}
 
-  const v = parseFloat(document.getElementById('m-val').value)||0;
-  const e = parseFloat(document.getElementById('m-ent').value)||0;
-  const now = new Date();
-  const rec = {
-    ts: serverTimestamp(),
-    data: dStr(now),
-    hora: now.toTimeString().slice(0,5),
-    consultor: SES.consName,
-    situacao: selSit_,
-    meio: selMeio_,
-    repique: selRep_ || '—',
-    repAut: selSit_==='PERDIDA' && selRep_==='NÃO' ? authOk : false,
-    valor: v,
-    entrada: e,
-    pct: v>0 ? Math.round(e/v*100) : 0,
-    cliente: document.getElementById('m-cli').value.trim(),
-    produto: document.getElementById('m-pro').value.trim(),
-    motivo: document.getElementById('m-mot').value.trim()
+  const v=parseFloat(document.getElementById('m-val').value)||0;
+  const e=parseFloat(document.getElementById('m-ent').value)||0;
+  const now=new Date();
+  const rec={
+    loja:LOJA,
+    data:dStr(now),
+    hora:now.toTimeString().slice(0,5),
+    consultant_name:SES.consName,
+    situacao:selSit_,
+    meio:selMeio_,
+    repique:selRep_||'—',
+    rep_autorizado:selSit_==='PERDIDA'&&selRep_==='NÃO'?authOk:false,
+    valor:v, entrada:e,
+    pct:v>0?Math.round(e/v*100):0,
+    cliente:document.getElementById('m-cli').value.trim(),
+    produto:document.getElementById('m-pro').value.trim(),
+    motivo:document.getElementById('m-mot').value.trim()
   };
-
   try {
-    await addDoc(collection(db, COL_RECS), rec);
+    await sbPost('iz_records', rec);
     // Volta pro final da fila
-    await updateDoc(doc(db, COL_QUEUE, SES.consName), {
-      status: 'queue',
-      joinedAt: serverTimestamp()
-    });
+    await sbDelete('iz_queue',`consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${LOJA}`);
+    await sbPost('iz_queue',{consultant_name:SES.consName,loja:LOJA,status:'queue',joined_at:new Date().toISOString()});
+    await loadQueue(); await loadRecs();
     closeOv('ov-reg');
-    toast(selSit_==='VENDA' ? 'Venda registrada com sucesso' : 'Atendimento registrado', 'ok');
-  } catch(err) {
-    toast('Erro ao salvar registro','err');
-    console.error(err);
-  }
+    toast(selSit_==='VENDA'?'Venda registrada com sucesso':'Atendimento registrado','ok');
+    renderCons();
+  } catch(err){toast('Erro ao salvar','err');console.error(err);}
 }
 
-// ════ TABS GERENTE ════
-function showGTab(tab, el) {
-  document.querySelectorAll('.gtab').forEach(t => t.classList.remove('on'));
-  document.querySelectorAll('.gview').forEach(v => v.classList.remove('on'));
+// ════ TABS ════
+function showGTab(tab,el){
+  document.querySelectorAll('.gtab,.suptab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.gview').forEach(v=>v.classList.remove('on'));
   document.getElementById('gv-'+tab).classList.add('on');
-  if (el) el.classList.add('on');
-  else document.querySelectorAll('.gtab').forEach(t => { if(t.textContent.toLowerCase().includes(tab==='fila'?'fila':tab==='supervisao'?'super':'rank')) t.classList.add('on'); });
-  if (tab==='ranking')    renderRank(mgrP,'rank-body');
-  if (tab==='supervisao') renderSup(mgrP,'sup-body');
-  if (tab==='fila')       renderFilaView('fila-body',false);
+  if(el)el.classList.add('on');
+  if(tab==='ranking')renderRank(mgrP,'rank-body');
+  if(tab==='supervisao')renderSup(mgrP,'sup-body');
+  if(tab==='fila')renderFilaView('fila-body',false);
 }
-function showSTab(tab, el) {
-  document.querySelectorAll('.stab').forEach(t => t.classList.remove('on'));
-  document.querySelectorAll('.sview').forEach(v => v.classList.remove('on'));
+function showSupTab(tab,el){
+  document.querySelectorAll('.suptab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.supview').forEach(v=>v.classList.remove('on'));
+  document.getElementById('sv-sup-'+tab).classList.add('on');
+  if(el)el.classList.add('on');
+  if(tab==='ranking')renderRank(mgrP,'rank-sup-body');
+  if(tab==='supervisao')renderSup(mgrP,'sup-sup-body');
+  if(tab==='fila')renderFilaView('fila-sup-body',false);
+}
+function showSTab(tab,el){
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.sview').forEach(v=>v.classList.remove('on'));
   document.getElementById('sv-'+tab).classList.add('on');
-  if (el) el.classList.add('on');
-  else document.querySelectorAll('.stab').forEach(t => { if(t.textContent.toLowerCase().includes(tab.includes('config')?'config':tab.includes('fila')?'fila':tab.includes('super')?'super':'rank')) t.classList.add('on'); });
-  if (tab==='ranking2')    renderRank(mgrP,'rank2-body');
-  if (tab==='supervisao2') renderSup(mgrP,'sup2-body');
-  if (tab==='fila2')       renderFilaView('fila2-body',true);
-  if (tab==='config')      renderConfig();
+  if(el)el.classList.add('on');
+  if(tab==='ranking2')renderRank(mgrP,'rank2-body');
+  if(tab==='supervisao2')renderSup(mgrP,'sup2-body');
+  if(tab==='fila2')renderFilaView('fila2-body',true);
+  if(tab==='config')renderConfig();
 }
 
-// ════ PERIOD TABS ════
-function ptHTML(p, fnR, fnS, crId) {
-  return `<div class="ptabs">
+// ════ PERIOD HTML ════
+function ptHTML(p,fnR,fnS,crId){
+  return`<div class="ptabs">
     <button class="ptab ${p==='day'?'on':''}" onclick="${fnR}('day');${fnS}('day')">Hoje</button>
     <button class="ptab ${p==='week'?'on':''}" onclick="${fnR}('week');${fnS}('week')">Semana</button>
     <button class="ptab ${p==='month'?'on':''}" onclick="${fnR}('month');${fnS}('month')">Mês</button>
     <button class="ptab custom-tab ${p==='custom'?'on':''}" onclick="openMgrCustom('${crId}','${fnR}','${fnS}')">Personalizado</button>
   </div>
   <div class="custom-range ${p==='custom'?'on':''}" id="${crId}">
-    <span class="cr-lbl">De</span>
-    <input type="date" class="cr-inp" id="${crId}-de" value="${mgrCustomDe}">
-    <span class="cr-lbl">até</span>
-    <input type="date" class="cr-inp" id="${crId}-ate" value="${mgrCustomAte}">
+    <span class="cr-lbl">De</span><input type="date" class="cr-inp" id="${crId}-de" value="${mgrCustomDe}">
+    <span class="cr-lbl">até</span><input type="date" class="cr-inp" id="${crId}-ate" value="${mgrCustomAte}">
     <button class="cr-apply" onclick="applyMgrCustom('${crId}','${fnR}','${fnS}')">Aplicar</button>
-  </div>`;
-}
-function openMgrCustom(crId, fnR, fnS) {
-  mgrP = 'custom';
-  document.getElementById(crId).classList.add('on');
-}
-function applyMgrCustom(crId, fnR, fnS) {
-  mgrCustomDe = document.getElementById(crId+'-de').value;
-  mgrCustomAte = document.getElementById(crId+'-ate').value;
-  if (!mgrCustomDe || !mgrCustomAte) { toast('Selecione as duas datas','err'); return; }
-  window[fnR]('custom'); window[fnS]('custom');
+  </div>`;}
+function openMgrCustom(crId,fnR,fnS){mgrP='custom';document.getElementById(crId).classList.add('on');}
+function applyMgrCustom(crId,fnR,fnS){
+  mgrCustomDe=document.getElementById(crId+'-de').value;mgrCustomAte=document.getElementById(crId+'-ate').value;
+  if(!mgrCustomDe||!mgrCustomAte){toast('Selecione as duas datas','err');return;}
+  window[fnR]('custom');window[fnS]('custom');
 }
 
-// ════ RANKING ════
-function renderRank(p, bodyId) {
-  if (p) mgrP = p;
-  const recs = getRecs(), cons = getCons(), all = filtP(recs, mgrP, mgrCustomDe, mgrCustomAte);
-  const tot=all.length, v=all.filter(r=>r.situacao==='VENDA').length;
-  const fat=all.reduce((s,r)=>s+(r.valor||0),0), ent=all.reduce((s,r)=>s+(r.entrada||0),0);
-  const tmed=v>0?fat/v:0, tx=tot>0?Math.round(v/tot*100):0;
+// ════ RANKING com taxas de repique e conversão ════
+function renderRank(p,bodyId){
+  if(p)mgrP=p;
+  const recs=getRecs(),cons=getCons(),all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
+  const tot=all.length,v=all.filter(r=>r.situacao==='VENDA').length;
+  const fat=all.reduce((s,r)=>s+(r.valor||0),0),ent=all.reduce((s,r)=>s+(r.entrada||0),0);
+  const tmed=v>0?fat/v:0,tx=tot>0?Math.round(v/tot*100):0;
+  const repAll=all.filter(r=>r.repique==='SIM').length;
   const pLbl={day:'Hoje',week:'Esta semana',month:'Este mês',custom:mgrCustomDe&&mgrCustomAte?`${fmtDate(mgrCustomDe)} a ${fmtDate(mgrCustomAte)}`:'Período personalizado'};
-  const isGest = bodyId==='rank2-body';
-  const fnR = isGest?'rRankGest':'rRankGer';
-  const fnS = isGest?'rSupGest':'rSupGer';
-  const crId = isGest?'cr-rank2':'cr-rank';
-  const rows = cons.map(name => {
-    const r2=all.filter(r=>r.consultor===name);
-    const t2=r2.length, v2=r2.filter(r=>r.situacao==='VENDA').length, tx2=t2>0?Math.round(v2/t2*100):0;
-    const f2=r2.reduce((s,r)=>s+(r.valor||0),0), c2=r2.reduce((s,r)=>s+(r.entrada||0),0);
-    return{name,tot:t2,vend:v2,tx:tx2,fat:f2,tmed:v2>0?f2/v2:0,perd:r2.filter(r=>r.situacao==='PERDIDA').length,com:c2};
+  const isGest=bodyId==='rank2-body',isSup=bodyId==='rank-sup-body';
+  const fnR=isGest?'rRankGest':isSup?'rRankSup':'rRankGer';
+  const fnS=isGest?'rSupGest':isSup?'rSupSup':'rSupGer';
+  const crId=isGest?'cr-rank2':isSup?'cr-rank-sup':'cr-rank';
+
+  const rows=cons.map(name=>{
+    const r2=all.filter(r=>r.consultant_name===name);
+    const t2=r2.length,v2=r2.filter(r=>r.situacao==='VENDA').length,p2=r2.filter(r=>r.situacao==='PERDIDA').length;
+    const tx2=t2>0?Math.round(v2/t2*100):0;
+    const f2=r2.reduce((s,r)=>s+(r.valor||0),0),c2=r2.reduce((s,r)=>s+(r.entrada||0),0);
+    const rep2=r2.filter(r=>r.repique==='SIM').length;
+    const txRepA=t2>0?Math.round(rep2/t2*100):0; // repique/atendimentos
+    const txRepV=v2>0?Math.round(rep2/v2*100):0; // repique/vendas
+    return{name,tot:t2,vend:v2,perd:p2,tx:tx2,fat:f2,tmed:v2>0?f2/v2:0,com:c2,rep:rep2,txRepA,txRepV};
   }).sort((a,b)=>b.tx-a.tx||b.fat-a.fat);
-  const maxTx = Math.max(...rows.map(r=>r.tx), 1);
-  document.getElementById(bodyId).innerHTML = `
+  const maxTx=Math.max(...rows.map(r=>r.tx),1);
+
+  document.getElementById(bodyId).innerHTML=`
     ${ptHTML(mgrP,fnR,fnS,crId)}
     <div class="ov-grid">
       <div class="ov-card t"><div class="ov-lbl">Atendimentos</div><div class="ov-val">${tot}</div><div class="ov-sub">${pLbl[mgrP]}</div></div>
@@ -1185,45 +1102,51 @@ function renderRank(p, bodyId) {
         <div style="text-align:right"><div class="rep-tx">${r.tx}%</div><div class="rep-txl">conversão</div></div>
       </div>
       <div class="bar-bg"><div class="bar-fg" style="width:${Math.round(r.tx/maxTx*100)}%"></div></div>
-      <div class="rep-mets">
+      <div class="rep-mets" style="grid-template-columns:repeat(6,1fr)">
         <div class="rm"><div class="rm-v t">${r.vend}</div><div class="rm-l">Vendas</div></div>
         <div class="rm"><div class="rm-v r">${r.perd}</div><div class="rm-l">Perdidas</div></div>
         <div class="rm"><div class="rm-v o" style="font-size:11px">${fmt(r.tmed)}</div><div class="rm-l">Ticket</div></div>
         <div class="rm"><div class="rm-v b" style="font-size:11px">${fmt(r.com)}</div><div class="rm-l">Comissão</div></div>
+        <div class="rm"><div class="rm-v ${r.txRepA>=30?'t':'o'}">${r.txRepA}%</div><div class="rm-l">Rep/Atend</div></div>
+        <div class="rm"><div class="rm-v ${r.txRepV>=50?'t':'o'}">${r.txRepV}%</div><div class="rm-l">Rep/Venda</div></div>
       </div>
     </div>`).join('')}`;
 }
-function rRankGer(p)  { renderRank(p,'rank-body'); }
-function rRankGest(p) { renderRank(p,'rank2-body'); }
+function rRankGer(p){renderRank(p,'rank-body');}
+function rRankSup(p){renderRank(p,'rank-sup-body');}
+function rRankGest(p){renderRank(p,'rank2-body');}
 
 // ════ SUPERVISÃO ════
-function renderSup(p, bodyId) {
-  if (p) mgrP = p;
-  const recs=getRecs(), cons=getCons(), all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
+function renderSup(p,bodyId){
+  if(p)mgrP=p;
+  const recs=getRecs(),cons=getCons(),all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
   const pLbl={day:'Hoje',week:'Esta semana',month:'Este mês',custom:mgrCustomDe&&mgrCustomAte?`${fmtDate(mgrCustomDe)} a ${fmtDate(mgrCustomAte)}`:'Período personalizado'};
-  const isGest = bodyId==='sup2-body';
-  const fnR=isGest?'rRankGest':'rRankGer';
-  const fnS=isGest?'rSupGest':'rSupGer';
-  const crId=isGest?'cr-sup2':'cr-sup';
-  const tot=all.length, vend=all.filter(r=>r.situacao==='VENDA').length, perd=all.filter(r=>r.situacao==='PERDIDA').length;
+  const isGest=bodyId==='sup2-body',isSup=bodyId==='sup-sup-body';
+  const fnR=isGest?'rRankGest':isSup?'rRankSup':'rRankGer';
+  const fnS=isGest?'rSupGest':isSup?'rSupSup':'rSupGer';
+  const crId=isGest?'cr-sup2':isSup?'cr-sup-sup':'cr-sup';
+  const tot=all.length,vend=all.filter(r=>r.situacao==='VENDA').length,perd=all.filter(r=>r.situacao==='PERDIDA').length;
   const tx=tot>0?Math.round(vend/tot*100):0;
-  const fat=all.reduce((s,r)=>s+(r.valor||0),0), com=all.reduce((s,r)=>s+(r.entrada||0),0);
+  const fat=all.reduce((s,r)=>s+(r.valor||0),0),com=all.reduce((s,r)=>s+(r.entrada||0),0);
+  const repTot=all.filter(r=>r.repique==='SIM').length;
+  const txRepG=tot>0?Math.round(repTot/tot*100):0;
   const rows=cons.map(name=>{
-    const r2=all.filter(r=>r.consultor===name);
+    const r2=all.filter(r=>r.consultant_name===name);
     const t2=r2.length,v2=r2.filter(r=>r.situacao==='VENDA').length,p2=r2.filter(r=>r.situacao==='PERDIDA').length;
-    return{name,tot:t2,vend:v2,perd:p2,tx:t2>0?Math.round(v2/t2*100):0,fat:r2.reduce((s,r)=>s+(r.valor||0),0),com:r2.reduce((s,r)=>s+(r.entrada||0),0)};
+    const rep2=r2.filter(r=>r.repique==='SIM').length;
+    return{name,tot:t2,vend:v2,perd:p2,tx:t2>0?Math.round(v2/t2*100):0,fat:r2.reduce((s,r)=>s+(r.valor||0),0),com:r2.reduce((s,r)=>s+(r.entrada||0),0),txRepA:t2>0?Math.round(rep2/t2*100):0,txRepV:v2>0?Math.round(rep2/v2*100):0};
   });
-  document.getElementById(bodyId).innerHTML = `
+  document.getElementById(bodyId).innerHTML=`
     ${ptHTML(mgrP,fnR,fnS,crId)}
     <div class="ov-grid">
       <div class="ov-card t"><div class="ov-lbl">Total atendimentos</div><div class="ov-val">${tot}</div><div class="ov-sub">${pLbl[mgrP]}</div></div>
-      <div class="ov-card t"><div class="ov-lbl">Convertidos</div><div class="ov-val t">${vend}</div></div>
+      <div class="ov-card t"><div class="ov-lbl">Convertidos</div><div class="ov-val t">${vend}</div><div class="ov-sub">Taxa ${tx}%</div></div>
       <div class="ov-card r"><div class="ov-lbl">Perdidos</div><div class="ov-val r">${perd}</div></div>
-      <div class="ov-card ${tx>=50?'t':'o'}"><div class="ov-lbl">Conversão geral</div><div class="ov-val ${tx>=50?'t':'o'}">${tx}%</div></div>
+      <div class="ov-card ${txRepG>=30?'t':'o'}"><div class="ov-lbl">Taxa de repique</div><div class="ov-val ${txRepG>=30?'t':'o'}">${txRepG}%</div><div class="ov-sub">${repTot} repiques</div></div>
     </div>
     <div class="sec-lbl">Resultados por consultor — ${pLbl[mgrP]}</div>
     <div class="tbl-wrap"><table class="sup-tbl">
-      <thead><tr><th>Consultor</th><th class="nr">Atend.</th><th class="nr">Vendas</th><th class="nr">Perdas</th><th class="nr">Conversão</th><th class="nr">Faturado</th><th class="nr">Comissão</th></tr></thead>
+      <thead><tr><th>Consultor</th><th class="nr">Atend.</th><th class="nr">Vendas</th><th class="nr">Perdas</th><th class="nr">Conversão</th><th class="nr">Rep/Atend</th><th class="nr">Rep/Venda</th><th class="nr">Faturado</th><th class="nr">Comissão</th></tr></thead>
       <tbody>
         ${rows.sort((a,b)=>b.tx-a.tx).map(r=>`<tr>
           <td><div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:50%;background:var(--teal-l);border:1.5px solid var(--teal-b);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:10px;font-weight:800;color:var(--teal-dd)">${ini(r.name)}</div><span style="font-weight:600;font-size:13px">${r.name}</span></div></td>
@@ -1231,92 +1154,92 @@ function renderSup(p, bodyId) {
           <td class="nr"><span class="sbdg sbv">${r.vend}</span></td>
           <td class="nr"><span class="sbdg sbp">${r.perd}</span></td>
           <td class="nr"><span class="${r.tx>=60?'txg':r.tx>=40?'txa':'txr'}">${r.tx}%</span></td>
+          <td class="nr"><span class="${r.txRepA>=30?'txg':'txa'}">${r.txRepA}%</span></td>
+          <td class="nr"><span class="${r.txRepV>=50?'txg':'txa'}">${r.txRepV}%</span></td>
           <td class="nr" style="font-size:12px">${fmt(r.fat)}</td>
           <td class="nr" style="font-size:12px;color:var(--blue)">${fmt(r.com)}</td>
         </tr>`).join('')}
-        <tr class="tot"><td><strong>TOTAL</strong></td><td class="nr"><strong>${tot}</strong></td><td class="nr"><strong>${vend}</strong></td><td class="nr"><strong>${perd}</strong></td><td class="nr"><strong class="${tx>=60?'txg':tx>=40?'txa':'txr'}">${tx}%</strong></td><td class="nr"><strong>${fmt(fat)}</strong></td><td class="nr" style="color:var(--blue)"><strong>${fmt(com)}</strong></td></tr>
+        <tr class="tot"><td><strong>TOTAL</strong></td><td class="nr"><strong>${tot}</strong></td><td class="nr"><strong>${vend}</strong></td><td class="nr"><strong>${perd}</strong></td><td class="nr"><strong class="${tx>=60?'txg':tx>=40?'txa':'txr'}">${tx}%</strong></td><td class="nr"><strong>${txRepG}%</strong></td><td class="nr">—</td><td class="nr"><strong>${fmt(fat)}</strong></td><td class="nr" style="color:var(--blue)"><strong>${fmt(com)}</strong></td></tr>
       </tbody>
     </table></div>
     <div class="sec-lbl" style="margin-top:.25rem">Registros recentes</div>
     <div class="tbl-wrap"><table class="sup-tbl">
-      <thead><tr><th>Data / Hora</th><th>Consultor</th><th>Situação</th><th>Cliente</th><th>Origem</th><th>Repique</th><th class="nr">Valor</th><th class="nr">Comissão</th></tr></thead>
-      <tbody>
-        ${all.slice(0,60).map(r=>`<tr>
-          <td style="font-family:var(--fm);font-size:11px;color:var(--tx4)">${r.data?r.data.split('-').reverse().join('/'):'—'} ${r.hora||''}</td>
-          <td style="font-weight:600;font-size:12px">${r.consultor}</td>
-          <td><span class="sbdg ${r.situacao==='VENDA'?'sbv':'sbp'}">${r.situacao==='VENDA'?'Venda':'Perdida'}</span></td>
-          <td style="font-size:12px;max-width:100px;overflow:hidden;text-overflow:ellipsis">${r.cliente||'—'}</td>
-          <td style="font-size:11px;color:var(--tx4)">${r.meio==='RI'?'Rec. Interna':'Rec. Externa'}</td>
-          <td style="font-size:11px;color:var(--tx4)">${r.repique==='SIM'?'Sim':r.repique==='NÃO'?'Não'+(r.repAut?' *':''):'—'}</td>
-          <td class="nr" style="font-size:12px">${r.valor?fmt(r.valor):'—'}</td>
-          <td class="nr" style="font-size:12px;color:var(--blue)">${r.entrada?fmt(r.entrada):'—'}</td>
-        </tr>`).join('')||`<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--tx4)">Nenhum registro no período</td></tr>`}
+      <thead><tr><th>Data/Hora</th><th>Consultor</th><th>Situação</th><th>Cliente</th><th>Origem</th><th>Repique</th><th class="nr">Valor</th><th class="nr">Comissão</th></tr></thead>
+      <tbody>${all.slice(0,60).map(r=>`<tr>
+        <td style="font-family:var(--fm);font-size:11px;color:var(--tx4)">${r.data?r.data.split('-').reverse().join('/'):'—'} ${r.hora||''}</td>
+        <td style="font-weight:600;font-size:12px">${r.consultant_name}</td>
+        <td><span class="sbdg ${r.situacao==='VENDA'?'sbv':'sbp'}">${r.situacao==='VENDA'?'Venda':'Perdida'}</span></td>
+        <td style="font-size:12px;max-width:100px;overflow:hidden;text-overflow:ellipsis">${r.cliente||'—'}</td>
+        <td style="font-size:11px;color:var(--tx4)">${r.meio==='RI'?'Rec. Interna':'Rec. Externa'}</td>
+        <td style="font-size:11px;color:var(--tx4)">${r.repique==='SIM'?'Sim':r.repique==='NÃO'?'Não'+(r.rep_autorizado?' *':''):'—'}</td>
+        <td class="nr" style="font-size:12px">${r.valor?fmt(r.valor):'—'}</td>
+        <td class="nr" style="font-size:12px;color:var(--blue)">${r.entrada?fmt(r.entrada):'—'}</td>
+      </tr>`).join('')||`<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--tx4)">Nenhum registro no período</td></tr>`}
       </tbody>
     </table></div>
-    <p style="font-size:11px;color:var(--tx4);margin-top:4px">* Finalização sem repique autorizada pelo gerente</p>`;
+    <p style="font-size:11px;color:var(--tx4);margin-top:4px">* Finalização sem repique autorizada</p>`;
 }
-function rSupGer(p)  { renderSup(p,'sup-body'); }
-function rSupGest(p) { renderSup(p,'sup2-body'); }
+function rSupGer(p){renderSup(p,'sup-body');}
+function rSupSup(p){renderSup(p,'sup-sup-body');}
+function rSupGest(p){renderSup(p,'sup2-body');}
 
 // ════ FILA AO VIVO ════
-function renderFilaView(bodyId, canClear) {
-  const q    = getQ(), cons = getCons(), recs = getRecs(), today = dStr(new Date());
-  const att  = q.filter(x => x.status==='attending');
-  const inQ  = q.filter(x => x.status==='queue');
-  const off  = cons.filter(n => !q.find(x => x.name===n));
-  const mkCard = (e, st, pos) => {
-    const mr = recs.filter(r => r.consultor===e.name && r.data===today);
-    const v = mr.filter(r=>r.situacao==='VENDA').length, t = mr.length;
-    const cls = {next:'cn',queue:'',attending:'ca'};
-    const bdg = {next:`<span class="qbdg qbn">Próximo</span>`,queue:`<span class="qbdg qbq">#${pos}</span>`,attending:`<span class="qbdg qba">Atendendo</span>`};
-    return `<div class="q-card ${cls[st]||''}"><div class="q-av">${ini(e.name)}</div><div class="q-info"><div class="q-name">${e.name}</div><div class="q-mini"><div class="qm">Hoje: <span class="qmv">${t}</span></div><div class="qm">Vendas: <span class="qmv t">${v}</span></div>${t>0?`<div class="qm">Conv: <span class="qmv ${Math.round(v/t*100)>=50?'t':'o'}">${Math.round(v/t*100)}%</span></div>`:''}</div></div>${bdg[st]}</div>`;
+function renderFilaView(bodyId,canClear){
+  const q=getQ(),cons=getCons(),recs=getRecs(),today=dStr(new Date());
+  const att=q.filter(x=>x.status==='attending'),inQ=q.filter(x=>x.status==='queue'),off=cons.filter(n=>!q.find(x=>x.consultant_name===n));
+  const mkCard=(e,st,pos)=>{
+    const mr=recs.filter(r=>r.consultant_name===e.consultant_name&&r.data===today);
+    const v=mr.filter(r=>r.situacao==='VENDA').length,t=mr.length;
+    const cls={next:'cn',queue:'',attending:'ca'};
+    const bdg={next:`<span class="qbdg qbn">Próximo</span>`,queue:`<span class="qbdg qbq">#${pos}</span>`,attending:`<span class="qbdg qba">Atendendo</span>`};
+    return`<div class="q-card ${cls[st]||''}"><div class="q-av">${ini(e.consultant_name)}</div><div class="q-info"><div class="q-name">${e.consultant_name}</div><div class="q-mini"><div class="qm">Hoje:<span class="qmv">${t}</span></div><div class="qm">Vendas:<span class="qmv t">${v}</span></div>${t>0?`<div class="qm">Conv:<span class="qmv ${Math.round(v/t*100)>=50?'t':'o'}">${Math.round(v/t*100)}%</span></div>`:''}</div></div>${bdg[st]}</div>`;
   };
-  let h = '';
-  if (att.length) { h+=`<div class="sec-lbl">Em atendimento</div><div class="q-list">${att.map(e=>mkCard(e,'attending',null)).join('')}</div>`; }
-  if (inQ.length) { h+=`<div class="sec-lbl">Na fila</div><div class="q-list">${inQ.map((e,i)=>mkCard(e,i===0?'next':'queue',i+1)).join('')}</div>`; }
-  if (off.length) {
-    h += `<div class="sec-lbl">Fora da fila</div><div class="q-list">`;
-    off.forEach(n => { const mr=recs.filter(r=>r.consultor===n&&r.data===today); h+=`<div class="q-card co"><div class="q-av">${ini(n)}</div><div class="q-info"><div class="q-name">${n}</div><div class="q-sub">Fora da fila · ${mr.length} atend. hoje</div></div><span class="qbdg qbo">Inativo</span></div>`; });
-    h += `</div>`;
-  }
-  if (!h) h = `<div style="text-align:center;padding:3rem;color:var(--tx4);font-size:13px">Nenhum consultor na fila no momento</div>`;
-  if (canClear) h += `<button class="danger-btn" style="margin-top:4px" onclick="clearQueue('${bodyId}')">Limpar fila — fim do expediente</button>`;
-  document.getElementById(bodyId).innerHTML = h;
+  let h='';
+  if(att.length){h+=`<div class="sec-lbl">Em atendimento</div><div class="q-list">${att.map(e=>mkCard(e,'attending',null)).join('')}</div>`;}
+  if(inQ.length){h+=`<div class="sec-lbl">Na fila</div><div class="q-list">${inQ.map((e,i)=>mkCard(e,i===0?'next':'queue',i+1)).join('')}</div>`;}
+  if(off.length){h+=`<div class="sec-lbl">Fora da fila</div><div class="q-list">`;off.forEach(n=>{const mr=recs.filter(r=>r.consultant_name===n&&r.data===today);h+=`<div class="q-card co"><div class="q-av">${ini(n)}</div><div class="q-info"><div class="q-name">${n}</div><div class="q-sub">Fora da fila · ${mr.length} atend. hoje</div></div><span class="qbdg qbo">Inativo</span></div>`;});h+=`</div>`;}
+  if(!h)h=`<div style="text-align:center;padding:3rem;color:var(--tx4);font-size:13px">Nenhum consultor na fila</div>`;
+  if(canClear)h+=`<button class="danger-btn" style="margin-top:4px" onclick="clearQueue('${bodyId}')">Limpar fila — fim do expediente</button>`;
+  document.getElementById(bodyId).innerHTML=h;
 }
-
-async function clearQueue(bodyId) {
-  if (!confirm('Limpar fila agora?')) return;
-  try {
-    const snap = await getDocs(collection(db, COL_QUEUE));
-    const dels = snap.docs.map(d => deleteDoc(doc(db, COL_QUEUE, d.id)));
-    await Promise.all(dels);
-    toast('Fila limpa', 'ok');
-  } catch(e) { toast('Erro ao limpar fila','err'); }
+async function clearQueue(bodyId){
+  if(!confirm('Limpar fila agora?'))return;
+  try{await sbDelete('iz_queue',`loja=eq.${LOJA}`);await loadQueue();renderFilaView(bodyId,bodyId.includes('2'));toast('Fila limpa','ok');}
+  catch(e){toast('Erro','err');}
 }
 
 // ════ CONFIGURAÇÕES (Gestor) ════
-function renderConfig() {
-  const cons=getCons(), users=getUsers();
-  document.getElementById('config-body').innerHTML = `
+function renderConfig(){
+  const cons=getCons(),users=getUsers();
+  document.getElementById('config-body').innerHTML=`
     <div class="cfg-section">
       <div class="cfg-hd"><span class="cfg-hd-title">Consultores da fila</span><span class="cfg-hd-count">${cons.length} cadastrado(s)</span></div>
       ${cons.map((c,i)=>`<div class="cfg-row"><div class="cfg-av">${ini(c)}</div><div class="cfg-info"><div class="cfg-name">${c}</div><div class="cfg-meta"><span class="cfg-role-pill rp-cons">Consultor</span></div></div><div class="cfg-actions"><button class="cfg-btn cb-del" onclick="delCons(${i})">Remover</button></div></div>`).join('')}
-      <div class="cfg-add-block">
-        <div class="cfg-add-title">Adicionar consultor à fila</div>
+      <div class="cfg-add-block"><div class="cfg-add-title">Adicionar consultor à fila</div>
         <div class="cfg-inp-row"><input class="cfg-inp" type="text" id="gi-cons" placeholder="Nome completo" style="flex:1"><button class="cfg-add-btn" onclick="addCons()">Adicionar</button></div>
       </div>
     </div>
     <div class="cfg-section">
       <div class="cfg-hd"><span class="cfg-hd-title">Usuários do sistema</span><span class="cfg-hd-count">${users.length} usuário(s)</span></div>
       ${users.map((u,i)=>`<div class="cfg-row">
-        <div class="cfg-av ${u.role==='gerente'?'ger':u.role==='gestor'?'gest':''}">${ini(u.name)}</div>
-        <div class="cfg-info"><div class="cfg-name">${u.name}</div><div class="cfg-meta"><span class="cfg-role-pill ${u.role==='gerente'?'rp-ger':u.role==='gestor'?'rp-gest':'rp-cons'}">${u.role==='gestor'?'Gestor':u.role==='gerente'?'Gerente':'Consultor'}</span><span style="font-family:var(--fm);font-size:10px">@${u.u}</span></div></div>
-        <div class="cfg-actions"><button class="cfg-btn cb-pwd" onclick="openPwd(${i})">Senha</button>${u.role==='consultor'?`<button class="cfg-btn cb-del" onclick="delUser(${i})">Remover</button>`:'<span style="font-size:10px;color:var(--tx4);padding:0 4px">Fixo</span>'}</div>
+        <div class="cfg-av ${u.role==='gerente'?'ger':u.role==='supervisor'?'ger':u.role==='gestor'?'gest':''}">${ini(u.display_name)}</div>
+        <div class="cfg-info"><div class="cfg-name">${u.display_name}</div>
+          <div class="cfg-meta">
+            <span class="cfg-role-pill ${u.role==='gestor'?'rp-gest':u.role==='supervisor'?'rp-sup':u.role==='gerente'?'rp-ger':'rp-cons'}">${u.role==='gestor'?'Gestor':u.role==='supervisor'?'Supervisor':u.role==='gerente'?'Gerente':'Consultor'}</span>
+            <span style="font-family:var(--fm);font-size:10px">@${u.username}</span>
+          </div>
+        </div>
+        <div class="cfg-actions">
+          <button class="cfg-btn cb-pwd" onclick="openPwd('${u.username}')">Senha</button>
+          ${u.role==='consultor'||u.role==='gerente'||u.role==='supervisor'?`<button class="cfg-btn cb-del" onclick="delUser('${u.username}')">Remover</button>`:'<span style="font-size:10px;color:var(--tx4);padding:0 4px">Fixo</span>'}
+        </div>
       </div>`).join('')}
-      <div class="cfg-add-block">
-        <div class="cfg-add-title">Criar novo usuário</div>
+      <div class="cfg-add-block"><div class="cfg-add-title">Criar novo usuário</div>
         <div class="cfg-grid"><input class="cfg-inp" type="text" id="gu-name" placeholder="Nome completo"><input class="cfg-inp" type="text" id="gu-user" placeholder="usuario.login" autocapitalize="none" autocorrect="off"></div>
-        <div class="cfg-inp-row"><input class="cfg-inp" type="password" id="gu-pass" placeholder="Senha inicial" style="flex:1"><select class="cfg-role-select" id="gu-role"><option value="consultor">Consultor</option><option value="gerente">Gerente</option></select><button class="cfg-add-btn" onclick="addUser()">Criar</button></div>
+        <div class="cfg-inp-row"><input class="cfg-inp" type="password" id="gu-pass" placeholder="Senha inicial" style="flex:1">
+          <select class="cfg-role-select" id="gu-role"><option value="consultor">Consultor</option><option value="gerente">Gerente</option><option value="supervisor">Supervisor</option></select>
+          <button class="cfg-add-btn" onclick="addUser()">Criar</button>
+        </div>
       </div>
     </div>
     <div class="cfg-section">
@@ -1324,7 +1247,7 @@ function renderConfig() {
       <div style="padding:1rem"><div class="auth-section">
         <div class="auth-sec-title">Código atual (4 dígitos)</div>
         <div class="auth-sec-row"><input type="password" id="new-code" class="auth-code-inp" maxlength="4" inputmode="numeric" placeholder="••••" onkeydown="if(event.key==='Enter')saveCode()"><button class="auth-save-btn" onclick="saveCode()">Salvar</button></div>
-        <p class="auth-sec-hint">Código exigido para finalizar vendas perdidas sem repique. Compartilhe apenas com gerentes.</p>
+        <p class="auth-sec-hint">Código para finalizar perdidas sem repique. Compartilhe apenas com gerentes.</p>
       </div></div>
     </div>
     <div class="cfg-section">
@@ -1335,89 +1258,63 @@ function renderConfig() {
       </div>
     </div>`;
 }
-
-async function addCons() {
-  const inp=document.getElementById('gi-cons'), name=inp.value.trim();
-  if (!name) { toast('Digite o nome','err'); return; }
-  if (_cons.map(c=>c.toLowerCase()).includes(name.toLowerCase())) { toast('Consultor já existe','err'); return; }
-  _cons.push(name);
-  await saveConfig();
-  inp.value = ''; toast('Consultor adicionado','ok'); renderConfig();
+async function addCons(){const inp=document.getElementById('gi-cons'),name=inp.value.trim();if(!name){toast('Digite o nome','err');return;}if(_cons.map(c=>c.toLowerCase()).includes(name.toLowerCase())){toast('Já existe','err');return;}_cons.push(name);await saveConfig();inp.value='';toast('Adicionado','ok');renderConfig();}
+async function delCons(i){if(!confirm('Remover?'))return;_cons.splice(i,1);await saveConfig();toast('Removido');renderConfig();}
+async function addUser(){
+  const name=document.getElementById('gu-name').value.trim(),u=document.getElementById('gu-user').value.trim().toLowerCase(),p=document.getElementById('gu-pass').value,role=document.getElementById('gu-role').value;
+  if(!name||!u||!p){toast('Preencha todos os campos','err');return;}if(p.length<4){toast('Senha mínimo 4 caracteres','err');return;}
+  if(_users.find(x=>x.username===u)){toast('Usuário já existe','err');return;}
+  try{
+    const nu={username:u,password:p,role,display_name:name,loja:LOJA};
+    await sbPost('iz_users',nu);_users.push(nu);
+    if(role==='consultor'&&!_cons.map(c=>c.toLowerCase()).includes(name.toLowerCase())){_cons.push(name);await saveConfig();}
+    ['gu-name','gu-user','gu-pass'].forEach(id=>document.getElementById(id).value='');
+    toast('Usuário criado','ok');renderConfig();
+  }catch(e){toast('Erro ao criar usuário','err');console.error(e);}
 }
-async function delCons(i) {
-  if (!confirm('Remover este consultor da fila?')) return;
-  _cons.splice(i,1);
-  await saveConfig();
-  toast('Removido'); renderConfig();
+async function delUser(username){
+  const u=_users.find(x=>x.username===username);
+  if(!u){toast('Usuário não encontrado','err');return;}
+  if(u.role==='gestor'){toast('Não é possível remover o gestor','err');return;}
+  if(!confirm(`Remover @${username}?`))return;
+  try{await sbDelete('iz_users',`username=eq.${encodeURIComponent(username)}&loja=eq.${LOJA}`);_users=_users.filter(x=>x.username!==username);toast('Removido');renderConfig();}
+  catch(e){toast('Erro','err');}
 }
-async function addUser() {
-  const name=document.getElementById('gu-name').value.trim();
-  const u=document.getElementById('gu-user').value.trim().toLowerCase();
-  const p=document.getElementById('gu-pass').value;
-  const role=document.getElementById('gu-role').value;
-  if (!name||!u||!p) { toast('Preencha todos os campos','err'); return; }
-  if (p.length<4) { toast('Senha deve ter ao menos 4 caracteres','err'); return; }
-  if (_users.find(x=>x.u===u)) { toast('Usuário já existe','err'); return; }
-  const newUser={u,p,role,name};
-  _users.push(newUser);
-  await setDoc(doc(db, COL_USERS, u), newUser);
-  if (role==='consultor' && !_cons.map(c=>c.toLowerCase()).includes(name.toLowerCase())) {
-    _cons.push(name); await saveConfig();
-  }
-  ['gu-name','gu-user','gu-pass'].forEach(id=>document.getElementById(id).value='');
-  toast('Usuário criado com sucesso','ok'); renderConfig();
-}
-async function delUser(i) {
-  if (_users[i].role!=='consultor') { toast('Não é possível remover este perfil','err'); return; }
-  if (!confirm(`Remover @${_users[i].u}?`)) return;
-  const u = _users[i].u;
-  _users.splice(i,1);
-  await deleteDoc(doc(db, COL_USERS, u));
-  toast('Usuário removido'); renderConfig();
-}
-function openPwd(i) {
-  pwdTargetIdx=i;
-  const users=getUsers();
-  document.getElementById('pwd-sub').textContent=`Alterar senha de ${users[i].name} (@${users[i].u})`;
-  document.getElementById('pwd-new').value=''; document.getElementById('pwd-conf').value='';
-  document.getElementById('err-pwd').classList.remove('on'); document.getElementById('err-pwd2').classList.remove('on');
+function openPwd(username){
+  pwdTargetUser=username;const u=_users.find(x=>x.username===username);
+  document.getElementById('pwd-sub').textContent=`Alterar senha de ${u?.display_name} (@${username})`;
+  document.getElementById('pwd-new').value='';document.getElementById('pwd-conf').value='';
+  document.getElementById('err-pwd').classList.remove('on');document.getElementById('err-pwd2').classList.remove('on');
   document.getElementById('ov-pwd').classList.add('on');
 }
-async function savePwd() {
-  const np=document.getElementById('pwd-new').value, cp=document.getElementById('pwd-conf').value;
+async function savePwd(){
+  const np=document.getElementById('pwd-new').value,cp=document.getElementById('pwd-conf').value;
   let ok=true;
   if(np.length<4){document.getElementById('err-pwd').classList.add('on');ok=false;}else document.getElementById('err-pwd').classList.remove('on');
   if(np!==cp){document.getElementById('err-pwd2').classList.add('on');ok=false;}else document.getElementById('err-pwd2').classList.remove('on');
-  if(!ok) return;
-  _users[pwdTargetIdx].p=np;
-  await setDoc(doc(db, COL_USERS, _users[pwdTargetIdx].u), _users[pwdTargetIdx]);
-  closeOv('ov-pwd'); toast('Senha alterada com sucesso','ok');
+  if(!ok)return;
+  try{
+    await sbPatch('iz_users',`username=eq.${encodeURIComponent(pwdTargetUser)}&loja=eq.${LOJA}`,{password:np});
+    const u=_users.find(x=>x.username===pwdTargetUser);if(u)u.password=np;
+    closeOv('ov-pwd');toast('Senha alterada','ok');
+  }catch(e){toast('Erro ao alterar senha','err');}
 }
-async function saveCode() {
+async function saveCode(){
   const c=document.getElementById('new-code').value.trim();
-  if(!/^\d{4}$/.test(c)){toast('Código deve ter exatamente 4 dígitos numéricos','err');return;}
-  _authCode=c;
-  await saveConfig();
-  document.getElementById('new-code').value=''; toast('Código atualizado','ok');
+  if(!/^\d{4}$/.test(c)){toast('Código deve ter 4 dígitos numéricos','err');return;}
+  _authCode=c;await saveConfig();document.getElementById('new-code').value='';toast('Código atualizado','ok');
 }
-async function saveConfig() {
-  await setDoc(doc(db,'config',DOC_CONFIG), { authCode: _authCode, cons: _cons });
-}
-async function deleteAllRecs() {
+async function deleteAllRecs(){
   if(!confirm('APAGAR TODOS OS REGISTROS?\nEsta ação não pode ser desfeita.'))return;
-  try {
-    const snap = await getDocs(collection(db, COL_RECS));
-    await Promise.all(snap.docs.map(d=>deleteDoc(doc(db,COL_RECS,d.id))));
-    toast('Registros apagados','warn'); renderConfig();
-  } catch(e){toast('Erro ao apagar','err');}
+  try{await sbDelete('iz_records',`loja=eq.${LOJA}`);_recs=[];toast('Registros apagados','warn');renderConfig();}
+  catch(e){toast('Erro','err');}
 }
 
 // ════ EXPORT CSV ════
-function exportCSV() {
-  const recs=getRecs();
-  if(!recs.length){toast('Nenhum dado para exportar','err');return;}
-  const h='Data,Hora,Consultor,Situacao,Origem,Repique,Aut.Gerente,Valor,Entrada(Comissao),Pct,Cliente,Produto,Motivo\n';
-  const rows=recs.map(r=>[r.data,r.hora,r.consultor,r.situacao,r.meio==='RI'?'Receita Interna':'Receita Externa',r.repique,r.repAut?'Sim':'—',r.valor,r.entrada,r.pct,r.cliente,r.produto,(r.motivo||'').replace(/,/g,' ')].join(',')).join('\n');
+function exportCSV(){
+  const recs=getRecs();if(!recs.length){toast('Nenhum dado','err');return;}
+  const h='Data,Hora,Consultor,Situacao,Origem,Repique,Aut.Gerente,Valor,Entrada,Pct,Cliente,Produto,Motivo\n';
+  const rows=recs.map(r=>[r.data,r.hora,r.consultant_name,r.situacao,r.meio==='RI'?'Receita Interna':'Receita Externa',r.repique,r.rep_autorizado?'Sim':'—',r.valor,r.entrada,r.pct,r.cliente,r.produto,(r.motivo||'').replace(/,/g,' ')].join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+h+rows],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download='idealize_sv_'+dStr(new Date())+'.csv';a.click();URL.revokeObjectURL(url);
@@ -1429,45 +1326,29 @@ const dStr=d=>d.toISOString().slice(0,10);
 const fmtDate=s=>s?s.split('-').reverse().join('/'):'—';
 function filtP(recs,p,de,ate){
   const now=new Date();
-  if(p==='day') return recs.filter(r=>r.data===dStr(now));
+  if(p==='day')return recs.filter(r=>r.data===dStr(now));
   if(p==='week'){const d=new Date(now);d.setDate(now.getDate()-((now.getDay()+6)%7));return recs.filter(r=>r.data>=dStr(d));}
   if(p==='month'){const ym=dStr(now).slice(0,7);return recs.filter(r=>r.data&&r.data.slice(0,7)===ym);}
-  if(p==='custom'&&de&&ate) return recs.filter(r=>r.data>=de&&r.data<=ate);
+  if(p==='custom'&&de&&ate)return recs.filter(r=>r.data>=de&&r.data<=ate);
   return recs;
 }
 const fmt=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtK=v=>v?'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}):'—';
-
 let toastT;
-function toast(msg,type=''){
-  clearTimeout(toastT);
-  const el=document.getElementById('toast');
-  el.textContent=msg; el.className='toast'+(type?' '+type:''); el.classList.add('on');
-  toastT=setTimeout(()=>el.classList.remove('on'),3200);
-}
+function toast(msg,type=''){clearTimeout(toastT);const el=document.getElementById('toast');el.textContent=msg;el.className='toast'+(type?' '+type:'');el.classList.add('on');toastT=setTimeout(()=>el.classList.remove('on'),3200);}
 
-// ════ EXPÕE FUNÇÕES GLOBAIS para onclick do HTML ════
-// Duplo registro: direto + alias __nome para proxy seguro
-const _expose = (name, fn) => { window[name] = fn; window['__'+name] = fn; };
-_expose('doLogin', doLogin); _expose('doLogout', doLogout);
-_expose('setMP',setMP); _expose('applyCustomCons',applyCustomCons);
-_expose('enterQ',enterQ); _expose('leaveQ',leaveQ); _expose('startAtt',startAtt);
-_expose('openReg',openReg); _expose('selSit',selSit); _expose('selMeio',selMeio);
-_expose('selRep',selRep); _expose('trySelNao',trySelNao); _expose('tryNoRep',tryNoRep);
-_expose('checkAuth',checkAuth); _expose('closeOv',closeOv); _expose('submitReg',submitReg);
-_expose('showGTab',showGTab); _expose('showSTab',showSTab);
-_expose('openMgrCustom',openMgrCustom); _expose('applyMgrCustom',applyMgrCustom);
-_expose('rRankGer',rRankGer); _expose('rRankGest',rRankGest);
-_expose('rSupGer',rSupGer); _expose('rSupGest',rSupGest);
-_expose('renderFilaView',renderFilaView); _expose('clearQueue',clearQueue);
-_expose('addCons',addCons); _expose('delCons',delCons);
-_expose('addUser',addUser); _expose('delUser',delUser);
-_expose('openPwd',openPwd); _expose('savePwd',savePwd);
-_expose('saveCode',saveCode); _expose('exportCSV',exportCSV);
-_expose('deleteAllRecs',deleteAllRecs); _expose('renderConfig',renderConfig);
+// ════ SUPERVISOR — salvar código ════
+async function saveSupCode(){
+  const c=document.getElementById('sup-code').value.trim();
+  if(!/^\d{4}$/.test(c)){toast('Código deve ter 4 dígitos','err');return;}
+  _authCode=c;await saveConfig();
+  document.getElementById('sup-code').value='';toast('Código atualizado','ok');
+}
+window.saveSupCode=saveSupCode;
 
 // ════ INIT ════
-initApp();
+window.addEventListener('load', initApp);
 </script>
+
 </body>
 </html>
