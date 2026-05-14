@@ -378,7 +378,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
         <!-- Texto IDEALIZE -->
         <text x="175" y="88" font-family="Barlow Condensed, sans-serif" font-size="52" font-weight="800" font-style="italic" fill="#2BBFB3" letter-spacing="1">IDEAL<tspan fill="#F5A623">I</tspan>ZE</text>
       </svg>
-      <div class="login-location">Sistema Operacional · São Vicente</div>
+      <div class="login-location">Sistema Operacional · ' + LOJA_NAME + '</div>
     </div>
     <div class="lc-divider"></div>
     <div class="field-grp">
@@ -391,7 +391,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
     </div>
     <button class="lc-btn" onclick="doLogin()">Acessar sistema</button>
     <div class="lc-err" id="login-err">Usuário ou senha incorretos. Verifique e tente novamente.</div>
-    <div class="lc-footer">Acesso restrito — colaboradores Idealize São Vicente</div>
+    <div class="lc-footer" id="login-footer">Acesso restrito — colaboradores Idealize São Vicente</div>
   </div>
 </div>
 
@@ -400,7 +400,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   <div class="app-hdr">
     <div class="ah-brand">
       <div class="ah-logo-bar"></div>
-      <div class="ah-texts"><div class="at-n" id="c-hdr-n">—</div><div class="at-s">Consultor · Idealize SV</div></div>
+      <div class="ah-texts"><div class="at-n" id="c-hdr-n">—</div><div class="at-s">' + 'Consultor · Idealize ' + LOJA_NAME + '</div></div>
     </div>
     <div class="ah-right">
       <span class="ah-badge badge-cons">Consultor</span>
@@ -507,10 +507,10 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   <div class="app-hdr">
     <div class="ah-brand">
       <div class="ah-logo-bar" style="background:var(--purple)"></div>
-      <div class="ah-texts"><div class="at-n" style="color:var(--purple)">Gestor / Supervisor</div><div class="at-s">Administração · Idealize SV</div></div>
+      <div class="ah-texts"><div class="at-n" style="color:var(--purple)">Diretor</div><div class="at-s">Direção · Idealize SV</div></div>
     </div>
     <div class="ah-right">
-      <span class="ah-badge badge-gest">Gestor</span>
+      <span class="ah-badge badge-gest">Diretor</span>
       <button class="ah-exp" onclick="exportCSV()">Exportar CSV</button>
       <button class="ah-logout" onclick="doLogout()">Sair</button>
     </div>
@@ -616,7 +616,22 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 
 const SB_URL  = 'https://hqfxefdeivygcsetaknz.supabase.co';
 const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxZnhlZmRlaXZ5Z2NzZXRha256Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MTExNjMsImV4cCI6MjA5NDI4NzE2M30.KRtG-iAMKxBbKcChcWe5n58kkLWBKahYCf3gKXQzDcg';
-const LOJA    = 'sv'; // São Vicente — trocar por 'campinas', 'sorocaba', etc nas outras lojas
+// LOJA detectada automaticamente pelo subdomínio
+// comercialsaovicente → sv | comercialcampinas → campinas | etc
+function detectLoja() {
+  const host = window.location.hostname;
+  if (host.includes('campinas'))   return 'campinas';
+  if (host.includes('sorocaba'))   return 'sorocaba';
+  if (host.includes('piracicaba')) return 'piracicaba';
+  if (host.includes('santos'))     return 'santos';
+  return 'sv'; // padrão: São Vicente (localhost e comercialsaovicente)
+}
+const LOJA = detectLoja();
+const LOJA_NAMES = {
+  sv: 'São Vicente', campinas: 'Campinas',
+  sorocaba: 'Sorocaba', piracicaba: 'Piracicaba', santos: 'Santos'
+};
+const LOJA_NAME = LOJA_NAMES[LOJA] || 'São Vicente';
 
 // ── REST helpers ──
 const sbH = () => ({ 'Content-Type':'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY });
@@ -642,8 +657,20 @@ async function sbDelete(table, params) {
   if (!r.ok) throw new Error(await r.text());
 }
 async function sbUpsert(table, body) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method:'POST', headers: { ...sbHP(), 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(body) });
-  if (!r.ok) throw new Error(await r.text());
+  const r = await fetch(`${SB_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Prefer': 'resolution=merge-duplicates,return=representation'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) {
+    const txt = await r.text();
+    throw new Error(txt);
+  }
   return r.json();
 }
 
@@ -689,7 +716,7 @@ const DEF_USERS = [
   {username:'fernanda',  password:'1234',         role:'consultor', display_name:'Fernanda',  loja:LOJA},
   {username:'gerente',   password:'idealize2025', role:'gerente',   display_name:'Gerente',   loja:LOJA},
   {username:'supervisor',password:'super2025',    role:'supervisor',display_name:'Supervisor',loja:LOJA},
-  {username:'gestor',    password:'admin2025',    role:'gestor',    display_name:'Gestor',    loja:LOJA},
+  {username:'diretor',    password:'admin2025',    role:'diretor',    display_name:'Diretor',    loja:LOJA},
 ];
 const DEF_CONS = ['Daynara','Ana Paula','Carlos','Fernanda'];
 const DEF_CODE = '1234';
@@ -763,6 +790,11 @@ async function initApp() {
       routeUser(); return;
     }
   }
+  // Atualiza textos dinâmicos por loja
+  const ll = document.getElementById('login-location');
+  const lf = document.getElementById('login-footer');
+  if (ll) ll.textContent = 'Sistema Operacional · ' + LOJA_NAME;
+  if (lf) lf.textContent = 'Acesso restrito — colaboradores Idealize ' + LOJA_NAME;
   document.getElementById('l-user').focus();
 }
 
@@ -796,6 +828,8 @@ function routeUser() {
     document.querySelectorAll('.mtab').forEach((t,i)=>t.classList.toggle('on',i===0));
     metP='day'; customDe=''; customAte='';
     document.getElementById('cr-cons').classList.remove('on');
+    const cs = document.getElementById('cons-sub');
+    if (cs) cs.textContent = 'Consultor · Idealize ' + LOJA_NAME;
     renderCons(); showScr('s-cons');
   } else if (SES.role==='gerente') {
     mgrP='day'; renderRank('day','rank-body'); renderSup('day','sup-body'); renderFilaView('fila-body',false);
@@ -803,7 +837,7 @@ function routeUser() {
   } else if (SES.role==='supervisor') {
     mgrP='day'; renderRank('day','rank-body'); renderSup('day','sup-body'); renderFilaView('fila-body',false);
     showGTab('ranking',null); showScr('s-sup');
-  } else if (SES.role==='gestor') {
+  } else if (SES.role==='diretor') {
     mgrP='day'; renderRank('day','rank2-body'); renderSup('day','sup2-body'); renderFilaView('fila2-body',true);
     renderConfig(); showSTab('ranking2',null); showScr('s-gest');
   }
@@ -890,9 +924,14 @@ async function enterQ() {
   const name=SES.consName;
   if(_queue.find(x=>x.consultant_name===name)){toast('Você já está na fila','warn');return;}
   try {
-    await sbUpsert('iz_queue',{consultant_name:name,loja:LOJA,status:'queue',joined_at:new Date().toISOString()});
+    // Tenta deletar entrada antiga e inserir nova (evita conflito de unique)
+    try { await sbDelete('iz_queue', `consultant_name=eq.${encodeURIComponent(name)}&loja=eq.${LOJA}`); } catch {}
+    await sbPost('iz_queue', {consultant_name:name, loja:LOJA, status:'queue', joined_at:new Date().toISOString()});
     await loadQueue(); renderCons(); toast('Você entrou na fila','ok');
-  } catch(e){toast('Erro ao entrar na fila','err');console.error(e);}
+  } catch(e){
+    console.error('enterQ error:', e);
+    toast('Verifique sua conexão e tente novamente','err');
+  }
 }
 async function leaveQ() {
   if(!confirm('Confirma saída da fila?'))return;
@@ -1208,7 +1247,7 @@ async function clearQueue(bodyId){
   catch(e){toast('Erro','err');}
 }
 
-// ════ CONFIGURAÇÕES (Gestor) ════
+// ════ CONFIGURAÇÕES (Diretor) ════
 function renderConfig(){
   const cons=getCons(),users=getUsers();
   document.getElementById('config-body').innerHTML=`
@@ -1222,10 +1261,10 @@ function renderConfig(){
     <div class="cfg-section">
       <div class="cfg-hd"><span class="cfg-hd-title">Usuários do sistema</span><span class="cfg-hd-count">${users.length} usuário(s)</span></div>
       ${users.map((u,i)=>`<div class="cfg-row">
-        <div class="cfg-av ${u.role==='gerente'?'ger':u.role==='supervisor'?'ger':u.role==='gestor'?'gest':''}">${ini(u.display_name)}</div>
+        <div class="cfg-av ${u.role==='gerente'?'ger':u.role==='supervisor'?'ger':u.role==='diretor'?'gest':''}">${ini(u.display_name)}</div>
         <div class="cfg-info"><div class="cfg-name">${u.display_name}</div>
           <div class="cfg-meta">
-            <span class="cfg-role-pill ${u.role==='gestor'?'rp-gest':u.role==='supervisor'?'rp-sup':u.role==='gerente'?'rp-ger':'rp-cons'}">${u.role==='gestor'?'Gestor':u.role==='supervisor'?'Supervisor':u.role==='gerente'?'Gerente':'Consultor'}</span>
+            <span class="cfg-role-pill ${u.role==='diretor'?'rp-gest':u.role==='supervisor'?'rp-sup':u.role==='gerente'?'rp-ger':'rp-cons'}">${u.role==='diretor'?'Diretor':u.role==='supervisor'?'Supervisor':u.role==='gerente'?'Gerente':'Consultor'}</span>
             <span style="font-family:var(--fm);font-size:10px">@${u.username}</span>
           </div>
         </div>
@@ -1237,7 +1276,7 @@ function renderConfig(){
       <div class="cfg-add-block"><div class="cfg-add-title">Criar novo usuário</div>
         <div class="cfg-grid"><input class="cfg-inp" type="text" id="gu-name" placeholder="Nome completo"><input class="cfg-inp" type="text" id="gu-user" placeholder="usuario.login" autocapitalize="none" autocorrect="off"></div>
         <div class="cfg-inp-row"><input class="cfg-inp" type="password" id="gu-pass" placeholder="Senha inicial" style="flex:1">
-          <select class="cfg-role-select" id="gu-role"><option value="consultor">Consultor</option><option value="gerente">Gerente</option><option value="supervisor">Supervisor</option></select>
+          <select class="cfg-role-select" id="gu-role"><option value="consultor">Consultor</option><option value="gerente">Gerente</option><option value="supervisor">Supervisor</option><option value="diretor">Diretor</option></select>
           <button class="cfg-add-btn" onclick="addUser()">Criar</button>
         </div>
       </div>
@@ -1275,7 +1314,7 @@ async function addUser(){
 async function delUser(username){
   const u=_users.find(x=>x.username===username);
   if(!u){toast('Usuário não encontrado','err');return;}
-  if(u.role==='gestor'){toast('Não é possível remover o gestor','err');return;}
+  if(u.role==='diretor'){toast('Não é possível remover o diretor','err');return;}
   if(!confirm(`Remover @${username}?`))return;
   try{await sbDelete('iz_users',`username=eq.${encodeURIComponent(username)}&loja=eq.${LOJA}`);_users=_users.filter(x=>x.username!==username);toast('Removido');renderConfig();}
   catch(e){toast('Erro','err');}
