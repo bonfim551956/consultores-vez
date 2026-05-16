@@ -412,6 +412,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
     </div>
     <div class="ah-right">
       <span class="ah-badge badge-cons">Consultor</span>
+      <button class="ah-logout" onclick="openMinhaSenha()">Minha senha</button>
       <button class="ah-logout" onclick="doLogout()">Sair</button>
     </div>
   </div>
@@ -546,6 +547,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
     <div class="ah-right">
       <span class="ah-badge badge-gest">Diretor</span>
       <button class="ah-exp" onclick="exportCSV()">Exportar CSV</button>
+      <button class="ah-logout" onclick="openMinhaSenha()">Minha senha</button>
       <button class="ah-logout" onclick="doLogout()">Sair</button>
     </div>
   </div>
@@ -645,6 +647,33 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
     <div class="fg"><label>Confirmar senha <span class="req">*</span></label><input type="password" id="pwd-conf" placeholder="Repita a senha"><div class="emsg" id="err-pwd2">As senhas não coincidem</div></div>
     <button class="abtn abt" style="width:100%;margin-top:4px" onclick="savePwd()">Salvar nova senha</button>
     <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-pwd')">Cancelar</button>
+  </div>
+</div>
+
+
+<!-- ═══ MODAL MINHA SENHA ═══ -->
+<div class="overlay" id="ov-minha-senha">
+  <div class="modal pwd">
+    <div class="m-hdl"></div>
+    <div class="m-title">Alterar minha senha</div>
+    <div class="m-sub" id="minha-senha-sub">Digite sua senha atual para confirmar</div>
+    <div class="fg">
+      <label>Senha atual <span class="req">*</span></label>
+      <input type="password" id="ms-atual" placeholder="Senha atual" autocomplete="current-password">
+      <div class="emsg" id="err-ms-atual">Senha atual incorreta</div>
+    </div>
+    <div class="fg">
+      <label>Nova senha <span class="req">*</span></label>
+      <input type="password" id="ms-nova" placeholder="Mínimo 4 caracteres" autocomplete="new-password">
+      <div class="emsg" id="err-ms-nova">Senha deve ter ao menos 4 caracteres</div>
+    </div>
+    <div class="fg">
+      <label>Confirmar nova senha <span class="req">*</span></label>
+      <input type="password" id="ms-conf" placeholder="Repita a nova senha" autocomplete="new-password">
+      <div class="emsg" id="err-ms-conf">As senhas não coincidem</div>
+    </div>
+    <button class="abtn abt" id="btn-salvar-senha" style="width:100%;margin-top:4px" onclick="salvarMinhaSenha()">Salvar nova senha</button>
+    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-minha-senha')">Cancelar</button>
   </div>
 </div>
 
@@ -1952,6 +1981,90 @@ async function removeConsultor() {
   renderConfig();
 }
 
+// ════ MINHA SENHA ════
+function openMinhaSenha(){
+  if(!SES){ toast('Você precisa estar logado','err'); return; }
+  document.getElementById('ms-atual').value='';
+  document.getElementById('ms-nova').value='';
+  document.getElementById('ms-conf').value='';
+  ['err-ms-atual','err-ms-nova','err-ms-conf'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  document.getElementById('minha-senha-sub').textContent=`Alterar senha de ${SES.display_name} (@${SES.username})`;
+  document.getElementById('ov-minha-senha').classList.add('on');
+  setTimeout(()=>document.getElementById('ms-atual').focus(),200);
+}
+
+async function salvarMinhaSenha(){
+  const atual = document.getElementById('ms-atual').value;
+  const nova  = document.getElementById('ms-nova').value;
+  const conf  = document.getElementById('ms-conf').value;
+  let ok = true;
+
+  // Validar senha atual
+  if(atual !== SES.password){
+    document.getElementById('err-ms-atual').classList.add('on');
+    ok = false;
+  } else {
+    document.getElementById('err-ms-atual').classList.remove('on');
+  }
+
+  // Validar nova senha
+  if(nova.length < 4){
+    document.getElementById('err-ms-nova').classList.add('on');
+    ok = false;
+  } else {
+    document.getElementById('err-ms-nova').classList.remove('on');
+  }
+
+  // Validar confirmação
+  if(nova !== conf){
+    document.getElementById('err-ms-conf').classList.add('on');
+    ok = false;
+  } else {
+    document.getElementById('err-ms-conf').classList.remove('on');
+  }
+
+  if(!ok) return;
+
+  const btn = document.getElementById('btn-salvar-senha');
+  btn.textContent = 'Salvando...'; btn.disabled = true;
+
+  try{
+    // Monta filtro correto (loja null para sup/diretor)
+    let filter = `username=eq.${encodeURIComponent(SES.username)}`;
+    if(SES.loja) filter += `&loja=eq.${encodeURIComponent(SES.loja)}`;
+    else filter += `&loja=is.null`;
+
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_users?${filter}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({password: nova})
+    });
+
+    if(!resp.ok) throw new Error(await resp.text());
+
+    // Atualiza sessão local com nova senha
+    SES.password = nova;
+    saveSession(SES);
+
+    // Atualiza cache de usuários
+    const u = _users.find(x=>x.username===SES.username);
+    if(u) u.password = nova;
+
+    closeOv('ov-minha-senha');
+    toast('Senha alterada com sucesso','ok');
+  } catch(e){
+    toast('Erro ao salvar senha','err');
+    console.error('salvarMinhaSenha:',e);
+  } finally {
+    btn.textContent = 'Salvar nova senha'; btn.disabled = false;
+  }
+}
+
 // ════ EXPÕE FUNÇÕES PARA onclick no HTML ════
 window.doLogin=doLogin;
 window.doLogout=doLogout;
@@ -1993,6 +2106,8 @@ window.saveCode=saveCode;
 window.exportCSV=exportCSV;
 window.deleteAllRecs=deleteAllRecs;
 window.removeConsultor=removeConsultor;
+window.openMinhaSenha=openMinhaSenha;
+window.salvarMinhaSenha=salvarMinhaSenha;
 window.renderConfig=renderConfig;
 window.saveSupCode=saveSupCode;
 window.setLojaFilter=setLojaFilter;
