@@ -1,4 +1,4 @@
-=<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Idealize — Sistema Comercial</title>
-<!-- build:20260514050626 -->
+<!-- build:20260514060341 --> -->
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700;1,800&family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1493,6 +1493,7 @@ function rSupGest(p){renderSup(p,'sup2-body');}
 // ════ FILA AO VIVO ════
 function renderFilaView(bodyId,canClear){
   const la=lojaAtiva();
+  console.log('[Idealize] renderFilaView | lojaAtiva:', la, '| LOJA_FILTER:', LOJA_FILTER, '| queue total:', getQ().length);
   const allQ=getQ();
   // Filtra fila pela loja ativa
   const q=la?allQ.filter(x=>x.loja===la):allQ;
@@ -1557,7 +1558,7 @@ function renderConfig(){
             <option value="piracicaba">Piracicaba</option>
             <option value="santos">Santos</option>
           </select>
-          <button class="cfg-add-btn" onclick="addUser()">Criar</button>
+          <button class="cfg-add-btn" id="btn-criar-user" onclick="addUser()">Criar</button>
         </div>
       </div>
     </div>
@@ -1577,52 +1578,145 @@ function renderConfig(){
       </div>
     </div>`;
 }
-async function addCons(){const inp=document.getElementById('gi-cons'),name=inp.value.trim();if(!name){toast('Digite o nome','err');return;}if(_cons.map(c=>c.toLowerCase()).includes(name.toLowerCase())){toast('Já existe','err');return;}_cons.push(name);await saveConfig();inp.value='';toast('Adicionado','ok');renderConfig();}
-async function delCons(i){if(!confirm('Remover?'))return;_cons.splice(i,1);await saveConfig();toast('Removido');renderConfig();}
+async function addCons(){
+  const inp=document.getElementById('gi-cons');
+  const name=inp.value.trim();
+  if(!name){toast('Digite o nome do consultor','err');return;}
+  if(_cons.map(x=>x.toLowerCase()).includes(name.toLowerCase())){toast('Consultor já cadastrado','err');return;}
+  try{
+    _cons.push(name);
+    // PATCH direto na config da loja
+    const cfgR = await sbGet('iz_config',`loja=eq.${encodeURIComponent(LOJA||'sv')}`);
+    if(cfgR.length){
+      const resp = await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(LOJA||'sv')}`,{
+        method:'PATCH',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+        body:JSON.stringify({consultants:_cons})
+      });
+      if(!resp.ok) throw new Error(await resp.text());
+    } else {
+      const resp = await fetch(`${SB_URL}/rest/v1/iz_config`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+        body:JSON.stringify({loja:LOJA||'sv',consultants:_cons,auth_code:_authCode||DEF_CODE,loja_name:LOJA_NAME})
+      });
+      if(!resp.ok) throw new Error(await resp.text());
+    }
+    inp.value='';
+    toast(`${name} adicionado à fila`,'ok');
+    await loadConfig();
+    renderConfig();
+  }catch(e){
+    _cons.pop(); // desfaz
+    toast('Erro ao salvar — verifique o console','err');
+    console.error('addCons:',e);
+  }
+}
+async function delCons(i){
+  const name=_cons[i];
+  if(!confirm(`Remover ${name} da fila?`))return;
+  try{
+    _cons.splice(i,1);
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(LOJA||'sv')}`,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify({consultants:_cons})
+    });
+    if(!resp.ok) throw new Error(await resp.text());
+    toast(`${name} removido da fila`,'ok');
+    renderConfig();
+  }catch(e){
+    _cons.splice(i,0,name); // desfaz
+    toast('Erro ao remover','err');
+    console.error('delCons:',e);
+  }
+}
 async function addUser(){
+  const btn = document.getElementById('btn-criar-user');
   const name=document.getElementById('gu-name').value.trim();
   const u=document.getElementById('gu-user').value.trim().toLowerCase();
   const p=document.getElementById('gu-pass').value;
   const role=document.getElementById('gu-role').value;
   const lojaEl=document.getElementById('gu-loja');
-  // supervisor e diretor ficam sem loja (null)
-  const selectedRole=document.getElementById('gu-role').value;
-  const lojaRaw=lojaEl?lojaEl.value:LOJA;
-  const lojaUser=(selectedRole==='supervisor'||selectedRole==='diretor')?null:lojaRaw;
-  if(!name||!u||!p){toast('Preencha todos os campos','err');return;}
-  if(p.length<4){toast('Senha mínimo 4 caracteres','err');return;}
-  if(_users.find(x=>x.username===u&&x.loja===lojaUser)){toast('Usuário já existe nesta loja','err');return;}
+  const lojaRaw=lojaEl?lojaEl.value:'sv';
+  const lojaUser=(role==='supervisor'||role==='diretor')?null:lojaRaw;
+
+  // Validações
+  if(!name){toast('Informe o nome completo','err');return;}
+  if(!u){toast('Informe o nome de usuário','err');return;}
+  if(!p||p.length<4){toast('Senha deve ter ao menos 4 caracteres','err');return;}
+
+  // Feedback visual no botão
+  if(btn){btn.textContent='Salvando...';btn.disabled=true;}
+
   try{
-    const nu={username:u,password:p,role,display_name:name,loja:lojaUser||null};
-    // Usa upsert para evitar erros de constraint
-    const saved = await sbUpsert('iz_users', nu);
-    if (!saved || (Array.isArray(saved) && !saved.length)) {
-      throw new Error('Erro ao salvar usuário no banco');
+    // Verificar duplicata no banco diretamente
+    let checkParams = `username=eq.${encodeURIComponent(u)}`;
+    if(lojaUser) checkParams += `&loja=eq.${encodeURIComponent(lojaUser)}`;
+    else checkParams += `&loja=is.null`;
+    const existing = await sbGet('iz_users', checkParams);
+    if(existing.length){ toast('Usuário já existe','err'); return; }
+
+    // Inserir usuário usando POST direto (mais confiável que upsert)
+    const nu={username:u,password:p,role,display_name:name,loja:lojaUser};
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_users`, {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':SB_KEY,
+        'Authorization':'Bearer '+SB_KEY,
+        'Prefer':'return=representation'
+      },
+      body:JSON.stringify(nu)
+    });
+    if(!resp.ok){
+      const errText = await resp.text();
+      console.error('addUser error:', errText);
+      throw new Error(errText);
     }
-    _users.push(nu);
-    // Se consultor, adiciona à lista de consultores da loja correta
-    if(role==='consultor'){
-      // Carrega config da loja do usuário e adiciona o consultor
-      try {
-        const cfgR = await sbGet('iz_config', `loja=eq.${lojaUser}`);
+
+    // Se consultor: adiciona/atualiza config da loja
+    if(role==='consultor' && lojaUser){
+      try{
+        const cfgR = await sbGet('iz_config', `loja=eq.${encodeURIComponent(lojaUser)}`);
         if(cfgR.length){
           const cfg=cfgR[0];
           const cons=cfg.consultants||[];
-          if(!cons.map(c=>c.toLowerCase()).includes(name.toLowerCase())){
+          if(!cons.map(x=>x.toLowerCase()).includes(name.toLowerCase())){
             cons.push(name);
-            await sbUpsert('iz_config',{loja:lojaUser,consultants:cons,auth_code:cfg.auth_code||DEF_CODE,loja_name:LOJA_NAMES[lojaUser]||lojaUser});
+            await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(lojaUser)}`,{
+              method:'PATCH',
+              headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+              body:JSON.stringify({consultants:cons})
+            });
           }
         } else {
-          // Cria config da loja se não existe
-          await sbUpsert('iz_config',{loja:lojaUser,consultants:[name],auth_code:DEF_CODE,loja_name:LOJA_NAMES[lojaUser]||lojaUser});
+          // Cria config nova para esta loja
+          await fetch(`${SB_URL}/rest/v1/iz_config`,{
+            method:'POST',
+            headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+            body:JSON.stringify({loja:lojaUser,consultants:[name],auth_code:DEF_CODE,loja_name:LOJA_NAMES[lojaUser]||lojaUser})
+          });
         }
-        if(lojaUser===LOJA&&!_cons.includes(name)) _cons.push(name);
-      } catch(e){console.error('addUser config:', e);}
+      }catch(e){console.error('config update:', e);}
     }
+
     ['gu-name','gu-user','gu-pass'].forEach(id=>document.getElementById(id).value='');
-    toast(`Usuário criado — ${LOJA_NAMES[lojaUser]||lojaUser}`,'ok');
-    await loadUsers();renderConfig();
-  }catch(e){toast('Erro ao criar usuário','err');console.error(e);}
+    toast(`Usuário ${name} criado com sucesso`,'ok');
+    await loadUsers();
+    await loadConfig();
+    renderConfig();
+  }catch(e){
+    const msg = e.message||'';
+    if(msg.includes('duplicate')||msg.includes('unique')){
+      toast('Usuário já existe nesta loja','err');
+    } else {
+      toast('Erro ao criar usuário — verifique o console','err');
+    }
+    console.error('addUser:', e);
+  } finally {
+    if(btn){btn.textContent='Criar';btn.disabled=false;}
+  }
 }
 async function delUser(username){
   const u=_users.find(x=>x.username===username);
@@ -1674,9 +1768,22 @@ async function savePwd(){
   }catch(e){toast('Erro ao alterar senha','err');}
 }
 async function saveCode(){
-  const c=document.getElementById('new-code').value.trim();
-  if(!/^\d{4}$/.test(c)){toast('Código deve ter 4 dígitos numéricos','err');return;}
-  _authCode=c;await saveConfig();document.getElementById('new-code').value='';toast('Código atualizado','ok');
+  const code=document.getElementById('new-code').value.trim();
+  if(!/^\d{4}$/.test(code)){toast('Código deve ter exatamente 4 dígitos numéricos','err');return;}
+  try{
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(LOJA||'sv')}`,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify({auth_code:code})
+    });
+    if(!resp.ok) throw new Error(await resp.text());
+    _authCode=code;
+    document.getElementById('new-code').value='';
+    toast('Código de autorização atualizado','ok');
+  }catch(e){
+    toast('Erro ao salvar código','err');
+    console.error('saveCode:',e);
+  }
 }
 async function deleteAllRecs(){
   if(!confirm('APAGAR TODOS OS REGISTROS?\nEsta ação não pode ser desfeita.'))return;
@@ -1724,6 +1831,7 @@ window.setLojaFilter=setLojaFilter;
 // ════ SELETOR DE LOJA (Supervisor/Diretor) ════
 function setLojaFilter(loja, barId) {
   LOJA_FILTER = loja;
+  console.log('[Idealize v20260514060341] setLojaFilter:', loja, '| lojaAtiva:', lojaAtiva());
   // Atualiza botões da barra correta
   const bar = barId ? document.getElementById(barId) : document.querySelector('.loja-fbtn')?.closest('div');
   if (bar) {
