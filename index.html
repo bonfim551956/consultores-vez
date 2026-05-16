@@ -1515,9 +1515,34 @@ function renderFilaView(bodyId,canClear){
   document.getElementById(bodyId).innerHTML=h;
 }
 async function clearQueue(bodyId){
-  if(!confirm('Limpar fila agora?'))return;
-  try{await sbDelete('iz_queue',`loja=eq.${LOJA}`);await loadQueue();renderFilaView(bodyId,bodyId.includes('2'));toast('Fila limpa','ok');}
-  catch(e){toast('Erro','err');}
+  if(!confirm('Limpar fila agora?\nTodos os consultores serão removidos da fila.'))return;
+  try{
+    // Determina qual loja limpar — se LOJA_FILTER está ativo usa ele, senão limpa tudo
+    const lojaLimpar = LOJA_FILTER || LOJA;
+    let params = lojaLimpar ? `loja=eq.${encodeURIComponent(lojaLimpar)}` : '';
+
+    // Usa fetch direto para garantir funcionamento
+    const url = `${SB_URL}/rest/v1/iz_queue${params?'?'+params:''}`;
+    const resp = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      }
+    });
+    if(!resp.ok){
+      const err = await resp.text();
+      throw new Error(err);
+    }
+    await loadQueue();
+    const isGest = bodyId.includes('2') || bodyId.includes('gest');
+    renderFilaView(bodyId, isGest || SES?.role==='diretor');
+    toast('Fila limpa com sucesso','ok');
+  }catch(e){
+    toast('Erro ao limpar fila','err');
+    console.error('clearQueue:',e);
+  }
 }
 
 // ════ CONFIGURAÇÕES (Diretor) ════
@@ -1574,6 +1599,7 @@ function renderConfig(){
       <div class="cfg-hd"><span class="cfg-hd-title">Ações administrativas</span></div>
       <div class="danger-area">
         <button class="danger-btn" onclick="clearQueue('fila2-body')">Limpar fila agora</button>
+        <button class="danger-btn" onclick="removeConsultor()">Remover consultor do sistema</button>
         <button class="danger-btn" onclick="deleteAllRecs()">Apagar todos os registros</button>
       </div>
     </div>`;
@@ -1871,6 +1897,61 @@ function showLojaFilterBar() {
   });
 }
 
+// ════ REMOVER CONSULTOR DO SISTEMA ════
+async function removeConsultor() {
+  const nome = prompt('Nome exato do consultor a remover do sistema:');
+  if(!nome || !nome.trim()) return;
+  const n = nome.trim();
+
+  if(!confirm(`Remover "${n}" da fila, dos consultores e do banco?\nEsta ação não pode ser desfeita.`)) return;
+
+  let erros = [];
+
+  // 1. Remove da fila
+  try {
+    await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(n)}`, {
+      method:'DELETE', headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+  } catch(e){ erros.push('fila'); }
+
+  // 2. Remove do iz_config (lista de consultores)
+  try {
+    const cfgs = await sbGet('iz_config','order=loja');
+    for(const cfg of cfgs){
+      const cons = (cfg.consultants||[]).filter(x=>x.toLowerCase()!==n.toLowerCase());
+      if(cons.length !== (cfg.consultants||[]).length){
+        await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(cfg.loja)}`,{
+          method:'PATCH',
+          headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+          body:JSON.stringify({consultants:cons})
+        });
+      }
+    }
+  } catch(e){ erros.push('config'); }
+
+  // 3. Remove usuário do banco
+  try {
+    // Busca pelo display_name também
+    const users = await sbGet('iz_users', `display_name=eq.${encodeURIComponent(n)}`);
+    for(const u of users){
+      let f = `username=eq.${encodeURIComponent(u.username)}`;
+      if(u.loja) f+=`&loja=eq.${encodeURIComponent(u.loja)}`; else f+=`&loja=is.null`;
+      await fetch(`${SB_URL}/rest/v1/iz_users?${f}`,{
+        method:'DELETE', headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+      });
+    }
+  } catch(e){ erros.push('usuários'); }
+
+  if(erros.length){
+    toast(`Removido com avisos (${erros.join(', ')})`, 'warn');
+  } else {
+    toast(`${n} removido do sistema`, 'ok');
+  }
+
+  await loadUsers(); await loadConfig(); await loadQueue();
+  renderConfig();
+}
+
 // ════ EXPÕE FUNÇÕES PARA onclick no HTML ════
 window.doLogin=doLogin;
 window.doLogout=doLogout;
@@ -1911,6 +1992,7 @@ window.savePwd=savePwd;
 window.saveCode=saveCode;
 window.exportCSV=exportCSV;
 window.deleteAllRecs=deleteAllRecs;
+window.removeConsultor=removeConsultor;
 window.renderConfig=renderConfig;
 window.saveSupCode=saveSupCode;
 window.setLojaFilter=setLojaFilter;
