@@ -823,17 +823,25 @@ const DEF_CODE = '1234';
 let SES = null;
 const SES_KEY = 'iz_ses_v2';
 function saveSession(u) {
-  const exp = Date.now() + 12*60*60*1000;
-  // Salva loja atual no contexto da sessão
-  localStorage.setItem(SES_KEY, JSON.stringify({ ...u, _loja: LOJA, exp }));
+  const exp = Date.now() + 24*60*60*1000; // 24h — dura o dia todo sem deslogar
+  localStorage.setItem(SES_KEY, JSON.stringify({
+    username: u.username,
+    password: u.password,
+    role: u.role,
+    display_name: u.display_name,
+    loja: u.loja,
+    consName: u.consName,
+    _loja: LOJA,
+    exp
+  }));
 }
 function clearSession() { localStorage.removeItem(SES_KEY); }
 function getSavedSession() {
   try {
     const d = JSON.parse(localStorage.getItem(SES_KEY));
-    if (!d || (d.exp && Date.now() > d.exp)) { clearSession(); return null; }
-    // Restaura contexto de loja salvo
-    if (d._loja) setLojaCtx(d._loja);
+    if (!d) return null;
+    // Sessão expirada → limpa e força login
+    if (d.exp && Date.now() > d.exp) { clearSession(); return null; }
     return d;
   } catch { return null; }
 }
@@ -946,29 +954,50 @@ const getCode    = () => _authCode || DEF_CODE;
 async function initApp() {
   showLoading(true);
   try {
-    await Promise.all([loadUsers(), loadConfig(), loadQueue(), loadRecs()]);
-    // Seed usuários padrão se banco vazio
+    // Na inicialização carrega TODOS os usuários (sem filtro de loja)
+    // para conseguir restaurar sessão de supervisor/diretor que têm loja=null
+    const [allUsers] = await Promise.all([
+      sbGet('iz_users','order=display_name').catch(()=>[]),
+    ]);
+    if (allUsers.length) _users = allUsers;
+    else _users = DEF_USERS;
+
+    // Verifica se tem sessão salva para saber qual loja carregar
+    const saved = getSavedSession();
+    if (saved) {
+      const savedUser = _users.find(x => x.username === saved.username);
+      if (savedUser) {
+        // Configura contexto de loja antes de carregar dados
+        const isSD = savedUser.role==='supervisor' || savedUser.role==='diretor';
+        setLojaCtx(isSD ? null : (savedUser.loja || 'sv'));
+        SES = { ...savedUser, consName: savedUser.role==='consultor'?savedUser.display_name:null };
+      }
+    }
+
+    // Agora carrega dados com o contexto correto
+    await Promise.all([loadConfig(), loadQueue(), loadRecs()]);
+
+    // Seed se banco vazio
     if (!_users.length) {
       for (const u of DEF_USERS) { try { await sbPost('iz_users', u); } catch {} }
       _users = [...DEF_USERS];
     }
-    if (!_cons.length) { await saveConfig(); }
+    if (!_cons.length && LOJA) { await saveConfig(); }
   } catch(e) { console.error('Init:', e); }
 
   showLoading(false);
 
   // Restaura sessão
   const saved = getSavedSession();
-  if (saved) {
-    const user = getUsers().find(x => x.username === saved.username);
-    if (user) {
-      SES = { ...user, consName: user.role==='consultor'?user.display_name:null };
-      const isSD = user.role==='supervisor' || user.role==='diretor';
-      setLojaCtx(isSD ? null : (user.loja || 'sv'));
-      startPolling();
-      await routeUser(); return;
-    }
+  if (saved && SES) {
+    LOJA_FILTER = null;
+    startPolling();
+    await routeUser();
+    return;
   }
+
+  // Se não tem sessão ou usuário não encontrado → login
+  SES = null;
   document.getElementById('l-user').focus();
 }
 
