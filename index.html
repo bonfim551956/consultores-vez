@@ -597,9 +597,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
       <div class="fg"><label>Valor total (R$) <span class="req">*</span></label><input type="number" id="m-val" placeholder="0,00" min="0" step="0.01" inputmode="decimal"><div class="emsg" id="err-val">Informe o valor</div></div>
       <div class="fg"><label>Entrada (R$) <span class="req">*</span></label><input type="number" id="m-ent" placeholder="0,00" min="0" step="0.01" inputmode="decimal"><div class="emsg" id="err-ent">Informe a entrada</div></div>
     </div>
-    <div class="row2">
-      <div class="fg"><label>Cliente <span class="req">*</span></label><input type="text" id="m-cli" placeholder="Nome completo"><div class="emsg" id="err-cli">Informe o cliente</div></div>
-      <div class="fg"><label>Produto <span class="req">*</span></label><input type="text" id="m-pro" placeholder="Multifocal, solar..."><div class="emsg" id="err-pro">Informe o produto</div></div>
     </div>
     <div class="fg" id="fg-rep" style="display:none">
       <label>Houve repique? <span class="req">*</span></label>
@@ -1214,7 +1211,7 @@ function openReg(){
   selSit_=null;selMeio_=null;selRep_=null;authOk=false;
   document.querySelectorAll('.sit-chip').forEach(c=>c.className='sit-chip');
   ['t-ri','t-re','t-rsim','t-rnao'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='tbtn';});
-  ['m-val','m-ent','m-cli','m-pro','m-mot'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id).classList.remove('err');});
+  ['m-val','m-ent','m-mot'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id).classList.remove('err');});
   document.querySelectorAll('.emsg').forEach(e=>e.classList.remove('on'));
   document.getElementById('fg-rep').style.display='none';
   document.getElementById('auth-banner').classList.remove('on');
@@ -1298,7 +1295,7 @@ async function submitReg(){
   if(selSit_==='PERDIDA'&&selRep_==='NÃO'&&!authOk&&!gerenteAusente){toast('Necessária autorização do gerente','warn');return;}
   // Valida campos financeiros apenas na VENDA
   if(selSit_==='VENDA'){
-    [['m-val','err-val',v=>v.trim()!==''&&parseFloat(v)>=0],['m-ent','err-ent',v=>v.trim()!==''&&parseFloat(v)>=0],['m-cli','err-cli',v=>v.trim().length>0],['m-pro','err-pro',v=>v.trim().length>0]].forEach(([fid,eid,fn])=>{const el=document.getElementById(fid);if(!fn(el.value)){el.classList.add('err');document.getElementById(eid).classList.add('on');ok=false;}else{el.classList.remove('err');document.getElementById(eid).classList.remove('on');}});
+    [['m-val','err-val',v=>v.trim()!==''&&parseFloat(v)>=0],['m-ent','err-ent',v=>v.trim()!==''&&parseFloat(v)>=0]].forEach(([fid,eid,fn])=>{const el=document.getElementById(fid);if(!fn(el.value)){el.classList.add('err');document.getElementById(eid).classList.add('on');ok=false;}else{el.classList.remove('err');document.getElementById(eid).classList.remove('on');}});
   }
   const motEl=document.getElementById('m-mot');
   if(selSit_==='PERDIDA'&&!motEl.value.trim()){motEl.classList.add('err');document.getElementById('err-mot').classList.add('on');ok=false;}
@@ -1319,8 +1316,6 @@ async function submitReg(){
     rep_autorizado:selSit_==='PERDIDA'&&selRep_==='NÃO'?authOk:false,
     valor:v, entrada:e,
     pct:v>0?Math.round(e/v*100):0,
-    cliente:document.getElementById('m-cli').value.trim(),
-    produto:document.getElementById('m-pro').value.trim(),
     motivo:document.getElementById('m-mot').value.trim()
   };
   try {
@@ -1529,12 +1524,11 @@ function renderSup(p,bodyId){
     </table></div>
     <div class="sec-lbl" style="margin-top:.25rem">Registros recentes</div>
     <div class="tbl-wrap"><table class="sup-tbl">
-      <thead><tr><th>Data/Hora</th><th>Consultor</th><th>Loja</th><th>Situação</th><th>Cliente</th><th>Origem</th><th>Repique</th><th class="nr">Valor</th><th class="nr">Comissão</th></tr></thead>
+      <thead><tr><th>Data/Hora</th><th>Consultor</th><th>Loja</th><th>Situação</th><th>Origem</th><th>Repique</th><th class="nr">Valor</th><th class="nr">Comissão</th></tr></thead>
       <tbody>${all.slice(0,60).map(r=>`<tr>
         <td style="font-family:var(--fm);font-size:11px;color:var(--tx4)">${r.data?r.data.split('-').reverse().join('/'):'—'} ${r.hora||''}</td>
         <td style="font-weight:600;font-size:12px">${r.consultant_name}</td>
         <td><span class="sbdg ${r.situacao==='VENDA'?'sbv':'sbp'}">${r.situacao==='VENDA'?'Venda':'Perdida'}</span></td>
-        <td style="font-size:12px;max-width:100px;overflow:hidden;text-overflow:ellipsis">${r.cliente||'—'}</td>
         <td style="font-size:11px;color:var(--tx4)">${r.meio==='RI'?'Rec. Interna':'Rec. Externa'}</td>
         <td style="font-size:11px;color:var(--tx4)">${r.repique==='SIM'?'Sim':r.repique==='NÃO'?'Não'+(r.rep_autorizado?' *':''):'—'}</td>
         <td class="nr" style="font-size:12px">${r.valor?fmt(r.valor):'—'}</td>
@@ -1878,8 +1872,8 @@ async function deleteAllRecs(){
 // ════ EXPORT CSV ════
 function exportCSV(){
   const recs=getRecs();if(!recs.length){toast('Nenhum dado','err');return;}
-  const h='Data,Hora,Consultor,Situacao,Origem,Repique,Aut.Gerente,Valor,Entrada,Pct,Cliente,Produto,Motivo\n';
-  const rows=recs.map(r=>[r.data,r.hora,r.consultant_name,r.situacao,r.meio==='RI'?'Receita Interna':'Receita Externa',r.repique,r.rep_autorizado?'Sim':'—',r.valor,r.entrada,r.pct,r.cliente,r.produto,(r.motivo||'').replace(/,/g,' ')].join(',')).join('\n');
+  const h='Data,Hora,Consultor,Situacao,Origem,Repique,Aut.Gerente,Valor,Entrada,Pct,Motivo\n';
+  const rows=recs.map(r=>[r.data,r.hora,r.consultant_name,r.situacao,r.meio==='RI'?'Receita Interna':'Receita Externa',r.repique,r.rep_autorizado?'Sim':'—',r.valor,r.entrada,r.pct,(r.motivo||'').replace(/,/g,' ')].join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+h+rows],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download='idealize_sv_'+dStr(new Date())+'.csv';a.click();URL.revokeObjectURL(url);
