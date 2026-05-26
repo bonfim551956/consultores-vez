@@ -755,7 +755,7 @@ const DEF_CODE = '1234';
 let SES = null;
 const SES_KEY = 'iz_ses_v2';
 function saveSession(u) {
-  const exp = Date.now() + 24*60*60*1000; // 24h — dura o dia todo sem deslogar
+  const exp = Date.now() + 12*60*60*1000; // 12h — sessão do expediente
   localStorage.setItem(SES_KEY, JSON.stringify({
     username: u.username,
     password: u.password,
@@ -885,51 +885,49 @@ const getCode    = () => _authCode || DEF_CODE;
 // ════ INIT ════
 async function initApp() {
   showLoading(true);
-  try {
-    // Na inicialização carrega TODOS os usuários (sem filtro de loja)
-    // para conseguir restaurar sessão de supervisor/diretor que têm loja=null
-    const [allUsers] = await Promise.all([
-      sbGet('iz_users','order=display_name').catch(()=>[]),
-    ]);
-    if (allUsers.length) _users = allUsers;
-    else _users = DEF_USERS;
 
-    // Verifica se tem sessão salva para saber qual loja carregar
-    const saved = getSavedSession();
-    if (saved) {
-      const savedUser = _users.find(x => x.username === saved.username);
-      if (savedUser) {
-        // Configura contexto de loja antes de carregar dados
-        const isSD = savedUser.role==='supervisor' || savedUser.role==='diretor';
-        setLojaCtx(isSD ? null : (savedUser.loja || 'sv'));
-        SES = { ...savedUser, consName: savedUser.role==='consultor'?savedUser.display_name:null };
-      }
-    }
-
-    // Agora carrega dados com o contexto correto
-    await Promise.all([loadConfig(), loadQueue(), loadRecs()]);
-
-    // Seed se banco vazio
-    if (!_users.length) {
-      for (const u of DEF_USERS) { try { await sbPost('iz_users', u); } catch {} }
-      _users = [...DEF_USERS];
-    }
-    if (!_cons.length && LOJA) { await saveConfig(); }
-  } catch(e) { console.error('Init:', e); }
-
-  showLoading(false);
-
-  // Restaura sessão
+  // 1. Verificar sessão salva PRIMEIRO — antes de qualquer chamada de rede
   const saved = getSavedSession();
-  if (saved && SES) {
+
+  if (saved) {
+    // Restaura SES direto dos dados salvos — não depende do banco
+    SES = {
+      username:     saved.username,
+      password:     saved.password,
+      role:         saved.role,
+      display_name: saved.display_name,
+      loja:         saved.loja || null,
+      consName:     saved.role === 'consultor' ? saved.display_name : null
+    };
+    const isSD = SES.role === 'supervisor' || SES.role === 'diretor';
+    setLojaCtx(isSD ? null : (SES.loja || 'sv'));
     LOJA_FILTER = null;
+
+    // Carrega dados em paralelo sem bloquear a restauração
+    try {
+      await Promise.all([
+        sbGet('iz_users','order=display_name').then(r => { if(r.length) _users = r; }),
+        loadConfig(),
+        loadQueue(),
+        loadRecs()
+      ]);
+    } catch(e) { console.warn('Init load parcial:', e); }
+
+    showLoading(false);
     startPolling();
     await routeUser();
     return;
   }
 
-  // Se não tem sessão ou usuário não encontrado → login
-  SES = null;
+  // 2. Sem sessão — carrega usuários para login
+  try {
+    const r = await sbGet('iz_users','order=display_name').catch(()=>[]);
+    _users = r.length ? r : DEF_USERS;
+  } catch(e) {
+    _users = DEF_USERS;
+  }
+
+  showLoading(false);
   document.getElementById('l-user').focus();
 }
 
