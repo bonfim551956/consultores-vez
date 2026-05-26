@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <title>Idealize — Sistema Comercial</title>
 <!-- build:20260514060341 --> -->
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700;1,800&family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -31,7 +31,7 @@
   --sh-lg:0 12px 32px rgba(0,0,0,.09),0 4px 8px rgba(0,0,0,.05);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overscroll-behavior:none}
+html,body{height:100%;width:100%;overscroll-behavior:none;overflow-x:hidden}
 body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-webkit-font-smoothing:antialiased}
 .scr{display:none;min-height:100vh;flex-direction:column}
 .scr.on{display:flex}
@@ -298,12 +298,12 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 .auth-sec-hint{font-size:11px;color:var(--teal-dd);margin-top:6px;font-weight:500}
 
 /* ── MODAL ── */
-.overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.45);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(17,24,39,.5);z-index:9999;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 .overlay.on{display:flex}
-.modal{background:var(--surface);border-radius:var(--r-xl) var(--r-xl) 0 0;border-top:3px solid var(--teal);width:100%;max-width:600px;padding:1.5rem 1.25rem 2.5rem;max-height:94vh;overflow-y:auto;animation:slideUp .24s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -8px 40px rgba(17,24,39,.15)}
+.modal{background:var(--surface);border-radius:var(--r-xl) var(--r-xl) 0 0;border-top:3px solid var(--teal);width:100%;max-width:100%;padding:1.5rem 1.25rem 2.5rem;max-height:90vh;overflow-y:auto;animation:slideUp .24s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -8px 40px rgba(17,24,39,.15)}
 .modal.auth{border-top-color:var(--orange)}
 .modal.pwd{border-top-color:var(--blue)}
-@keyframes slideUp{from{transform:translateY(70px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
 .m-hdl{width:38px;height:4px;background:var(--s3);border-radius:99px;margin:0 auto 1.25rem}
 .m-title{font-family:var(--fh);font-size:24px;font-weight:800;font-style:italic;color:var(--tx);margin-bottom:.25rem;letter-spacing:.02em}
 .m-sub{font-size:13px;color:var(--tx3);margin-bottom:1.5rem;font-weight:400;line-height:1.5}
@@ -350,6 +350,35 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 .loja-fbtn{display:inline-block;padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--tx3);font-family:var(--fb);margin-right:4px;transition:all .15s}
 .loja-fbtn.on{background:var(--teal);color:#fff;border-color:var(--teal)}
 .loja-fbtn:hover:not(.on){background:var(--teal-l);color:var(--teal-dd)}
+
+@media(min-width:600px){
+  .overlay{align-items:center}
+  .modal{border-radius:var(--r-xl);max-width:560px;max-height:88vh;margin:1rem}
+  .modal.auth{border-radius:var(--r-xl)}
+  .modal.pwd{border-radius:var(--r-xl)}
+}
+@media(min-width:768px){
+  .modal{max-width:600px}
+  .sit-grid{grid-template-columns:1fr 1fr}
+  .row2{grid-template-columns:1fr 1fr}
+}
+
+@media(min-width:768px){
+  .bwrap{padding:1.5rem 2rem}
+  .mg{grid-template-columns:repeat(4,1fr)}
+  .ov-grid{grid-template-columns:repeat(4,1fr)}
+  .rep-mets{grid-template-columns:repeat(6,1fr)}
+  .q-card{padding:1rem 1.25rem}
+  .q-av{width:48px;height:48px;font-size:16px}
+  .q-name{font-size:19px}
+  .hero{padding:2rem 2rem}
+  .h-ttl{font-size:36px}
+  .abtn{font-size:17px;padding:15px 24px}
+  .app-hdr{height:60px;padding:0 2rem}
+  .ah-texts .at-n{font-size:20px}
+  .gtab,.stab,.suptab{font-size:12px;padding:.875rem .75rem}
+  .mtab{font-size:11px}
+}
 </style>
 </head>
 <body>
@@ -571,108 +600,14 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   <div class="sview" id="sv-config"><div class="bwrap" id="config-body"></div></div>
 </div>
 
-<!-- ═══ MODAL REGISTRO ═══ -->
-<div class="overlay" id="ov-reg">
-  <div class="modal">
-    <div class="m-hdl"></div>
-    <div class="m-title">Registrar Atendimento</div>
-    <div class="m-sub" id="reg-sub">Campos com * são obrigatórios</div>
-    <div class="fg">
-      <label>Situação <span class="req">*</span></label>
-      <div class="sit-grid">
-        <div class="sit-chip" id="sc-v" onclick="selSit('VENDA')"><div class="sc-ttl">Venda</div><div class="sc-dsc">Negócio fechado</div></div>
-        <div class="sit-chip" id="sc-p" onclick="selSit('PERDIDA')"><div class="sc-ttl">Perdida</div><div class="sc-dsc">Não converteu</div></div>
-      </div>
-      <div class="emsg" id="err-sit">Selecione a situação</div>
-    </div>
-    <div class="fg">
-      <label>Origem do cliente <span class="req">*</span></label>
-      <div class="tog" id="tog-meio">
-        <button class="tbtn" id="t-ri" onclick="selMeio('RI')">Receita Interna</button>
-        <button class="tbtn" id="t-re" onclick="selMeio('RE')">Receita Externa</button>
-      </div>
-      <div class="emsg" id="err-meio">Selecione a origem</div>
-    </div>
-    <div class="row2">
-      <div class="fg"><label>Valor total (R$) <span class="req">*</span></label><input type="number" id="m-val" placeholder="0,00" min="0" step="0.01" inputmode="decimal"><div class="emsg" id="err-val">Informe o valor</div></div>
-      <div class="fg"><label>Entrada (R$) <span class="req">*</span></label><input type="number" id="m-ent" placeholder="0,00" min="0" step="0.01" inputmode="decimal"><div class="emsg" id="err-ent">Informe a entrada</div></div>
-    </div>
-    </div>
-    <div class="fg" id="fg-rep" style="display:none">
-      <label>Houve repique? <span class="req">*</span></label>
-      <div class="tog" id="tog-rep">
-        <button class="tbtn" id="t-rsim" onclick="selRep('SIM')">Sim</button>
-        <button class="tbtn" id="t-rnao" onclick="trySelNao()">Não</button>
-      </div>
-      <div class="emsg" id="err-rep">Informe sobre o repique</div>
-    </div>
-    <div class="auth-ok-banner" id="auth-banner">Autorizado pelo gerente — finalização sem repique liberada</div>
-    <div class="fg">
-      <label>Motivo / Observação <span class="req" id="mot-req">*</span><span id="mot-opt" style="display:none;color:var(--tx4);font-size:10px;font-weight:500;text-transform:none;letter-spacing:0">(opcional)</span></label>
-      <textarea id="m-mot" placeholder="Descreva o motivo da perda..."></textarea>
-      <div class="emsg" id="err-mot">Informe o motivo da perda</div>
-    </div>
-    <button class="abtn abt" style="width:100%;margin-top:4px" onclick="submitReg()">Salvar e voltar à fila</button>
-    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-reg')">Cancelar</button>
-  </div>
-</div>
-
-<!-- ═══ MODAL AUTH ═══ -->
-<div class="overlay" id="ov-auth">
-  <div class="modal auth">
-    <div class="m-hdl"></div>
-    <div class="m-title">Autorização do Gerente</div>
-    <div class="m-sub">Venda sem repique requer autorização. O gerente deve inserir o código presencialmente.</div>
-    <div class="m-warn">Insira o código de 4 dígitos para liberar esta exceção. O código é de responsabilidade exclusiva do gerente.</div>
-    <div class="fg">
-      <label>Código do gerente</label>
-      <input type="password" id="auth-inp" class="auth-modal-inp" inputmode="numeric" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter')checkAuth()">
-      <div class="emsg" id="err-auth">Código incorreto. Tente novamente.</div>
-    </div>
-    <button class="abtn abo" style="width:100%" onclick="checkAuth()">Confirmar</button>
-    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-auth')">Cancelar</button>
-  </div>
-</div>
-
-<!-- ═══ MODAL SENHA ═══ -->
-<div class="overlay" id="ov-pwd">
-  <div class="modal pwd">
-    <div class="m-hdl"></div>
-    <div class="m-title">Alterar Senha</div>
-    <div class="m-sub" id="pwd-sub">Nova senha para o usuário</div>
-    <div class="fg"><label>Nova senha <span class="req">*</span></label><input type="password" id="pwd-new" placeholder="Mínimo 4 caracteres"><div class="emsg" id="err-pwd">Senha deve ter ao menos 4 caracteres</div></div>
-    <div class="fg"><label>Confirmar senha <span class="req">*</span></label><input type="password" id="pwd-conf" placeholder="Repita a senha"><div class="emsg" id="err-pwd2">As senhas não coincidem</div></div>
-    <button class="abtn abt" style="width:100%;margin-top:4px" onclick="savePwd()">Salvar nova senha</button>
-    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-pwd')">Cancelar</button>
-  </div>
-</div>
 
 
-<!-- ═══ MODAL MINHA SENHA ═══ -->
-<div class="overlay" id="ov-minha-senha">
-  <div class="modal pwd">
-    <div class="m-hdl"></div>
-    <div class="m-title">Alterar minha senha</div>
-    <div class="m-sub" id="minha-senha-sub">Digite sua senha atual para confirmar</div>
-    <div class="fg">
-      <label>Senha atual <span class="req">*</span></label>
-      <input type="password" id="ms-atual" placeholder="Senha atual" autocomplete="current-password">
-      <div class="emsg" id="err-ms-atual">Senha atual incorreta</div>
-    </div>
-    <div class="fg">
-      <label>Nova senha <span class="req">*</span></label>
-      <input type="password" id="ms-nova" placeholder="Mínimo 4 caracteres" autocomplete="new-password">
-      <div class="emsg" id="err-ms-nova">Senha deve ter ao menos 4 caracteres</div>
-    </div>
-    <div class="fg">
-      <label>Confirmar nova senha <span class="req">*</span></label>
-      <input type="password" id="ms-conf" placeholder="Repita a nova senha" autocomplete="new-password">
-      <div class="emsg" id="err-ms-conf">As senhas não coincidem</div>
-    </div>
-    <button class="abtn abt" id="btn-salvar-senha" style="width:100%;margin-top:4px" onclick="salvarMinhaSenha()">Salvar nova senha</button>
-    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-minha-senha')">Cancelar</button>
-  </div>
-</div>
+
+
+
+
+
+
 
 <div class="toast" id="toast"></div>
 
@@ -845,7 +780,7 @@ function getSavedSession() {
 
 // ════ STATE ════
 let metP='day', mgrP='day', customDe='', customAte='', mgrCustomDe='', mgrCustomAte='';
-let selSit_=null, selMeio_=null, selRep_=null, authOk=false;
+let selSit_=null, selMeio_=null, selRep_=null, authOk=false, _repPendente=null;
 let gerenteAusente=false; // modo ausência do gerente — libera sem código
 let pwdTargetUser=null;
 let _users=[], _cons=DEF_CONS, _authCode=DEF_CODE, _queue=[], _recs=[];
@@ -1234,6 +1169,7 @@ function selSit(s){
   document.getElementById('err-rep').classList.remove('on');
   document.getElementById('tog-rep').querySelectorAll('.tbtn').forEach(b=>b.classList.remove('terr'));
   document.getElementById('t-rnao').textContent=s==='PERDIDA'?'Não — requer autorização':'Não';
+  document.getElementById('t-rsim').textContent=s==='PERDIDA'?'Sim — requer autorização':'Sim';
   const lost=s==='PERDIDA';
   document.getElementById('mot-req').style.display=lost?'inline':'none';
   document.getElementById('mot-opt').style.display=lost?'none':'inline';
@@ -1282,8 +1218,25 @@ function trySelNao(){
 function tryNoRep(){trySelNao();}
 function checkAuth(){
   const c=document.getElementById('auth-inp').value.trim();
-  if(c===getCode()){authOk=true;closeOv('ov-auth');selRep_='NÃO';document.getElementById('t-rsim').className='tbtn';document.getElementById('t-rnao').className='tbtn selt';document.getElementById('err-rep').classList.remove('on');document.getElementById('auth-banner').classList.add('on');toast('Autorizado pelo gerente','ok');}
-  else{document.getElementById('err-auth').classList.add('on');document.getElementById('auth-inp').value='';toast('Código incorreto','err');}
+  if(c===getCode()){
+    authOk=true;
+    closeOv('ov-auth');
+    // Define repique com o valor que estava pendente (SIM ou NÃO)
+    selRep_=_repPendente||'NÃO';
+    document.getElementById('t-rsim').className='tbtn'+(selRep_==='SIM'?' selt':'');
+    document.getElementById('t-rnao').className='tbtn'+(selRep_==='NÃO'?' selt':'');
+    document.getElementById('err-rep').classList.remove('on');
+    document.getElementById('auth-banner').classList.add('on');
+    document.getElementById('auth-banner').textContent=
+      selRep_==='SIM'
+        ? 'Autorizado pelo gerente — venda perdida com repique registrada'
+        : 'Autorizado pelo gerente — finalização sem repique liberada';
+    toast('Autorizado pelo gerente','ok');
+  } else {
+    document.getElementById('err-auth').classList.add('on');
+    document.getElementById('auth-inp').value='';
+    toast('Código incorreto','err');
+  }
 }
 function closeOv(id){document.getElementById(id).classList.remove('on');}
 
@@ -1292,7 +1245,7 @@ async function submitReg(){
   if(!selSit_){document.getElementById('err-sit').classList.add('on');document.querySelectorAll('.sit-chip').forEach(c=>c.classList.add('serr'));ok=false;}
   if(!selMeio_){document.getElementById('err-meio').classList.add('on');document.getElementById('tog-meio').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr'));ok=false;}
   if(!selRep_){document.getElementById('err-rep').classList.add('on');document.getElementById('tog-rep').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr'));ok=false;}
-  if(selSit_==='PERDIDA'&&selRep_==='NÃO'&&!authOk&&!gerenteAusente){toast('Necessária autorização do gerente','warn');return;}
+  if(selSit_==='PERDIDA'&&!authOk&&!gerenteAusente){toast('Necessária autorização do gerente para registrar perda','warn');return;}
   // Valida campos financeiros apenas na VENDA
   if(selSit_==='VENDA'){
     [['m-val','err-val',v=>v.trim()!==''&&parseFloat(v)>=0],['m-ent','err-ent',v=>v.trim()!==''&&parseFloat(v)>=0]].forEach(([fid,eid,fn])=>{const el=document.getElementById(fid);if(!fn(el.value)){el.classList.add('err');document.getElementById(eid).classList.add('on');ok=false;}else{el.classList.remove('err');document.getElementById(eid).classList.remove('on');}});
@@ -2099,6 +2052,7 @@ window.selSit=selSit;
 window.selMeio=selMeio;
 window.selRep=selRep;
 window.trySelNao=trySelNao;
+window.trySelSim=trySelSim;
 window.tryNoRep=tryNoRep;
 window.checkAuth=checkAuth;
 window.closeOv=closeOv;
@@ -2138,6 +2092,108 @@ window.setLojaFilter=setLojaFilter;
 // ════ INIT ════
 window.addEventListener('load', initApp);
 </script>
+
+
+<!-- ═══ MODAL OV-REG ═══ -->
+<div class="overlay" id="ov-reg">
+  <div class="modal">
+    <div class="m-hdl"></div>
+    <div class="m-title">Registrar Atendimento</div>
+    <div class="m-sub" id="reg-sub">Campos com * são obrigatórios</div>
+    <div class="fg">
+      <label>Situação <span class="req">*</span></label>
+      <div class="sit-grid">
+        <div class="sit-chip" id="sc-v" onclick="selSit('VENDA')"><div class="sc-ttl">Venda</div><div class="sc-dsc">Negócio fechado</div></div>
+        <div class="sit-chip" id="sc-p" onclick="selSit('PERDIDA')"><div class="sc-ttl">Perdida</div><div class="sc-dsc">Não converteu</div></div>
+      </div>
+      <div class="emsg" id="err-sit">Selecione a situação</div>
+    </div>
+    <div class="fg">
+      <label>Origem do cliente <span class="req">*</span></label>
+      <div class="tog" id="tog-meio">
+        <button class="tbtn" id="t-ri" onclick="selMeio('RI')">Receita Interna</button>
+        <button class="tbtn" id="t-re" onclick="selMeio('RE')">Receita Externa</button>
+      </div>
+      <div class="emsg" id="err-meio">Selecione a origem</div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Valor total (R$) <span class="req">*</span></label><input type="number" id="m-val" placeholder="0,00" min="0" step="0.01" inputmode="decimal"><div class="emsg" id="err-val">Informe o valor</div></div>
+      <div class="fg"><label>Entrada (R$) <span class="req">*</span></label><input type="number" id="m-ent" placeholder="0,00" min="0" step="0.01" inputmode="decimal"><div class="emsg" id="err-ent">Informe a entrada</div></div>
+    </div>
+    <div class="fg" id="fg-rep" style="display:none">
+      <label>Houve repique? <span class="req">*</span></label>
+      <div class="tog" id="tog-rep">
+        <button class="tbtn" id="t-rsim" onclick="trySelSim()">Sim</button>
+        <button class="tbtn" id="t-rnao" onclick="trySelNao()">Não</button>
+      </div>
+      <div class="emsg" id="err-rep">Informe sobre o repique</div>
+    </div>
+    <div class="auth-ok-banner" id="auth-banner">Autorizado pelo gerente — finalização sem repique liberada</div>
+    <div class="fg">
+      <label>Motivo / Observação <span class="req" id="mot-req">*</span><span id="mot-opt" style="display:none;color:var(--tx4);font-size:10px;font-weight:500;text-transform:none;letter-spacing:0">(opcional)</span></label>
+      <textarea id="m-mot" placeholder="Descreva o motivo da perda..."></textarea>
+      <div class="emsg" id="err-mot">Informe o motivo da perda</div>
+    </div>
+    <button class="abtn abt" style="width:100%;margin-top:4px" onclick="submitReg()">Salvar e voltar à fila</button>
+    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-reg')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL OV-AUTH ═══ -->
+<div class="overlay" id="ov-auth">
+  <div class="modal auth">
+    <div class="m-hdl"></div>
+    <div class="m-title">Autorização do Gerente</div>
+    <div class="m-sub">Toda venda perdida requer autorização do gerente. O código deve ser inserido presencialmente.</div>
+    <div class="m-warn">Insira o código de 4 dígitos para confirmar e liberar o retorno à fila. O código é de responsabilidade exclusiva do gerente.</div>
+    <div class="fg">
+      <label>Código do gerente</label>
+      <input type="password" id="auth-inp" class="auth-modal-inp" inputmode="numeric" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter')checkAuth()">
+      <div class="emsg" id="err-auth">Código incorreto. Tente novamente.</div>
+    </div>
+    <button class="abtn abo" style="width:100%" onclick="checkAuth()">Confirmar</button>
+    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-auth')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL OV-PWD ═══ -->
+<div class="overlay" id="ov-pwd">
+  <div class="modal pwd">
+    <div class="m-hdl"></div>
+    <div class="m-title">Alterar Senha</div>
+    <div class="m-sub" id="pwd-sub">Nova senha para o usuário</div>
+    <div class="fg"><label>Nova senha <span class="req">*</span></label><input type="password" id="pwd-new" placeholder="Mínimo 4 caracteres"><div class="emsg" id="err-pwd">Senha deve ter ao menos 4 caracteres</div></div>
+    <div class="fg"><label>Confirmar senha <span class="req">*</span></label><input type="password" id="pwd-conf" placeholder="Repita a senha"><div class="emsg" id="err-pwd2">As senhas não coincidem</div></div>
+    <button class="abtn abt" style="width:100%;margin-top:4px" onclick="savePwd()">Salvar nova senha</button>
+    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-pwd')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL OV-MINHA-SENHA ═══ -->
+<div class="overlay" id="ov-minha-senha">
+  <div class="modal pwd">
+    <div class="m-hdl"></div>
+    <div class="m-title">Alterar minha senha</div>
+    <div class="m-sub" id="minha-senha-sub">Digite sua senha atual para confirmar</div>
+    <div class="fg">
+      <label>Senha atual <span class="req">*</span></label>
+      <input type="password" id="ms-atual" placeholder="Senha atual" autocomplete="current-password">
+      <div class="emsg" id="err-ms-atual">Senha atual incorreta</div>
+    </div>
+    <div class="fg">
+      <label>Nova senha <span class="req">*</span></label>
+      <input type="password" id="ms-nova" placeholder="Mínimo 4 caracteres" autocomplete="new-password">
+      <div class="emsg" id="err-ms-nova">Senha deve ter ao menos 4 caracteres</div>
+    </div>
+    <div class="fg">
+      <label>Confirmar nova senha <span class="req">*</span></label>
+      <input type="password" id="ms-conf" placeholder="Repita a nova senha" autocomplete="new-password">
+      <div class="emsg" id="err-ms-conf">As senhas não coincidem</div>
+    </div>
+    <button class="abtn abt" id="btn-salvar-senha" style="width:100%;margin-top:4px" onclick="salvarMinhaSenha()">Salvar nova senha</button>
+    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-minha-senha')">Cancelar</button>
+  </div>
+</div>
 
 </body>
 </html>
