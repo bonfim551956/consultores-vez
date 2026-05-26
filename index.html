@@ -1218,6 +1218,17 @@ function trySelNao(){
   else{selRep('NÃO');}
 }
 function tryNoRep(){trySelNao();}
+
+function trySelSim(){
+  if(selSit_==='PERDIDA'){
+    _repPendente='SIM';
+    document.getElementById('auth-inp').value='';
+    document.getElementById('err-auth').classList.remove('on');
+    document.getElementById('ov-auth').classList.add('on');
+  } else {
+    selRep('SIM');
+  }
+}
 function checkAuth(){
   const c=document.getElementById('auth-inp').value.trim();
   if(c===getCode()){
