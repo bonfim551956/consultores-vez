@@ -563,6 +563,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
     <div class="ah-right">
       <span class="ah-badge" style="background:rgba(107,70,193,.12);color:#6B46C1">Supervisor</span>
       <button class="ah-exp" onclick="exportCSV()">Exportar CSV</button>
+      <button class="ah-logout" onclick="openMinhaSenha()">Minha senha</button>
       <button class="ah-logout" onclick="doLogout()">Sair</button>
     </div>
   </div>
@@ -579,11 +580,13 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
     <button class="suptab on" onclick="showSupTab('ranking',this)">Ranking</button>
     <button class="suptab" onclick="showSupTab('supervisao',this)">Supervisão</button>
     <button class="suptab" onclick="showSupTab('fila',this)">Fila ao vivo</button>
+    <button class="suptab" onclick="showSupTab('usuarios',this)">Usuários</button>
     <button class="suptab" onclick="showSupTab('autorizacao',this)">Autorização</button>
   </div>
   <div class="supview on" id="sv-sup-ranking"><div class="bwrap wide" id="rank-sup-body"></div></div>
   <div class="supview" id="sv-sup-supervisao"><div class="bwrap wide" id="sup-sup-body"></div></div>
   <div class="supview" id="sv-sup-fila"><div class="bwrap wide" id="fila-sup-body"></div></div>
+  <div class="supview" id="sv-sup-usuarios"><div class="bwrap" id="sup-usuarios-body"></div></div>
   <div class="supview" id="sv-sup-autorizacao">
     <div class="bwrap">
       <div class="cfg-section" style="margin-top:1rem">
@@ -1430,9 +1433,10 @@ function showSupTab(tab,el){
   document.querySelectorAll('.supview').forEach(v=>v.classList.remove('on'));
   document.getElementById('sv-sup-'+tab).classList.add('on');
   if(el)el.classList.add('on');
-  if(tab==='ranking')renderRank(mgrP,'rank-sup-body');
+  if(tab==='ranking')   renderRank(mgrP,'rank-sup-body');
   if(tab==='supervisao')renderSup(mgrP,'sup-sup-body');
-  if(tab==='fila')renderFilaView('fila-sup-body',false);
+  if(tab==='fila')      renderFilaView('fila-sup-body',false);
+  if(tab==='usuarios')  renderSupUsuarios();
 }
 function showSTab(tab,el){
   document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
@@ -1874,7 +1878,13 @@ async function delUser(username){
   catch(e){toast('Erro ao remover','err');console.error('delUser:',e);}
 }
 function openPwd(username){
-  pwdTargetUser=username;const u=_users.find(x=>x.username===username);
+  const u = _users.find(x=>x.username===username);
+  // Supervisor não pode alterar senha de supervisor ou diretor
+  if(SES?.role==='supervisor' && (u?.role==='supervisor'||u?.role==='diretor')){
+    toast('Sem permissão para alterar senha deste perfil','err');
+    return;
+  }
+  pwdTargetUser=username;
   document.getElementById('pwd-sub').textContent=`Alterar senha de ${u?.display_name} (@${username})`;
   document.getElementById('pwd-new').value='';document.getElementById('pwd-conf').value='';
   document.getElementById('err-pwd').classList.remove('on');document.getElementById('err-pwd2').classList.remove('on');
@@ -1959,6 +1969,8 @@ async function saveSupCode(){
   document.getElementById('sup-code').value='';toast('Código atualizado','ok');
 }
 window.saveSupCode=saveSupCode;
+window.addUserSup=addUserSup;
+window.renderSupUsuarios=renderSupUsuarios;
 window.setLojaFilter=setLojaFilter;
 
 // ════ SELETOR DE LOJA (Supervisor/Diretor) ════
@@ -2143,6 +2155,117 @@ async function salvarMinhaSenha(){
   }
 }
 
+// ════ PAINEL USUÁRIOS DO SUPERVISOR ════
+function renderSupUsuarios() {
+  const users = getUsers();
+  document.getElementById('sup-usuarios-body').innerHTML = `
+    <div class="cfg-section" style="margin-top:1rem">
+      <div class="cfg-hd">
+        <span class="cfg-hd-title">Usuários do sistema</span>
+        <span class="cfg-hd-count">${users.length} usuário(s)</span>
+      </div>
+      ${users.map((u,i) => `<div class="cfg-row">
+        <div class="cfg-av ${u.role==='gerente'?'ger':u.role==='supervisor'||u.role==='diretor'?'gest':''}">${ini(u.display_name)}</div>
+        <div class="cfg-info">
+          <div class="cfg-name">${u.display_name}</div>
+          <div class="cfg-meta">
+            <span class="cfg-role-pill ${u.role==='diretor'?'rp-gest':u.role==='supervisor'?'rp-sup':u.role==='gerente'?'rp-ger':'rp-cons'}">${u.role==='diretor'?'Diretor':u.role==='supervisor'?'Supervisor':u.role==='gerente'?'Gerente':'Consultor'}</span>
+            <span style="font-family:var(--fm);font-size:10px">@${u.username}</span>
+            <span style="font-size:10px;background:${u.loja?'var(--teal-m)':'var(--purple-m)'};color:${u.loja?'var(--teal-dd)':'var(--purple)'};padding:1px 7px;border-radius:99px;font-weight:600">${u.loja?(LOJA_NAMES[u.loja]||u.loja):'Rede'}</span>
+          </div>
+        </div>
+        <div class="cfg-actions">
+          ${u.role==='diretor'||u.role==='supervisor'?'<span style="font-size:10px;color:var(--tx4);padding:0 4px">Rede</span>':`<button class="cfg-btn cb-pwd" onclick="openPwd('${u.username}')">Senha</button>`}
+        </div>
+      </div>`).join('')}
+      <div class="cfg-add-block">
+        <div class="cfg-add-title">Criar novo usuário</div>
+        <div class="cfg-grid">
+          <input class="cfg-inp" type="text" id="sup-gu-name" placeholder="Nome completo">
+          <input class="cfg-inp" type="text" id="sup-gu-user" placeholder="usuario.login" autocapitalize="none" autocorrect="off">
+        </div>
+        <div class="cfg-inp-row">
+          <input class="cfg-inp" type="password" id="sup-gu-pass" placeholder="Senha inicial" style="flex:1">
+          <select class="cfg-role-select" id="sup-gu-role">
+            <option value="consultor">Consultor</option>
+            <option value="gerente">Gerente</option>
+          </select>
+          <select class="cfg-role-select" id="sup-gu-loja">
+            <option value="sv">São Vicente</option>
+            <option value="campinas">Campinas</option>
+            <option value="sorocaba">Sorocaba</option>
+            <option value="piracicaba">Piracicaba</option>
+            <option value="santos">Santos</option>
+          </select>
+          <button class="cfg-add-btn" id="btn-sup-criar-user" onclick="addUserSup()">Criar</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function addUserSup() {
+  const btn = document.getElementById('btn-sup-criar-user');
+  const name = document.getElementById('sup-gu-name').value.trim();
+  const u    = document.getElementById('sup-gu-user').value.trim().toLowerCase();
+  const p    = document.getElementById('sup-gu-pass').value;
+  const role = document.getElementById('sup-gu-role').value;
+  const loja = document.getElementById('sup-gu-loja').value;
+
+  if (!name) { toast('Informe o nome completo','err'); return; }
+  if (!u)    { toast('Informe o usuário','err'); return; }
+  if (!p || p.length < 4) { toast('Senha deve ter ao menos 4 caracteres','err'); return; }
+
+  if (btn) { btn.textContent = 'Salvando...'; btn.disabled = true; }
+
+  try {
+    // Verificar duplicata
+    let checkParams = `username=eq.${encodeURIComponent(u)}&loja=eq.${encodeURIComponent(loja)}`;
+    const existing = await sbGet('iz_users', checkParams);
+    if (existing.length) { toast('Usuário já existe nesta loja','err'); return; }
+
+    const nu = { username:u, password:p, role, display_name:name, loja };
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(nu)
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+
+    // Se consultor: adiciona ao config da loja
+    if (role === 'consultor') {
+      try {
+        const cfgR = await sbGet('iz_config', `loja=eq.${encodeURIComponent(loja)}`);
+        if (cfgR.length) {
+          const cons = cfgR[0].consultants || [];
+          if (!cons.map(x=>x.toLowerCase()).includes(name.toLowerCase())) {
+            cons.push(name);
+            await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(loja)}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal' },
+              body: JSON.stringify({ consultants: cons })
+            });
+          }
+        }
+      } catch(e) { console.error('config update:', e); }
+    }
+
+    ['sup-gu-name','sup-gu-user','sup-gu-pass'].forEach(id => document.getElementById(id).value = '');
+    toast(`${name} criado com sucesso`, 'ok');
+    await loadUsers();
+    renderSupUsuarios();
+  } catch(e) {
+    toast('Erro ao criar usuário','err');
+    console.error('addUserSup:', e);
+  } finally {
+    if (btn) { btn.textContent = 'Criar'; btn.disabled = false; }
+  }
+}
+
 // ════ EXPÕE FUNÇÕES PARA onclick no HTML ════
 window.doLogin=doLogin;
 window.doLogout=doLogout;
@@ -2189,6 +2312,8 @@ window.openMinhaSenha=openMinhaSenha;
 window.salvarMinhaSenha=salvarMinhaSenha;
 window.renderConfig=renderConfig;
 window.saveSupCode=saveSupCode;
+window.addUserSup=addUserSup;
+window.renderSupUsuarios=renderSupUsuarios;
 window.setLojaFilter=setLojaFilter;
 
 // ════ INIT ════
