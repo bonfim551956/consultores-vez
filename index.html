@@ -6,6 +6,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#2BBFB3">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Idealize — Sistema Comercial</title>
 <!-- build:20260526144253 --> -->
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700;1,800&family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -31,7 +35,8 @@
   --sh-lg:0 12px 32px rgba(0,0,0,.09),0 4px 8px rgba(0,0,0,.05);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;width:100%;overscroll-behavior:none;overflow-x:hidden}
+html{height:100%;height:-webkit-fill-available}
+body{min-height:100%;min-height:-webkit-fill-available;width:100%;overscroll-behavior:none;overflow-x:hidden;-webkit-text-size-adjust:100%}
 body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-webkit-font-smoothing:antialiased}
 .scr{display:none;min-height:100vh;flex-direction:column}
 .scr.on{display:flex}
@@ -298,9 +303,9 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 .auth-sec-hint{font-size:11px;color:var(--teal-dd);margin-top:6px;font-weight:500}
 
 /* ── MODAL ── */
-.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(17,24,39,.5);z-index:9999;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
-.overlay.on{display:flex}
-.modal{background:var(--surface);border-radius:var(--r-xl) var(--r-xl) 0 0;border-top:3px solid var(--teal);width:100%;max-width:100%;padding:1.5rem 1.25rem 2.5rem;max-height:90vh;overflow-y:auto;animation:slideUp .24s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -8px 40px rgba(17,24,39,.15)}
+.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;height:100dvh;background:rgba(17,24,39,.5);z-index:9999;align-items:flex-end;justify-content:center;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.overlay.on{display:flex!important}
+.modal{background:var(--surface);border-radius:var(--r-xl) var(--r-xl) 0 0;border-top:3px solid var(--teal);width:100%;max-width:100%;padding:1.5rem 1.25rem 2rem;max-height:85vh;max-height:85dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .24s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -8px 40px rgba(17,24,39,.15)}
 .modal.auth{border-top-color:var(--orange)}
 .modal.pwd{border-top-color:var(--blue)}
 @keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -430,13 +435,17 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 }
 </style>
 <script>
-// Roda ANTES do HTML renderizar — esconde login se há sessão válida
+// Roda ANTES do HTML renderizar
 (function(){
   try {
     var d = JSON.parse(localStorage.getItem('iz_ses_v2'));
     if (d && d.exp && Date.now() < d.exp && d.username) {
-      // Sessão válida — adiciona classe no body para esconder tela de login
       document.documentElement.classList.add('has-session');
+      // Injeta style direto no head para garantir que login não aparece
+      var s = document.createElement('style');
+      s.id = 'pre-auth-style';
+      s.textContent = '#s-login{display:none!important}';
+      document.head.appendChild(s);
     }
   } catch(e){}
 })();
@@ -985,10 +994,12 @@ async function initApp() {
     } catch(e) { console.warn('Init load parcial:', e); }
 
     showLoading(false);
-    // Remove splash e mostra o painel diretamente
+    // Remove splash, remove bloqueio de login e mostra o painel
     const splash = document.getElementById('loading-splash');
     if (splash) splash.style.display = 'none';
     document.documentElement.classList.remove('has-session');
+    const preStyle = document.getElementById('pre-auth-style');
+    if (preStyle) preStyle.remove();
     startPolling();
     await routeUser();
     return;
@@ -1008,6 +1019,8 @@ async function initApp() {
   const splash2 = document.getElementById('loading-splash');
   if (splash2) splash2.style.display = 'none';
   document.documentElement.classList.remove('has-session');
+  const preStyle2 = document.getElementById('pre-auth-style');
+  if (preStyle2) preStyle2.remove();
   document.getElementById('l-user').focus();
 }
 
