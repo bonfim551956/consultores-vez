@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <title>Idealize — Sistema Comercial</title>
-<!-- build:20260514060341 --> -->
+<!-- build:20260526144253 --> -->
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700;1,800&family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -756,6 +756,7 @@ let SES = null;
 const SES_KEY = 'iz_ses_v2';
 function saveSession(u) {
   const exp = Date.now() + 12*60*60*1000; // 12h — sessão do expediente
+  console.log('[Idealize] Salvando sessão para:', u.username, '| expira em 12h');
   localStorage.setItem(SES_KEY, JSON.stringify({
     username: u.username,
     password: u.password,
@@ -884,12 +885,14 @@ const getCode    = () => _authCode || DEF_CODE;
 
 // ════ INIT ════
 async function initApp() {
+  console.log('[Idealize build:20260526144253] initApp iniciado');
   showLoading(true);
 
   // 1. Verificar sessão salva PRIMEIRO — antes de qualquer chamada de rede
   const saved = getSavedSession();
 
   if (saved) {
+    console.log('[Idealize] Sessão encontrada:', saved.username, '| exp:', new Date(saved.exp).toLocaleTimeString());
     // Restaura SES direto dos dados salvos — não depende do banco
     SES = {
       username:     saved.username,
@@ -920,6 +923,7 @@ async function initApp() {
   }
 
   // 2. Sem sessão — carrega usuários para login
+  console.log('[Idealize] Sem sessão — indo para login');
   try {
     const r = await sbGet('iz_users','order=display_name').catch(()=>[]);
     _users = r.length ? r : DEF_USERS;
