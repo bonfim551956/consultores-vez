@@ -379,11 +379,79 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   .gtab,.stab,.suptab{font-size:12px;padding:.875rem .75rem}
   .mtab{font-size:11px}
 }
+.has-session #s-login { display: none !important; }
+.has-session #loading-splash {
+  display: flex !important;
+}
+#loading-splash {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+}
+.splash-logo {
+  font-family: var(--fh);
+  font-size: 42px;
+  font-weight: 800;
+  font-style: italic;
+  color: var(--teal-ddd);
+  letter-spacing: .02em;
+}
+.splash-logo span { color: var(--orange); }
+.splash-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tx4);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+.splash-bar {
+  width: 120px;
+  height: 3px;
+  background: var(--s3);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: .5rem;
+}
+.splash-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--teal-d));
+  border-radius: 99px;
+  animation: splashload 1s ease-in-out infinite alternate;
+}
+@keyframes splashload {
+  from { width: 20%; }
+  to   { width: 100%; }
+}
 </style>
+<script>
+// Roda ANTES do HTML renderizar — esconde login se há sessão válida
+(function(){
+  try {
+    var d = JSON.parse(localStorage.getItem('iz_ses_v2'));
+    if (d && d.exp && Date.now() < d.exp && d.username) {
+      // Sessão válida — adiciona classe no body para esconder tela de login
+      document.documentElement.classList.add('has-session');
+    }
+  } catch(e){}
+})();
+</script>
 </head>
 <body>
 
 <!-- ═══ LOGIN ═══ -->
+<!-- SPLASH — aparece enquanto sessão está sendo restaurada -->
+<div id="loading-splash">
+  <div class="splash-logo">IDEAL<span>I</span>ZE</div>
+  <div class="splash-sub">Sistema Comercial</div>
+  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
+
 <div id="loading-bar" style="display:none;position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--teal-d));z-index:9999;animation:loadbar 1s infinite linear"></div>
 <style>@keyframes loadbar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 .suptab{flex:1;min-width:80px;padding:.75rem .5rem;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx4);cursor:pointer;border:none;background:none;font-family:var(--fb);transition:all .15s;border-bottom:3px solid transparent;white-space:nowrap}
@@ -917,6 +985,10 @@ async function initApp() {
     } catch(e) { console.warn('Init load parcial:', e); }
 
     showLoading(false);
+    // Remove splash e mostra o painel diretamente
+    const splash = document.getElementById('loading-splash');
+    if (splash) splash.style.display = 'none';
+    document.documentElement.classList.remove('has-session');
     startPolling();
     await routeUser();
     return;
@@ -932,6 +1004,10 @@ async function initApp() {
   }
 
   showLoading(false);
+  // Remove splash e mostra login
+  const splash2 = document.getElementById('loading-splash');
+  if (splash2) splash2.style.display = 'none';
+  document.documentElement.classList.remove('has-session');
   document.getElementById('l-user').focus();
 }
 
