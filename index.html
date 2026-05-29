@@ -303,9 +303,9 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 .auth-sec-hint{font-size:11px;color:var(--teal-dd);margin-top:6px;font-weight:500}
 
 /* ── MODAL ── */
-.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(17,24,39,.55);z-index:9999;align-items:flex-end;justify-content:center;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);contain:strict}
+.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(17,24,39,.55);z-index:9999;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
 .overlay.on{display:flex!important}
-.modal{background:var(--surface);border-radius:var(--r-xl) var(--r-xl) 0 0;border-top:3px solid var(--teal);width:100%;max-width:560px;padding:1.5rem 1.25rem 2rem;max-height:85vh;max-height:85dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .24s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -8px 40px rgba(17,24,39,.15)}
+.modal{background:var(--surface);border-radius:var(--r-xl) var(--r-xl) 0 0;border-top:3px solid var(--teal);width:100%;max-width:520px;margin-left:auto;margin-right:auto;padding:1.5rem 1.25rem 2rem;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .24s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -8px 40px rgba(17,24,39,.15)}
 .modal.auth{border-top-color:var(--orange)}
 .modal.pwd{border-top-color:var(--blue)}
 @keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -996,12 +996,14 @@ const getCons = () => {
   const la = lojaAtiva();
   if (!la) return _cons; // null = rede — retorna todos consolidados
   // Filtra consultores da loja ativa a partir dos configs
-  const cfg = _allConfigs.find(c => c.loja === la);
-  if (cfg) return cfg.consultants || [];
-  // Se não tem config desta loja, pega consultores dos usuários
-  return _users
+  const cfg = _allConfigs && _allConfigs.find(c => c.loja === la);
+  if (cfg && cfg.consultants && cfg.consultants.length) return cfg.consultants;
+  // Fallback: pega consultores dos usuários
+  const fromUsers = _users
     .filter(u => u.role==='consultor' && u.loja===la)
     .map(u => u.display_name);
+  if (fromUsers.length) return fromUsers;
+  return _cons || [];
 };
 const getQ       = () => _queue;
 const getRecs    = () => _recs;
@@ -1113,6 +1115,8 @@ async function routeUser() {
     const cn = document.getElementById('c-hdr-n');
     if (cn) cn.textContent = SES.display_name;
     renderCons(); showScr('s-cons');
+    // Pre-carrega dados para o ranking
+    if(!_allConfigs||!_allConfigs.length) loadConfig();
   } else if (SES.role==='gerente') {
     mgrP='day'; LOJA_FILTER=null;
     const gs = document.getElementById('ger-sub');
@@ -2507,7 +2511,14 @@ function showConsTab(tab, el) {
   el.style.borderBottomColor = 'var(--teal)';
   document.getElementById('cons-view-dados').style.display   = tab==='dados'   ? '' : 'none';
   document.getElementById('cons-view-ranking').style.display = tab==='ranking' ? '' : 'none';
-  if(tab==='ranking') renderConsRanking();
+  if(tab==='ranking') {
+    // Garante que _allConfigs está populado
+    if(!_allConfigs || !_allConfigs.length) {
+      loadConfig().then(()=>renderConsRanking());
+    } else {
+      renderConsRanking();
+    }
+  }
 }
 
 function setConsRankP(p, el) {
@@ -2527,14 +2538,17 @@ function setConsRankP(p, el) {
 
 function renderConsRanking() {
   const body = document.getElementById('cons-rank-body');
-  if(!body || !_consRankVisible) return;
-  // Filtra sempre pela loja do consultor logado
+  if(!body) return;
   const lojaConsultor = SES?.loja || LOJA;
   const recsLoja = getRecs().filter(r => r.loja === lojaConsultor);
-  const recs = filtP(recsLoja, _consRankP, '', '');
-  // Pega consultores da loja do consultor
-  const cfgLoja = _allConfigs.find(x => x.loja === lojaConsultor);
-  const cons = cfgLoja ? (cfgLoja.consultants || []) : getCons();
+  const recs = filtP(recsLoja, _consRankP||'day', '', '');
+  // Consultores: da config da loja ou dos usuários
+  const cfgLoja = _allConfigs && _allConfigs.find(x => x.loja === lojaConsultor);
+  const consFromCfg = cfgLoja ? (cfgLoja.consultants || []) : [];
+  const consFromUsers = _users.filter(u=>u.role==='consultor'&&u.loja===lojaConsultor).map(u=>u.display_name);
+  const consFromRecs = [...new Set(recsLoja.map(r=>r.consultant_name).filter(Boolean))];
+  const cons = consFromCfg.length ? consFromCfg : (consFromUsers.length ? consFromUsers : consFromRecs);
+  if(!body.innerHTML || body.innerHTML === '') body.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--tx4)">Carregando...</div>';
   const rows = cons.map(name => {
     const r2  = recs.filter(r=>r.consultant_name===name);
     const t2  = r2.length;
