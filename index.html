@@ -451,6 +451,10 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 .cons-main-tab:hover:not(.on){color:var(--tx)!important;background:var(--bg)!important}
 .rtab.on{background:var(--teal)!important;color:#fff!important;border-color:var(--teal)!important}
 
+
+.receita-row .sit-grid{grid-template-columns:1fr 1fr}
+.receita-row .sit-chip{min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
 </style>
 <script>
 // Roda ANTES do HTML renderizar
@@ -1387,59 +1391,79 @@ function checkAuth(){
 function closeOv(id){document.getElementById(id).classList.remove('on');}
 
 async function submitReg(){
-  let ok=true;
-  if(!selSit_){document.getElementById('err-sit').classList.add('on');document.querySelectorAll('.sit-chip').forEach(c=>c.classList.add('serr'));ok=false;}
-  if(!selMeio_){document.getElementById('err-meio').classList.add('on');document.getElementById('tog-meio').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr'));ok=false;}
-  if(!selRep_){document.getElementById('err-rep').classList.add('on');document.getElementById('tog-rep').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr'));ok=false;}
-  if(selSit_==='PERDIDA'&&!authOk&&!gerenteAusente){toast('Necessária autorização do gerente para registrar perda','warn');return;}
-  // Valida receitas apenas na VENDA
-  let receitasData = null;
-  if(selSit_==='VENDA'){
-    receitasData = getReceitasData();
-    if(!receitasData || receitasData.length===0){
-      document.getElementById('err-val').classList.add('on');
-      ok=false;
-    } else {
-      document.getElementById('err-val').classList.remove('on');
-    }
-  }
-  const motEl=document.getElementById('m-mot');
-  if(selSit_==='PERDIDA'&&!motEl.value.trim()){motEl.classList.add('err');document.getElementById('err-mot').classList.add('on');ok=false;}
-  else{motEl.classList.remove('err');document.getElementById('err-mot').classList.remove('on');}
-  if(!ok){toast('Preencha os campos obrigatórios','err');return;}
+  let ok = true;
 
-  // valores calculados pelas receitas dinâmicas
-  const now=new Date();
-  const rec={
-    loja:LOJA,
-    data:dStr(now),
-    hora:now.toTimeString().slice(0,5),
-    consultant_name:SES.consName,
-    situacao: receitasData?(receitasData.some(r=>r.sit==='PERDIDA')?'PERDIDA':'VENDA'):(selSit_||'VENDA'),
-    meio: receitasData&&receitasData.length>0?receitasData[0].tipo:(selMeio_||'RI'),
-    repique:selRep_||'—',
-    rep_autorizado:selSit_==='PERDIDA'&&selRep_==='NÃO'?authOk:false,
-    valor:v, entrada:e,
-    pct:v>0?Math.round(e/v*100):0,
-    motivo:document.getElementById('m-mot').value.trim()
+  // Valida receitas (todas devem ter situação, tipo e valor)
+  const receitasData = getReceitasData();
+  if(!receitasData || receitasData.length === 0){
+    document.getElementById('err-val').classList.add('on');
+    ok = false;
+  } else {
+    document.getElementById('err-val').classList.remove('on');
+  }
+
+  // Valida repique
+  if(!selRep_){
+    document.getElementById('err-rep').classList.add('on');
+    document.getElementById('tog-rep').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr'));
+    ok = false;
+  } else {
+    document.getElementById('err-rep').classList.remove('on');
+    document.getElementById('tog-rep').querySelectorAll('.tbtn').forEach(b=>b.classList.remove('terr'));
+  }
+
+  if(!ok){ toast('Preencha os campos obrigatórios','err'); return; }
+
+  // Situação derivada das receitas
+  const temPerdida = receitasData.some(r => r.sit === 'PERDIDA');
+
+  // Se houver alguma PERDIDA, precisa de autorização do gerente
+  if(temPerdida && !authOk && !gerenteAusente){
+    toast('Necessária autorização do gerente para registrar perda','warn');
+    return;
+  }
+
+  // Calcula totais
+  const totalValor  = receitasData.reduce((s,r) => s + (r.val||0), 0);
+  const totalEntrada= receitasData.reduce((s,r) => s + (r.ent||0), 0);
+  const situacaoFinal = temPerdida ? 'PERDIDA' : 'VENDA';
+  const meioFinal     = receitasData[0].tipo || 'RI';
+
+  const now = new Date();
+  const rec = {
+    loja: LOJA,
+    data: dStr(now),
+    hora: now.toTimeString().slice(0,5),
+    consultant_name: SES.consName || SES.display_name,
+    situacao: situacaoFinal,
+    meio: meioFinal,
+    repique: selRep_ || '—',
+    rep_autorizado: temPerdida && selRep_ === 'NÃO' ? authOk : false,
+    valor: totalValor,
+    entrada: totalEntrada,
+    pct: totalValor > 0 ? Math.round(totalEntrada/totalValor*100) : 0,
+    motivo: document.getElementById('m-mot').value.trim(),
+    receitas: JSON.stringify(receitasData)
   };
+
   try {
     await sbPost('iz_records', rec);
     // Volta pro final da fila
-    await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${encodeURIComponent(LOJA)}`, {
+    await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(SES.consName||SES.display_name)}&loja=eq.${encodeURIComponent(LOJA)}`, {
       method: 'DELETE', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     });
     await fetch(`${SB_URL}/rest/v1/iz_queue`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ consultant_name: SES.consName, loja: LOJA, status: 'queue', joined_at: new Date().toISOString() })
+      body: JSON.stringify({ consultant_name: SES.consName||SES.display_name, loja: LOJA, status: 'queue', joined_at: new Date().toISOString() })
     });
     await loadQueue(); await loadRecs();
     closeOv('ov-reg');
-    toast(selSit_==='VENDA'?'Venda registrada com sucesso':'Atendimento registrado','ok');
+    toast(situacaoFinal === 'VENDA' ? 'Venda registrada com sucesso!' : 'Atendimento registrado','ok');
     renderCons();
-  } catch(err){toast('Erro ao salvar','err');console.error(err);}
+  } catch(err){ toast('Erro ao salvar','err'); console.error('submitReg:',err); }
 }
+
 
 // ════ TABS ════
 function showGTab(tab,el){
