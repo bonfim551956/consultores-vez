@@ -1284,19 +1284,15 @@ async function startAtt() {
 
 // ════ MODAL REGISTRO ════
 function openReg(){
-  selSit_=null;selMeio_=null;selRep_=null;authOk=false;
+  selSit_=null;selMeio_=null;selRep_=null;authOk=false;_repPendente=null;
   document.querySelectorAll('.sit-chip').forEach(c=>c.className='sit-chip');
-  ['t-ri','t-re','t-rsim','t-rnao'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='tbtn';});
-  document.getElementById('m-mot').value='';
-  document.getElementById('m-mot').classList.remove('err');
+  ['t-rsim','t-rnao'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='tbtn';});
+  const mot=document.getElementById('m-mot'); if(mot){mot.value='';mot.classList.remove('err');}
   resetReceitas();
-  document.querySelectorAll('.emsg').forEach(e=>e.classList.remove('on'));
-  document.getElementById('fg-rep').style.display='none';
-  document.getElementById('auth-banner').classList.remove('on');
-  document.getElementById('mot-req').style.display='inline';
-  document.getElementById('mot-opt').style.display='none';
-  document.getElementById('m-mot').placeholder='Descreva o motivo da perda...';
-  document.getElementById('reg-sub').textContent=`${SES.consName} — campos com * são obrigatórios`;
+  document.querySelectorAll('#ov-reg .emsg').forEach(e=>e.classList.remove('on'));
+  const fgRep=document.getElementById('fg-rep'); if(fgRep) fgRep.style.display='none';
+  const banner=document.getElementById('auth-banner'); if(banner) banner.classList.remove('on');
+  const sub=document.getElementById('reg-sub'); if(sub) sub.textContent=`${SES.consName||SES.display_name} — campos com * são obrigatórios`;
   document.getElementById('ov-reg').classList.add('on');
 }
 function selSit(s){
@@ -1314,8 +1310,6 @@ function selSit(s){
   document.getElementById('t-rnao').textContent=s==='PERDIDA'?'Não — requer autorização':'Não';
   document.getElementById('t-rsim').textContent=s==='PERDIDA'?'Sim — requer autorização':'Sim';
   const lost=s==='PERDIDA';
-  document.getElementById('mot-req').style.display=lost?'inline':'none';
-  document.getElementById('mot-opt').style.display=lost?'none':'inline';
   document.getElementById('m-mot').placeholder=lost?'Descreva o motivo da perda...':'Observações (opcional)';
 
   // PERDIDA: desabilita campos financeiros/comerciais (não fazem sentido)
@@ -2548,7 +2542,6 @@ function renderConsRanking() {
   const consFromUsers = _users.filter(u=>u.role==='consultor'&&u.loja===lojaConsultor).map(u=>u.display_name);
   const consFromRecs = [...new Set(recsLoja.map(r=>r.consultant_name).filter(Boolean))];
   const cons = consFromCfg.length ? consFromCfg : (consFromUsers.length ? consFromUsers : consFromRecs);
-  if(!body.innerHTML || body.innerHTML === '') body.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--tx4)">Carregando...</div>';
   const rows = cons.map(name => {
     const r2  = recs.filter(r=>r.consultant_name===name);
     const t2  = r2.length;
@@ -2563,29 +2556,27 @@ function renderConsRanking() {
   }).sort((a,b)=>b.tx-a.tx||b.fat-a.fat);
   const maxTx = Math.max(...rows.map(r=>r.tx),1);
 
-  body.innerHTML = rows.map((r,i) => `
-    <div class="rep-card${r.isMe?' rep-card-me':''}" style="${r.isMe?'border-color:var(--teal);background:var(--teal-l)':''}">
-      <div class="rc-top">
-        <div class="rc-pos">#${i+1}</div>
-        <div class="rc-av${r.isMe?' rc-av-me':''}">${ini(r.name)}</div>
-        <div class="rc-info">
-          <div class="rc-name" style="${r.isMe?'color:var(--teal-dd)':''}">
-            ${r.name}${r.isMe?'<span style="font-size:9px;background:var(--teal);color:#fff;padding:1px 6px;border-radius:99px;font-weight:700;margin-left:5px">você</span>':''}
-          </div>
-          <div class="rc-sub">${r.tot} atend. · ${r.vend} vendas · ${fmt(r.fat)}</div>
+  body.innerHTML = rows.length ? rows.map((r,i) => `
+    <div class="rep-card" style="${r.isMe?'border-color:var(--teal);border-left-color:var(--teal);background:var(--teal-l)':''}">
+      <div class="rep-top">
+        <span style="font-family:var(--fm);font-size:12px;color:var(--tx4);min-width:22px">#${i+1}</span>
+        <div class="rep-av" style="${r.isMe?'background:var(--teal);color:#fff;border-color:var(--teal-d)':''}">${ini(r.name)}</div>
+        <div class="rep-info">
+          <div class="rep-name" style="${r.isMe?'color:var(--teal-dd)':''}">${r.name}${r.isMe?`<span style="font-size:9px;background:var(--teal);color:#fff;padding:1px 6px;border-radius:99px;font-weight:700;margin-left:5px">você</span>`:''}</div>
+          <div class="rep-detail">${r.tot} atend. · ${r.vend} vendas · ${fmt(r.fat)}</div>
         </div>
-        <div class="rc-pct" style="${r.isMe?'color:var(--teal-dd)':''}">${r.tx}%<div class="rc-pct-lbl">CONV.</div></div>
+        <div style="text-align:right"><div class="rep-tx" style="${r.isMe?'color:var(--teal-dd)':''}">${r.tx}%</div><div class="rep-txl">conversão</div></div>
       </div>
-      <div class="rc-bar"><div class="rc-bar-fill${r.isMe?' rc-bar-me':''}" style="width:${Math.round(r.tx/maxTx*100)}%"></div></div>
-      <div class="rep-mets">
-        <div class="rm"><div class="rm-v">${r.vend}</div><div class="rm-l">VENDAS</div></div>
-        <div class="rm"><div class="rm-v rd">${r.perd}</div><div class="rm-l">PERDIDAS</div></div>
-        <div class="rm"><div class="rm-v gt">${fmt(r.tmed)}</div><div class="rm-l">TICKET</div></div>
-        <div class="rm"><div class="rm-v gt">${fmt(r.com)}</div><div class="rm-l">COMISSÃO</div></div>
-        <div class="rm"><div class="rm-v">${r.txRepA}%</div><div class="rm-l">REP/ATEND.</div></div>
-        <div class="rm"><div class="rm-v">${r.txRepV}%</div><div class="rm-l">REP/VENDA</div></div>
+      <div class="bar-bg"><div class="bar-fg" style="width:${Math.round(r.tx/maxTx*100)}%;${r.isMe?'background:var(--teal)':''}"></div></div>
+      <div class="rep-mets" style="grid-template-columns:repeat(6,1fr)">
+        <div class="rm"><div class="rm-v t">${r.vend}</div><div class="rm-l">Vendas</div></div>
+        <div class="rm"><div class="rm-v r">${r.perd}</div><div class="rm-l">Perdidas</div></div>
+        <div class="rm"><div class="rm-v o" style="font-size:11px">${fmt(r.tmed)}</div><div class="rm-l">Ticket</div></div>
+        <div class="rm"><div class="rm-v o" style="font-size:11px">${fmt(r.com)}</div><div class="rm-l">Comissão</div></div>
+        <div class="rm"><div class="rm-v">${r.txRepA}%</div><div class="rm-l">Rep/Atend.</div></div>
+        <div class="rm"><div class="rm-v">${r.txRepV}%</div><div class="rm-l">Rep/Venda</div></div>
       </div>
-    </div>`).join('') || '<div style="text-align:center;padding:1.5rem;color:var(--tx4);font-size:13px">Nenhum registro no período</div>';
+    </div>`).join('') : '<div style="text-align:center;padding:1.5rem;color:var(--tx4);font-size:13px">Nenhum registro no período</div>';
 }
 
 // ════ EDIÇÃO DE REGISTROS ════
