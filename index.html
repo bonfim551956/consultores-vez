@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Idealize — Sistema Comercial</title>
-<!-- build:20260526144253 --> -->
+<!-- build:20260529201402 --> -->
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700;1,800&family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -447,6 +447,10 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 .btn-edit-rec:hover{background:var(--blue-m)}
 .edit-log{font-size:10px;color:var(--tx4);font-style:italic;margin-top:2px}
 
+.cons-main-tab.on{color:var(--teal-dd)!important;border-bottom-color:var(--teal)!important}
+.cons-main-tab:hover:not(.on){color:var(--tx)!important;background:var(--bg)!important}
+.rtab.on{background:var(--teal)!important;color:#fff!important;border-color:var(--teal)!important}
+
 </style>
 <script>
 // Roda ANTES do HTML renderizar
@@ -543,6 +547,14 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
       <div class="h-sub" id="h-sub">Toque abaixo para entrar na fila e começar a atender</div>
     </div>
     <div class="act-col" id="act-col"></div>
+    <!-- ABAS PRINCIPAIS DO CONSULTOR -->
+    <div style="display:flex;border-bottom:2px solid var(--border);margin-bottom:0">
+      <button class="cons-main-tab on" id="cmt-dados" onclick="showConsTab('dados',this)" style="flex:1;padding:.875rem;font-size:13px;font-weight:700;font-family:var(--fb);border:none;background:none;cursor:pointer;color:var(--tx3);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s">Meus dados</button>
+      <button class="cons-main-tab" id="cmt-ranking" onclick="showConsTab('ranking',this)" style="flex:1;padding:.875rem;font-size:13px;font-weight:700;font-family:var(--fb);border:none;background:none;cursor:pointer;color:var(--tx3);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s">Ranking da loja</button>
+    </div>
+
+    <!-- VIEW: MEUS DADOS -->
+    <div id="cons-view-dados" class="cons-view">
     <div class="met-card">
       <div class="met-tabs">
         <button class="mtab on" onclick="setMP('day',this)">Hoje</button>
@@ -564,14 +576,19 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
       <div id="mini-q"></div>
     </div>
 
-    <!-- RANKING DA LOJA -->
-    <div class="mqw" style="margin-top:0">
-      <div class="sec-lbl" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleConsRanking()">
-        <span>Ranking da loja</span>
-        <span id="cons-rank-toggle" style="font-size:11px;color:var(--teal-dd);font-weight:700">▶ Ver</span>
+    </div><!-- /cons-view-dados -->
+
+    <!-- VIEW: RANKING DA LOJA -->
+    <div id="cons-view-ranking" class="cons-view" style="display:none;padding-top:.5rem">
+      <div style="display:flex;gap:6px;margin-bottom:1rem">
+        <button class="rtab on" id="rt-day"   onclick="setConsRankP('day',this)"   style="flex:1;padding:8px 4px;font-size:11px;font-weight:700;font-family:var(--fb);border:1.5px solid var(--teal);border-radius:var(--r);background:var(--teal);color:#fff;cursor:pointer">Hoje</button>
+        <button class="rtab"    id="rt-week"  onclick="setConsRankP('week',this)"  style="flex:1;padding:8px 4px;font-size:11px;font-weight:700;font-family:var(--fb);border:1.5px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--tx3);cursor:pointer">Semana</button>
+        <button class="rtab"    id="rt-month" onclick="setConsRankP('month',this)" style="flex:1;padding:8px 4px;font-size:11px;font-weight:700;font-family:var(--fb);border:1.5px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--tx3);cursor:pointer">Mês</button>
       </div>
-      <div id="cons-rank-body" style="display:none;margin-top:.75rem"></div>
+      <div id="cons-rank-body"></div>
     </div>
+
+
 
   </div>
 </div>
@@ -1146,7 +1163,7 @@ function renderCons() {
   else{eye.textContent='Na fila';ttl.textContent=`${pos+1}º na fila`;sub.textContent=`Você ocupa a ${pos+1}ª posição. Aguarde.`;hero.insertAdjacentHTML('beforeend',`<div class="h-pill">Posição #${pos+1}</div>`);}
   const ac=document.getElementById('act-col');
   if(!e) ac.innerHTML=`<button class="abtn abt" onclick="enterQ()">Entrar na fila</button>`;
-  else if(e.status==='attending') ac.innerHTML=`<button class="abtn abt" onclick="openReg()">Finalizar e registrar</button>`;
+  else if(e.status==='attending') ac.innerHTML=`<button class="abtn abt" onclick="openReg()">Finalizar e registrar</button><button class="abtn abr" style="margin-top:8px" onclick="leaveQ()">Sair da fila</button>`;
   else ac.innerHTML=`<button class="abtn abo" onclick="startAtt()">Iniciar atendimento</button><button class="abtn abr" onclick="leaveQ()">Sair da fila</button>`;
   renderMet(); renderMiniQ();
 }
@@ -1402,8 +1419,8 @@ async function submitReg(){
     data:dStr(now),
     hora:now.toTimeString().slice(0,5),
     consultant_name:SES.consName,
-    situacao:selSit_,
-    meio:selMeio_,
+    situacao: receitasData?(receitasData.some(r=>r.sit==='PERDIDA')?'PERDIDA':'VENDA'):(selSit_||'VENDA'),
+    meio: receitasData&&receitasData.length>0?receitasData[0].tipo:(selMeio_||'RI'),
     repique:selRep_||'—',
     rep_autorizado:selSit_==='PERDIDA'&&selRep_==='NÃO'?authOk:false,
     valor:v, entrada:e,
@@ -2008,7 +2025,10 @@ window.confirmLimparFila=confirmLimparFila;
 window.addReceita=addReceita;
 window.rmReceita=rmReceita;
 window.selRTipo=selRTipo;
+window.selRSit=selRSit;
 window.toggleConsRanking=toggleConsRanking;
+window.showConsTab=showConsTab;
+window.setConsRankP=setConsRankP;
 window.renderConsRanking=renderConsRanking;
 window.openEditRec=openEditRec;
 window.salvarEdicaoRec=salvarEdicaoRec;
@@ -2344,7 +2364,7 @@ async function confirmLimparFila() {
 // ════ RECEITAS DINÂMICAS ════
 let _receitaCount = 0;
 
-function addReceita(tipo='', val='', ent='') {
+function addReceita(tipo='', val='', ent='', sit='') {
   _receitaCount++;
   const id = _receitaCount;
   const wrap = document.getElementById('receitas-list');
@@ -2352,6 +2372,14 @@ function addReceita(tipo='', val='', ent='') {
   div.className = 'receita-row';
   div.id = `receita-${id}`;
   div.innerHTML = `
+    <div style="display:flex;gap:6px;margin-bottom:6px">
+      <button type="button" id="rs-v-${id}" onclick="selRSit(${id},'VENDA')" 
+        style="flex:1;padding:7px 4px;font-size:12px;font-weight:700;font-family:var(--fb);border-radius:var(--r);cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--tx3);transition:all .15s"
+        class="">Venda</button>
+      <button type="button" id="rs-p-${id}" onclick="selRSit(${id},'PERDIDA')"
+        style="flex:1;padding:7px 4px;font-size:12px;font-weight:700;font-family:var(--fb);border-radius:var(--r);cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--tx3);transition:all .15s"
+        class="">Perdida</button>
+    </div>
     <div class="rtype">
       <button type="button" id="rt-ri-${id}" onclick="selRTipo(${id},'RI')" class="${tipo==='RI'?'selt':''}">Receita Interna</button>
       <button type="button" id="rt-re-${id}" onclick="selRTipo(${id},'RE')" class="${tipo==='RE'?'selt':''}">Receita Externa</button>
@@ -2370,9 +2398,21 @@ function addReceita(tipo='', val='', ent='') {
     </div>
     ${id>1?`<button class="rm-receita" onclick="rmReceita(${id})" title="Remover">×</button>`:'<div></div>'}
   `;
+  // Selecionar situação se fornecida
+  if(sit) selRSit(id, sit);
   wrap.appendChild(div);
   // Selecionar tipo se fornecido
   if(tipo) selRTipo(id, tipo);
+}
+
+function selRSit(id, sit) {
+  document.getElementById(`rs-v-${id}`).style.background = sit==='VENDA' ? '#22c55e' : 'var(--surface)';
+  document.getElementById(`rs-v-${id}`).style.color = sit==='VENDA' ? '#fff' : 'var(--tx3)';
+  document.getElementById(`rs-v-${id}`).style.borderColor = sit==='VENDA' ? '#22c55e' : 'var(--border)';
+  document.getElementById(`rs-p-${id}`).style.background = sit==='PERDIDA' ? 'var(--red-d)' : 'var(--surface)';
+  document.getElementById(`rs-p-${id}`).style.color = sit==='PERDIDA' ? '#fff' : 'var(--tx3)';
+  document.getElementById(`rs-p-${id}`).style.borderColor = sit==='PERDIDA' ? 'var(--red-d)' : 'var(--border)';
+  document.getElementById(`receita-${id}`).dataset.sit = sit;
 }
 
 function selRTipo(id, tipo) {
@@ -2420,19 +2460,24 @@ function getReceitasData() {
   rows.forEach(row => {
     const id = row.id.replace('receita-','');
     const tipo = row.dataset.tipo || '';
+    const sit  = row.dataset.sit  || '';
     const val  = parseFloat(document.getElementById(`rv-${id}`)?.value||0);
     const ent  = parseFloat(document.getElementById(`re-${id}`)?.value||0);
+    if(!sit) {
+      [document.getElementById(`rs-v-${id}`), document.getElementById(`rs-p-${id}`)].forEach(b=>b.style.borderColor='var(--red)');
+      valid = false;
+    }
     if(!tipo) {
       [document.getElementById(`rt-ri-${id}`), document.getElementById(`rt-re-${id}`)].forEach(b=>b.classList.add('terr'));
       valid = false;
     }
-    if(val <= 0) {
+    if(val <= 0 && sit==='VENDA') {
       document.getElementById(`rv-${id}`).style.borderColor='var(--red)';
       valid = false;
     } else {
       document.getElementById(`rv-${id}`).style.borderColor='';
     }
-    result.push({tipo, val, ent});
+    result.push({tipo, sit, val, ent});
   });
   return valid ? result : null;
 }
@@ -2447,18 +2492,37 @@ function resetReceitas() {
 
 // ════ RANKING DA LOJA PARA CONSULTOR ════
 let _consRankVisible = false;
-function toggleConsRanking() {
-  _consRankVisible = !_consRankVisible;
-  const body = document.getElementById('cons-rank-body');
-  const toggle = document.getElementById('cons-rank-toggle');
-  if(_consRankVisible) {
-    body.style.display = 'block';
-    toggle.textContent = '▼ Ocultar';
-    renderConsRanking();
-  } else {
-    body.style.display = 'none';
-    toggle.textContent = '▶ Ver';
-  }
+function toggleConsRanking() {} // deprecated — mantido para compatibilidade
+
+let _consRankP = 'day';
+
+function showConsTab(tab, el) {
+  document.querySelectorAll('.cons-main-tab').forEach(b => {
+    b.classList.remove('on');
+    b.style.color = 'var(--tx3)';
+    b.style.borderBottomColor = 'transparent';
+  });
+  el.classList.add('on');
+  el.style.color = 'var(--teal-dd)';
+  el.style.borderBottomColor = 'var(--teal)';
+  document.getElementById('cons-view-dados').style.display   = tab==='dados'   ? '' : 'none';
+  document.getElementById('cons-view-ranking').style.display = tab==='ranking' ? '' : 'none';
+  if(tab==='ranking') renderConsRanking();
+}
+
+function setConsRankP(p, el) {
+  _consRankP = p;
+  document.querySelectorAll('.rtab').forEach(b => {
+    b.classList.remove('on');
+    b.style.background = 'var(--surface)';
+    b.style.color = 'var(--tx3)';
+    b.style.borderColor = 'var(--border)';
+  });
+  el.classList.add('on');
+  el.style.background = 'var(--teal)';
+  el.style.color = '#fff';
+  el.style.borderColor = 'var(--teal)';
+  renderConsRanking();
 }
 
 function renderConsRanking() {
@@ -2467,7 +2531,7 @@ function renderConsRanking() {
   // Filtra sempre pela loja do consultor logado
   const lojaConsultor = SES?.loja || LOJA;
   const recsLoja = getRecs().filter(r => r.loja === lojaConsultor);
-  const recs = filtP(recsLoja, metP, customDe, customAte);
+  const recs = filtP(recsLoja, _consRankP, '', '');
   // Pega consultores da loja do consultor
   const cfgLoja = _allConfigs.find(x => x.loja === lojaConsultor);
   const cons = cfgLoja ? (cfgLoja.consultants || []) : getCons();
@@ -2660,7 +2724,10 @@ window.confirmLimparFila=confirmLimparFila;
 window.addReceita=addReceita;
 window.rmReceita=rmReceita;
 window.selRTipo=selRTipo;
+window.selRSit=selRSit;
 window.toggleConsRanking=toggleConsRanking;
+window.showConsTab=showConsTab;
+window.setConsRankP=setConsRankP;
 window.renderConsRanking=renderConsRanking;
 window.openEditRec=openEditRec;
 window.salvarEdicaoRec=salvarEdicaoRec;
@@ -2690,8 +2757,6 @@ window.addEventListener('load', initApp);
       </div>
       <div class="emsg" id="err-sit">Selecione a situação</div>
     </div>
-    <div class="fg">
-      <label>Origem do cliente <span class="req">*</span></label>
       <div class="tog" id="tog-meio">
         <button class="tbtn" id="t-ri" onclick="selMeio('RI')">Receita Interna</button>
         <button class="tbtn" id="t-re" onclick="selMeio('RE')">Receita Externa</button>
