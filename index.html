@@ -1,0 +1,2459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#2BBFB3">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Idealize — Sistema Comercial</title>
+<!-- build:20260526144253 --> -->
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700;1,800&family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#2BBFB3;--teal-d:#1F9990;--teal-dd:#145F5A;--teal-ddd:#0D3E3A;
+  --teal-l:#E8F8F7;--teal-ll:#F2FBFA;--teal-m:rgba(43,191,179,.12);--teal-b:rgba(43,191,179,.28);
+  --orange:#F5A623;--orange-d:#D4891A;--orange-dd:#8C5A0A;
+  --orange-l:#FEF3E0;--orange-m:rgba(245,166,35,.12);
+  --red:#D93025;--red-d:#B02419;--red-l:#FDF2F1;--red-m:rgba(217,48,37,.1);
+  --green:#1E8A4C;--green-l:#EDF7F2;--green-m:rgba(30,138,76,.1);
+  --blue:#1A6FB5;--blue-l:#EBF3FB;--blue-m:rgba(26,111,181,.1);
+  --purple:#6B46C1;--purple-l:#F3EEFF;--purple-m:rgba(107,70,193,.1);
+  --bg:#F5F6F8;--surface:#FFFFFF;--s2:#F0F2F5;--s3:#E6E9EE;--s4:#D8DCE3;
+  --border:#DDE1E9;--border-d:#C4CAD5;
+  --tx:#111827;--tx2:#374151;--tx3:#6B7280;--tx4:#9CA3AF;
+  --r:8px;--r-lg:14px;--r-xl:20px;--r-2xl:28px;
+  --fh:'Barlow Condensed',sans-serif;
+  --fb:'Barlow',sans-serif;
+  --fm:'DM Mono',monospace;
+  --sh-sm:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --sh:0 4px 12px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.04);
+  --sh-lg:0 12px 32px rgba(0,0,0,.09),0 4px 8px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%;height:-webkit-fill-available}
+body{min-height:100%;min-height:-webkit-fill-available;width:100%;overscroll-behavior:none;overflow-x:hidden;-webkit-text-size-adjust:100%}
+body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-webkit-font-smoothing:antialiased}
+.scr{display:none;min-height:100vh;flex-direction:column}
+.scr.on{display:flex}
+
+/* ── LOGIN ── */
+#s-login{
+  background:var(--bg);
+  align-items:center;justify-content:center;padding:2rem 1.25rem;
+}
+.login-card{
+  background:var(--surface);border-radius:var(--r-2xl);width:100%;max-width:420px;
+  padding:2.75rem 2.25rem 2.25rem;box-shadow:var(--sh-lg);
+  border:1px solid var(--border);
+  animation:fadeUp .38s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.login-logo-area{text-align:center;margin-bottom:2rem}
+/* Logo SVG inline — fiel ao logo Óticas Idealize */
+.brand-svg{display:block;margin:0 auto 1rem;width:220px;height:auto}
+.login-location{
+  font-family:var(--fb);font-size:11px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--tx4);
+  margin-top:.25rem;
+}
+
+.lc-divider{height:1px;background:var(--border);margin:1.5rem 0}
+.field-lbl{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.5rem}
+.field-inp{
+  width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r);
+  background:var(--s2);color:var(--tx);font-size:14px;font-family:var(--fb);
+  transition:all .18s;outline:none;
+}
+.field-inp:focus{border-color:var(--teal);background:var(--surface);box-shadow:0 0 0 3px var(--teal-m)}
+.field-inp.err{border-color:var(--red)!important;box-shadow:0 0 0 3px var(--red-m)!important}
+.field-grp{margin-bottom:1rem}
+.lc-btn{
+  width:100%;margin-top:.375rem;padding:13px;
+  background:var(--teal);color:#fff;border:none;border-radius:var(--r);
+  font-size:15px;font-weight:700;font-family:var(--fh);font-style:italic;letter-spacing:.05em;
+  cursor:pointer;transition:all .18s;
+}
+.lc-btn:hover{background:var(--teal-d);box-shadow:0 4px 16px rgba(43,191,179,.3)}
+.lc-btn:active{transform:scale(.99)}
+.lc-err{
+  margin-top:.75rem;padding:.75rem 1rem;
+  background:var(--red-l);border:1px solid rgba(217,48,37,.2);
+  border-radius:var(--r);font-size:13px;color:var(--red-d);font-weight:600;display:none;
+}
+.lc-err.on{display:block}
+.lc-footer{text-align:center;margin-top:1.25rem;font-size:11px;color:var(--tx4);font-weight:500}
+
+/* ── HEADER ── */
+.app-hdr{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 1.25rem;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;box-shadow:var(--sh-sm);
+}
+.ah-brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.ah-logo-bar{
+  width:3px;height:24px;background:var(--teal);border-radius:99px;flex-shrink:0;
+}
+.ah-texts{min-width:0}
+.ah-texts .at-n{font-family:var(--fh);font-size:17px;font-weight:800;font-style:italic;color:var(--teal-ddd);letter-spacing:.02em;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ah-texts .at-s{font-size:10px;font-weight:600;color:var(--tx4);letter-spacing:.06em;text-transform:uppercase}
+.ah-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.ah-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--fb)}
+.badge-cons{background:var(--teal-m);color:var(--teal-dd)}
+.badge-ger{background:var(--orange-m);color:var(--orange-dd)}
+.badge-gest{background:var(--purple-m);color:var(--purple)}
+.ah-logout{font-size:12px;font-weight:700;color:var(--tx3);background:none;border:1px solid var(--border);border-radius:var(--r);padding:5px 10px;cursor:pointer;font-family:var(--fb);transition:all .15s}
+.ah-logout:hover{background:var(--red-l);color:var(--red-d);border-color:rgba(217,48,37,.3)}
+.ah-exp{font-size:12px;font-weight:700;color:var(--teal-dd);background:none;border:1px solid var(--teal-b);border-radius:var(--r);padding:5px 10px;cursor:pointer;font-family:var(--fb);transition:all .15s}
+.ah-exp:hover{background:var(--teal-l)}
+
+/* ── BODY ── */
+.bwrap{flex:1;padding:1.125rem;overflow-y:auto;max-width:680px;margin:0 auto;width:100%}
+.bwrap.wide{max-width:1040px}
+
+/* ── SEC LABEL ── */
+.sec-lbl{font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:8px;margin-bottom:.75rem}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── QUEUE CARDS ── */
+.q-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem}
+.q-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:.875rem 1rem;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .25s cubic-bezier(.34,1.2,.64,1);position:relative;overflow:hidden;box-shadow:var(--sh-sm)}
+.q-card::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;background:var(--s3);transition:background .25s}
+.q-card:active{transform:scale(.975)}
+.q-card.cn{border-color:var(--teal);background:linear-gradient(135deg,var(--teal-ll),var(--surface));box-shadow:0 4px 16px rgba(43,191,179,.15)}
+.q-card.cn::after{background:var(--teal)}
+.q-card.ca{border-color:var(--orange);background:var(--orange-l)}
+.q-card.ca::after{background:var(--orange)}
+.q-card.co{border-color:var(--border);opacity:.5}
+.q-av{width:42px;height:42px;border-radius:50%;border:2px solid var(--border);background:var(--s2);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:15px;font-weight:800;color:var(--tx3);flex-shrink:0;transition:all .25s}
+.q-card.cn .q-av{border-color:var(--teal);color:var(--teal);background:var(--teal-l);animation:avring 2s infinite}
+.q-card.ca .q-av{border-color:var(--orange);color:var(--orange);background:var(--orange-l)}
+@keyframes avring{0%,100%{box-shadow:0 0 0 3px rgba(43,191,179,.18)}60%{box-shadow:0 0 0 7px rgba(43,191,179,.04)}}
+.q-info{flex:1;min-width:0}
+.q-name{font-family:var(--fh);font-size:17px;font-weight:800;font-style:italic;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
+.q-card.cn .q-name{color:var(--teal-dd)}.q-card.ca .q-name{color:var(--orange-dd)}
+.q-sub{font-size:11px;color:var(--tx4);margin-top:2px;font-weight:500}
+.q-mini{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap}
+.qm{font-size:10px;color:var(--tx4);font-weight:600;display:flex;align-items:center;gap:2px}
+.qmv{font-family:var(--fm);font-size:11px;color:var(--tx3)}
+.qmv.t{color:var(--teal-dd)}.qmv.o{color:var(--orange-d)}
+.qbdg{font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;flex-shrink:0;font-family:var(--fb)}
+.qbn{background:var(--teal-m);color:var(--teal-dd)}.qbq{background:var(--s2);color:var(--tx4)}.qba{background:var(--orange-m);color:var(--orange-dd)}.qbo{background:var(--s2);color:var(--tx4)}
+
+/* ── HERO ── */
+.hero{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-xl);padding:1.75rem 1.5rem;text-align:center;margin-bottom:12px;position:relative;overflow:hidden;box-shadow:var(--sh);transition:all .3s}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--s3);transition:background .3s}
+.hero.hn::before{background:linear-gradient(90deg,var(--teal),var(--teal-d))}
+.hero.hn{border-color:rgba(43,191,179,.35);background:linear-gradient(160deg,var(--teal-ll),var(--surface))}
+.hero.ha::before{background:linear-gradient(90deg,var(--orange),var(--orange-d))}
+.hero.ha{border-color:rgba(245,166,35,.35);background:var(--orange-l)}
+.h-eye{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--tx4);margin-bottom:.625rem}
+.h-ttl{font-family:var(--fh);font-size:30px;font-weight:800;font-style:italic;letter-spacing:.02em;margin-bottom:.375rem;color:var(--tx)}
+.hero.hn .h-ttl{color:var(--teal-dd)}.hero.ha .h-ttl{color:var(--orange-dd)}
+.h-sub{font-size:13px;color:var(--tx3);line-height:1.55;font-weight:400}
+.h-pill{display:inline-block;margin-top:.875rem;padding:4px 14px;border-radius:99px;font-size:11px;font-weight:700;font-family:var(--fb);letter-spacing:.04em;background:var(--teal-m);color:var(--teal-dd)}
+
+/* ── ACTION BTNS ── */
+.act-col{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.abtn{width:100%;padding:13px 20px;border-radius:var(--r-lg);font-size:15px;font-weight:700;font-family:var(--fh);font-style:italic;letter-spacing:.04em;cursor:pointer;border:none;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:8px}
+.abtn:active{transform:scale(.975)}
+.abt{background:var(--teal);color:#fff;box-shadow:0 3px 12px rgba(43,191,179,.28)}.abt:hover{background:var(--teal-d)}
+.abo{background:var(--orange);color:#fff;box-shadow:0 3px 12px rgba(245,166,35,.22)}.abo:hover{background:var(--orange-d)}
+.abr{background:var(--red-l);color:var(--red-d);border:1.5px solid rgba(217,48,37,.2)}.abr:hover{background:var(--red-m)}
+.abg{background:var(--s2);color:var(--tx2);border:1.5px solid var(--border)}.abg:hover{background:var(--s3)}
+
+/* ── METRICS ── */
+.met-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:12px;box-shadow:var(--sh-sm)}
+.met-tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto}
+.met-tabs::-webkit-scrollbar{display:none}
+.mtab{flex:1;min-width:60px;padding:.625rem .375rem;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx4);cursor:pointer;border:none;background:none;font-family:var(--fb);transition:all .15s;border-bottom:2px solid transparent;white-space:nowrap}
+.mtab.on{color:var(--teal-dd);background:var(--teal-ll);border-bottom-color:var(--teal)}
+.met-body{padding:1rem}
+.mg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mi{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:.75rem .5rem;text-align:center}
+.mi.w2{grid-column:span 2}.mi.w3{grid-column:1/-1}
+.mv{font-family:var(--fm);font-size:18px;font-weight:500;color:var(--tx);line-height:1}
+.mv.t{color:var(--teal-dd)}.mv.o{color:var(--orange-d)}.mv.r{color:var(--red)}.mv.b{color:var(--blue)}
+.ml{font-size:9px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.07em;margin-top:4px}
+
+/* DATE RANGE CUSTOM */
+.custom-range{display:none;padding:.875rem 1rem;border-top:1px solid var(--border);background:var(--s2)}
+.custom-range.on{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cr-inp{padding:8px 10px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--surface);color:var(--tx);font-size:13px;font-family:var(--fb);outline:none;transition:border-color .15s;flex:1;min-width:120px}
+.cr-inp:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-m)}
+.cr-lbl{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
+.cr-apply{padding:8px 14px;background:var(--teal);color:#fff;border:none;border-radius:var(--r);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--fb);white-space:nowrap}
+.cr-apply:hover{background:var(--teal-d)}
+
+/* ── MINI QUEUE ── */
+.mqw{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem;margin-bottom:12px;box-shadow:var(--sh-sm)}
+.mq-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.mq-row:last-child{border-bottom:none}
+.mq-pos{font-family:var(--fm);font-size:11px;font-weight:500;color:var(--tx4);min-width:20px;text-align:center}
+.mq-av{width:28px;height:28px;border-radius:50%;background:var(--s2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:11px;font-weight:800;color:var(--tx3);flex-shrink:0}
+.mq-av.t{background:var(--teal-l);border-color:var(--teal-b);color:var(--teal-dd)}.mq-av.o{background:var(--orange-l);border-color:rgba(245,166,35,.3);color:var(--orange-dd)}
+.mq-name{flex:1;font-size:13px;font-weight:500;color:var(--tx2)}.mq-name.me{font-weight:700;color:var(--tx)}
+.mq-tag{font-size:10px;background:var(--orange-m);color:var(--orange-dd);padding:2px 8px;border-radius:99px;font-weight:700}
+
+/* ── GERENTE TABS ── */
+.gtabs-bar{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto}
+.gtabs-bar::-webkit-scrollbar{display:none}
+.gtab{flex:1;min-width:80px;padding:.75rem .5rem;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx4);cursor:pointer;border:none;background:none;font-family:var(--fb);transition:all .15s;border-bottom:3px solid transparent;white-space:nowrap}
+.gtab.on{color:var(--teal-dd);border-bottom-color:var(--teal);background:var(--teal-ll)}
+.gview{display:none;flex:1;overflow-y:auto}.gview.on{display:block}
+
+/* ── GESTOR TABS ── */
+.stabs-bar{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto}
+.stabs-bar::-webkit-scrollbar{display:none}
+.stab{flex:1;min-width:70px;padding:.75rem .375rem;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx4);cursor:pointer;border:none;background:none;font-family:var(--fb);transition:all .15s;border-bottom:3px solid transparent;white-space:nowrap}
+.stab.on{color:var(--purple);border-bottom-color:var(--purple);background:var(--purple-m)}
+.sview{display:none;flex:1;overflow-y:auto}.sview.on{display:block}
+
+/* PERIOD TABS */
+.ptabs{display:flex;gap:6px;margin-bottom:1.25rem;flex-wrap:wrap}
+.ptab{flex:1;min-width:60px;padding:7px;border-radius:var(--r);text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--surface);color:var(--tx4);border:1px solid var(--border);cursor:pointer;font-family:var(--fb);transition:all .15s;white-space:nowrap}
+.ptab.on{background:var(--teal);color:#fff;border-color:var(--teal);box-shadow:0 2px 8px rgba(43,191,179,.2)}
+.ptab.custom-tab.on{background:var(--purple);border-color:var(--purple);box-shadow:0 2px 8px rgba(107,70,193,.2)}
+
+/* OV CARDS */
+.ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem;position:relative;overflow:hidden;box-shadow:var(--sh-sm)}
+.ov-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--s3)}
+.ov-card.t::before{background:var(--teal)}.ov-card.o::before{background:var(--orange)}.ov-card.r::before{background:var(--red)}.ov-card.b::before{background:var(--blue)}
+.ov-lbl{font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.ov-val{font-family:var(--fm);font-size:21px;font-weight:500;color:var(--tx);line-height:1}
+.ov-val.t{color:var(--teal-dd)}.ov-val.o{color:var(--orange-d)}.ov-val.r{color:var(--red)}.ov-val.b{color:var(--blue)}
+.ov-sub{font-size:10px;color:var(--tx4);margin-top:4px;font-weight:500}
+
+/* RANKING CARDS */
+.rep-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem;margin-bottom:10px;box-shadow:var(--sh-sm);border-left:3px solid var(--teal)}
+.rep-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.rep-av{width:38px;height:38px;border-radius:50%;background:var(--teal-l);border:2px solid var(--teal-b);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:14px;font-weight:800;color:var(--teal-dd);flex-shrink:0}
+.rep-info{flex:1;min-width:0}
+.rep-name{font-family:var(--fh);font-size:16px;font-weight:800;font-style:italic;color:var(--tx);letter-spacing:.02em}
+.rep-detail{font-size:11px;color:var(--tx4);margin-top:1px;font-weight:500}
+.rep-tx{font-family:var(--fm);font-size:22px;font-weight:500;color:var(--teal-dd);line-height:1}
+.rep-txl{font-size:9px;color:var(--tx4);text-transform:uppercase;letter-spacing:.07em;margin-top:1px}
+.bar-bg{height:4px;background:var(--s3);border-radius:99px;margin-bottom:10px;overflow:hidden}
+.bar-fg{height:4px;background:linear-gradient(90deg,var(--teal),var(--teal-d));border-radius:99px;transition:width .5s cubic-bezier(.34,1.2,.64,1)}
+.rep-mets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.rm{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:7px 5px;text-align:center}
+.rm-v{font-family:var(--fm);font-size:13px;font-weight:500;color:var(--tx)}
+.rm-v.t{color:var(--teal-dd)}.rm-v.o{color:var(--orange-d)}.rm-v.r{color:var(--red)}.rm-v.b{color:var(--blue)}
+.rm-l{font-size:8px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+
+/* TABLE */
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:12px;box-shadow:var(--sh-sm)}
+.sup-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.sup-tbl th{background:var(--teal-ddd);color:#fff;font-family:var(--fh);font-size:12px;font-weight:700;font-style:italic;padding:10px 12px;text-align:left;letter-spacing:.04em;white-space:nowrap}
+.sup-tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+.sup-tbl tr:last-child td{border-bottom:none}
+.sup-tbl tr:hover td{background:var(--teal-ll)}
+.sup-tbl .tot td{background:var(--s2);font-weight:700;border-top:2px solid var(--border-d)}
+.nr{text-align:right;font-family:var(--fm)}
+.txg{color:var(--green);font-weight:700}.txa{color:var(--orange-d);font-weight:700}.txr{color:var(--red);font-weight:700}
+.sbdg{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;font-family:var(--fb)}
+.sbv{background:var(--green-l);color:var(--green)}.sbp{background:var(--red-l);color:var(--red-d)}
+
+/* ── SETTINGS ── */
+.cfg-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--sh-sm)}
+.cfg-hd{padding:.875rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cfg-hd-title{font-family:var(--fh);font-size:16px;font-weight:800;font-style:italic;color:var(--teal-ddd);letter-spacing:.02em}
+.cfg-hd-count{font-size:11px;color:var(--tx4);font-weight:500}
+.cfg-row{display:flex;align-items:center;gap:12px;padding:.875rem 1rem;border-bottom:1px solid var(--border)}
+.cfg-row:last-of-type{border-bottom:none}
+.cfg-av{width:36px;height:36px;border-radius:50%;background:var(--teal-l);border:1.5px solid var(--teal-b);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;font-weight:800;color:var(--teal-dd);flex-shrink:0}
+.cfg-av.ger{background:var(--orange-l);border-color:rgba(245,166,35,.3);color:var(--orange-dd)}
+.cfg-av.gest{background:var(--purple-l);border-color:rgba(107,70,193,.25);color:var(--purple)}
+.cfg-info{flex:1}
+.cfg-name{font-size:14px;font-weight:600;color:var(--tx)}
+.cfg-meta{font-size:11px;color:var(--tx4);font-weight:500;margin-top:1px;display:flex;align-items:center;gap:6px}
+.cfg-role-pill{font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.rp-cons{background:var(--teal-m);color:var(--teal-dd)}.rp-ger{background:var(--orange-m);color:var(--orange-dd)}.rp-gest{background:var(--purple-m);color:var(--purple)}
+.cfg-actions{display:flex;gap:6px;flex-shrink:0}
+.cfg-btn{padding:5px 11px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--fb);border:none;transition:all .15s}
+.cb-del{background:var(--red-l);color:var(--red-d)}.cb-del:hover{background:var(--red-m)}
+.cb-pwd{background:var(--blue-l);color:var(--blue)}.cb-pwd:hover{background:var(--blue-m)}
+.cfg-add-block{padding:1rem;border-top:1px solid var(--border)}
+.cfg-add-title{font-size:11px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem}
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.cfg-inp{width:100%;padding:9px 12px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fb);transition:border-color .15s;outline:none}
+.cfg-inp:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-m);background:var(--surface)}
+.cfg-inp-row{display:flex;gap:8px;flex-wrap:wrap}
+.cfg-add-btn{padding:9px 16px;background:var(--teal);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fb);white-space:nowrap}
+.cfg-add-btn:hover{background:var(--teal-d)}
+.cfg-role-select{padding:9px 12px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fb);outline:none;-webkit-appearance:none;cursor:pointer;transition:border-color .15s}
+.cfg-role-select:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-m);background:var(--surface)}
+.danger-area{padding:1rem;display:flex;flex-direction:column;gap:8px}
+.danger-btn{width:100%;padding:11px;background:var(--red-l);color:var(--red-d);border:1.5px solid rgba(217,48,37,.2);border-radius:var(--r-lg);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fb);transition:all .15s}
+.danger-btn:hover{background:var(--red-m)}
+.auth-section{background:var(--teal-l);border:1px solid var(--teal-b);border-radius:var(--r-lg);padding:1rem}
+.auth-sec-title{font-size:11px;font-weight:700;color:var(--teal-dd);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.625rem}
+.auth-sec-row{display:flex;gap:8px}
+.auth-code-inp{flex:1;padding:9px 12px;border-radius:var(--r);border:1.5px solid var(--teal-b);background:var(--surface);font-family:var(--fm);font-size:18px;color:var(--teal-dd);letter-spacing:.3em;outline:none;text-align:center;transition:border-color .15s}
+.auth-code-inp:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-m)}
+.auth-save-btn{padding:9px 14px;background:var(--teal);color:#fff;border:none;border-radius:var(--r);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--fb);white-space:nowrap}
+.auth-save-btn:hover{background:var(--teal-d)}
+.auth-sec-hint{font-size:11px;color:var(--teal-dd);margin-top:6px;font-weight:500}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;height:100dvh;background:rgba(17,24,39,.5);z-index:9999;align-items:flex-end;justify-content:center;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.overlay.on{display:flex!important}
+.modal{background:var(--surface);border-radius:var(--r-xl) var(--r-xl) 0 0;border-top:3px solid var(--teal);width:100%;max-width:100%;padding:1.5rem 1.25rem 2rem;max-height:85vh;max-height:85dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .24s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -8px 40px rgba(17,24,39,.15)}
+.modal.auth{border-top-color:var(--orange)}
+.modal.pwd{border-top-color:var(--blue)}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.m-hdl{width:38px;height:4px;background:var(--s3);border-radius:99px;margin:0 auto 1.25rem}
+.m-title{font-family:var(--fh);font-size:24px;font-weight:800;font-style:italic;color:var(--tx);margin-bottom:.25rem;letter-spacing:.02em}
+.m-sub{font-size:13px;color:var(--tx3);margin-bottom:1.5rem;font-weight:400;line-height:1.5}
+.m-warn{background:var(--orange-l);border:1px solid rgba(245,166,35,.35);border-radius:var(--r);padding:.875rem 1rem;margin-bottom:1.25rem;font-size:13px;color:var(--orange-dd);font-weight:600;line-height:1.5}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.fg label{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:4px}
+.req{color:var(--orange);font-size:13px;line-height:1}
+.fg input,.fg select,.fg textarea{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);color:var(--tx);font-size:14px;font-family:var(--fb);padding:10px 12px;width:100%;transition:all .15s;-webkit-appearance:none;outline:none}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-m);background:var(--surface)}
+.fg input.err,.fg select.err,.fg textarea.err{border-color:var(--red)!important;box-shadow:0 0 0 3px var(--red-m)!important}
+.fg textarea{resize:none;min-height:76px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.emsg{font-size:11px;color:var(--red-d);margin-top:3px;display:none;font-weight:600}
+.emsg.on{display:block}
+.sit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sit-chip{padding:14px 10px;border-radius:var(--r);border:1.5px solid var(--border);cursor:pointer;text-align:center;transition:all .18s;background:var(--bg)}
+.sit-chip:active{transform:scale(.96)}
+.sc-ttl{font-size:14px;font-weight:700;color:var(--tx2);font-family:var(--fh);font-style:italic;letter-spacing:.03em;margin-bottom:3px}
+.sc-dsc{font-size:10px;color:var(--tx4);font-weight:500}
+.sit-chip.sv{border-color:var(--teal);background:var(--teal-l)}.sit-chip.sv .sc-ttl{color:var(--teal-dd)}
+.sit-chip.sp{border-color:var(--red);background:var(--red-l)}.sit-chip.sp .sc-ttl{color:var(--red-d)}
+.sit-chip.serr{border-color:var(--red)}
+.tog{display:flex;gap:8px}
+.tbtn{flex:1;padding:10px 8px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--bg);color:var(--tx3);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .15s;text-align:center}
+.tbtn:active{transform:scale(.97)}
+.tbtn.selt{border-color:var(--teal);background:var(--teal-l);color:var(--teal-dd)}
+.tbtn.terr{border-color:var(--red)}
+.auth-modal-inp{font-family:var(--fm);font-size:26px;text-align:center;letter-spacing:.4em;color:var(--orange-dd)!important;background:var(--orange-l)!important;border-color:rgba(245,166,35,.4)!important}
+.auth-ok-banner{background:var(--green-l);border:1px solid rgba(30,138,76,.25);border-radius:var(--r);padding:.75rem 1rem;margin-bottom:14px;font-size:13px;color:var(--green);font-weight:700;display:none}
+.auth-ok-banner.on{display:block}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--teal-ddd);color:#fff;padding:10px 22px;border-radius:99px;font-size:13px;font-weight:700;font-family:var(--fb);transition:transform .3s cubic-bezier(.34,1.2,.64,1);z-index:999;pointer-events:none;white-space:nowrap;box-shadow:0 6px 24px rgba(17,24,39,.25)}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--red-d)}.toast.warn{background:var(--orange-dd)}.toast.ok{background:var(--green)}
+
+@media(min-width:540px){.mg{grid-template-columns:repeat(4,1fr)}.mg .mi.w2{grid-column:span 1}.mg .mi.w3{grid-column:span 2}}
+
+.suptab{flex:1;min-width:80px;padding:.75rem .5rem;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx4);cursor:pointer;border:none;background:none;font-family:var(--fb);transition:all .15s;border-bottom:3px solid transparent;white-space:nowrap}
+.suptab.on{color:#6B46C1;border-bottom-color:#6B46C1;background:rgba(107,70,193,.06)}
+.supview{display:none;flex:1;overflow-y:auto}.supview.on{display:block}
+.rp-sup{background:rgba(107,70,193,.12);color:#6B46C1}
+
+.loja-fbtn{display:inline-block;padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--tx3);font-family:var(--fb);margin-right:4px;transition:all .15s}
+.loja-fbtn.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.loja-fbtn:hover:not(.on){background:var(--teal-l);color:var(--teal-dd)}
+
+@media(min-width:600px){
+  .overlay{align-items:center}
+  .modal{border-radius:var(--r-xl);max-width:560px;max-height:88vh;margin:1rem}
+  .modal.auth{border-radius:var(--r-xl)}
+  .modal.pwd{border-radius:var(--r-xl)}
+}
+@media(min-width:768px){
+  .modal{max-width:600px}
+  .sit-grid{grid-template-columns:1fr 1fr}
+  .row2{grid-template-columns:1fr 1fr}
+}
+
+@media(min-width:768px){
+  .bwrap{padding:1.5rem 2rem}
+  .mg{grid-template-columns:repeat(4,1fr)}
+  .ov-grid{grid-template-columns:repeat(4,1fr)}
+  .rep-mets{grid-template-columns:repeat(6,1fr)}
+  .q-card{padding:1rem 1.25rem}
+  .q-av{width:48px;height:48px;font-size:16px}
+  .q-name{font-size:19px}
+  .hero{padding:2rem 2rem}
+  .h-ttl{font-size:36px}
+  .abtn{font-size:17px;padding:15px 24px}
+  .app-hdr{height:60px;padding:0 2rem}
+  .ah-texts .at-n{font-size:20px}
+  .gtab,.stab,.suptab{font-size:12px;padding:.875rem .75rem}
+  .mtab{font-size:11px}
+}
+.has-session #s-login { display: none !important; }
+.has-session #loading-splash {
+  display: flex !important;
+}
+#loading-splash {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+}
+.splash-logo {
+  font-family: var(--fh);
+  font-size: 42px;
+  font-weight: 800;
+  font-style: italic;
+  color: var(--teal-ddd);
+  letter-spacing: .02em;
+}
+.splash-logo span { color: var(--orange); }
+.splash-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tx4);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+.splash-bar {
+  width: 120px;
+  height: 3px;
+  background: var(--s3);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: .5rem;
+}
+.splash-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--teal-d));
+  border-radius: 99px;
+  animation: splashload 1s ease-in-out infinite alternate;
+}
+@keyframes splashload {
+  from { width: 20%; }
+  to   { width: 100%; }
+}
+</style>
+<script>
+// Roda ANTES do HTML renderizar
+(function(){
+  try {
+    var d = JSON.parse(localStorage.getItem('iz_ses_v2'));
+    if (d && d.exp && Date.now() < d.exp && d.username) {
+      document.documentElement.classList.add('has-session');
+      // Injeta style direto no head para garantir que login não aparece
+      var s = document.createElement('style');
+      s.id = 'pre-auth-style';
+      s.textContent = '#s-login{display:none!important}';
+      document.head.appendChild(s);
+    }
+  } catch(e){}
+})();
+</script>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<!-- SPLASH — aparece enquanto sessão está sendo restaurada -->
+<div id="loading-splash">
+  <div class="splash-logo">IDEAL<span>I</span>ZE</div>
+  <div class="splash-sub">Sistema Comercial</div>
+  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
+
+<div id="loading-bar" style="display:none;position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--teal-d));z-index:9999;animation:loadbar 1s infinite linear"></div>
+<style>@keyframes loadbar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.suptab{flex:1;min-width:80px;padding:.75rem .5rem;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx4);cursor:pointer;border:none;background:none;font-family:var(--fb);transition:all .15s;border-bottom:3px solid transparent;white-space:nowrap}
+.suptab.on{color:#6B46C1;border-bottom-color:#6B46C1;background:rgba(107,70,193,.06)}
+.supview{display:none;flex:1;overflow-y:auto}.supview.on{display:block}
+.rp-sup{background:rgba(107,70,193,.12);color:#6B46C1}
+</style>
+<div class="scr on" id="s-login">
+  <div class="login-card">
+    <div class="login-logo-area">
+      <!-- Logo SVG inline fiel ao logo Óticas Idealize -->
+      <svg class="brand-svg" viewBox="0 0 440 120" xmlns="http://www.w3.org/2000/svg">
+        <!-- Ícone: armação de óculos estilizada -->
+        <g transform="translate(0,10)">
+          <!-- Lente esquerda - armação teal -->
+          <ellipse cx="50" cy="50" rx="36" ry="36" fill="none" stroke="#2BBFB3" stroke-width="8"/>
+          <!-- Detalhe interior lente esquerda -->
+          <ellipse cx="50" cy="50" rx="22" ry="22" fill="none" stroke="#2BBFB3" stroke-width="4" opacity="0.5"/>
+          <!-- Barra central + barra laranja (o "i" / "d") -->
+          <rect x="84" y="28" width="10" height="44" rx="2" fill="#F5A623"/>
+          <!-- Lente direita parcial - teal -->
+          <path d="M94 34 Q108 18 126 22 Q148 26 148 50 Q148 74 126 78 Q108 82 94 66" fill="none" stroke="#2BBFB3" stroke-width="8" stroke-linecap="round"/>
+          <!-- Hastes -->
+          <line x1="14" y1="34" x2="2" y2="22" stroke="#2BBFB3" stroke-width="6" stroke-linecap="round"/>
+          <line x1="148" y1="34" x2="160" y2="22" stroke="#2BBFB3" stroke-width="6" stroke-linecap="round"/>
+        </g>
+        <!-- Texto ÓTICAS -->
+        <text x="178" y="42" font-family="Barlow Condensed, sans-serif" font-size="22" font-weight="600" fill="#2BBFB3" letter-spacing="6">ÓTICAS</text>
+        <!-- Texto IDEALIZE -->
+        <text x="175" y="88" font-family="Barlow Condensed, sans-serif" font-size="52" font-weight="800" font-style="italic" fill="#2BBFB3" letter-spacing="1">IDEAL<tspan fill="#F5A623">I</tspan>ZE</text>
+      </svg>
+      <div class="login-location" id="login-location">Sistema Operacional · Idealize</div>
+    </div>
+    <div class="lc-divider"></div>
+    <div class="field-grp">
+      <label class="field-lbl">Usuário</label>
+      <input class="field-inp" id="l-user" type="text" placeholder="seu.usuario" autocomplete="username" autocapitalize="none" autocorrect="off">
+    </div>
+    <div class="field-grp">
+      <label class="field-lbl">Senha</label>
+      <input class="field-inp" id="l-pass" type="password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="lc-btn" onclick="doLogin()">Acessar sistema</button>
+    <div class="lc-err" id="login-err">Usuário ou senha incorretos. Verifique e tente novamente.</div>
+    <div class="lc-footer" id="login-footer">Acesso restrito — colaboradores Idealize</div>
+  </div>
+</div>
+
+<!-- ═══ CONSULTOR ═══ -->
+<div class="scr" id="s-cons">
+  <div class="app-hdr">
+    <div class="ah-brand">
+      <div class="ah-logo-bar"></div>
+      <div class="ah-texts"><div class="at-n" id="c-hdr-n">—</div><div class="at-s" id="cons-sub">Consultor · Idealize</div></div>
+    </div>
+    <div class="ah-right">
+      <span class="ah-badge badge-cons">Consultor</span>
+      <button class="ah-logout" onclick="openMinhaSenha()">Minha senha</button>
+      <button class="ah-logout" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+  <div class="bwrap">
+    <div class="hero" id="hero">
+      <div class="h-eye" id="h-eye">Status atual</div>
+      <div class="h-ttl" id="h-ttl">Fora da fila</div>
+      <div class="h-sub" id="h-sub">Toque abaixo para entrar na fila e começar a atender</div>
+    </div>
+    <div class="act-col" id="act-col"></div>
+    <div class="met-card">
+      <div class="met-tabs">
+        <button class="mtab on" onclick="setMP('day',this)">Hoje</button>
+        <button class="mtab" onclick="setMP('week',this)">Semana</button>
+        <button class="mtab" onclick="setMP('month',this)">Mês</button>
+        <button class="mtab" onclick="setMP('custom',this)">Personalizado</button>
+      </div>
+      <div class="custom-range" id="cr-cons">
+        <span class="cr-lbl">De</span>
+        <input type="date" class="cr-inp" id="cr-cons-de">
+        <span class="cr-lbl">até</span>
+        <input type="date" class="cr-inp" id="cr-cons-ate">
+        <button class="cr-apply" onclick="applyCustomCons()">Aplicar</button>
+      </div>
+      <div class="met-body" id="met-body"></div>
+    </div>
+    <div class="mqw">
+      <div class="sec-lbl" style="margin-bottom:.875rem">Fila em tempo real</div>
+      <div id="mini-q"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SUPERVISOR ═══ -->
+<div class="scr" id="s-sup">
+  <div class="app-hdr">
+    <div class="ah-brand">
+      <div class="ah-logo-bar" style="background:#6B46C1"></div>
+      <div class="ah-texts"><div class="at-n" style="color:#6B46C1">Supervisor</div><div class="at-s" id="sup-sub">Gestão · Idealize</div></div>
+    </div>
+    <div class="ah-right">
+      <span class="ah-badge" style="background:rgba(107,70,193,.12);color:#6B46C1">Supervisor</span>
+      <button class="ah-exp" onclick="exportCSV()">Exportar CSV</button>
+      <button class="ah-logout" onclick="confirmLimparFila()" style="color:var(--red-d);border-color:rgba(217,48,37,.3)">Limpar fila</button>
+      <button class="ah-logout" onclick="openMinhaSenha()">Minha senha</button>
+      <button class="ah-logout" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <div id="filter-bar-sup" style="display:none;background:var(--surface);border-bottom:2px solid var(--teal-b);padding:.625rem 1rem;overflow-x:auto;white-space:nowrap;position:sticky;top:52px;z-index:40">
+    <span style="font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.08em;margin-right:.75rem">Unidade</span>
+    <button class="loja-fbtn on" id="filter-bar-sup-all" onclick="setLojaFilter(null,'filter-bar-sup')">Rede</button>
+    <button class="loja-fbtn" id="filter-bar-sup-sv" onclick="setLojaFilter('sv','filter-bar-sup')">São Vicente</button>
+    <button class="loja-fbtn" id="filter-bar-sup-campinas" onclick="setLojaFilter('campinas','filter-bar-sup')">Campinas</button>
+    <button class="loja-fbtn" id="filter-bar-sup-sorocaba" onclick="setLojaFilter('sorocaba','filter-bar-sup')">Sorocaba</button>
+    <button class="loja-fbtn" id="filter-bar-sup-piracicaba" onclick="setLojaFilter('piracicaba','filter-bar-sup')">Piracicaba</button>
+  </div>
+  <div class="gtabs-bar">
+    <button class="suptab on" onclick="showSupTab('ranking',this)">Ranking</button>
+    <button class="suptab" onclick="showSupTab('supervisao',this)">Supervisão</button>
+    <button class="suptab" onclick="showSupTab('fila',this)">Fila ao vivo</button>
+    <button class="suptab" onclick="showSupTab('usuarios',this)">Usuários</button>
+    <button class="suptab" onclick="showSupTab('autorizacao',this)">Autorização</button>
+  </div>
+  <div class="supview on" id="sv-sup-ranking"><div class="bwrap wide" id="rank-sup-body"></div></div>
+  <div class="supview" id="sv-sup-supervisao"><div class="bwrap wide" id="sup-sup-body"></div></div>
+  <div class="supview" id="sv-sup-fila"><div class="bwrap wide" id="fila-sup-body"></div></div>
+  <div class="supview" id="sv-sup-usuarios"><div class="bwrap" id="sup-usuarios-body"></div></div>
+  <div class="supview" id="sv-sup-autorizacao">
+    <div class="bwrap">
+      <div class="cfg-section" style="margin-top:1rem">
+        <div class="cfg-hd"><span class="cfg-hd-title">Autorização — Finalizar sem repique</span></div>
+        <div style="padding:1rem">
+          <div class="auth-section">
+            <div class="auth-sec-title">Código de autorização (4 dígitos)</div>
+            <div class="auth-sec-row">
+              <input type="password" id="sup-code" class="auth-code-inp" maxlength="4" inputmode="numeric" placeholder="••••">
+              <button class="auth-save-btn" onclick="saveSupCode()">Salvar</button>
+            </div>
+            <p class="auth-sec-hint">Este código é solicitado ao consultor quando uma venda perdida não teve repique. Somente o supervisor/gerente deve conhecê-lo.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GERENTE ═══ -->
+<div class="scr" id="s-ger">
+  <div class="app-hdr">
+    <div class="ah-brand">
+      <div class="ah-logo-bar" style="background:var(--orange)"></div>
+      <div class="ah-texts"><div class="at-n" style="color:var(--orange-dd)">Painel Gerente</div><div class="at-s" id="ger-sub">Visualização · Idealize</div></div>
+    </div>
+    <div class="ah-right">
+      <span class="ah-badge badge-ger">Gerente</span>
+      <button class="ah-exp" onclick="exportCSV()">Exportar CSV</button>
+      <button class="ah-logout" onclick="confirmLimparFila()" style="color:var(--red-d);border-color:rgba(217,48,37,.3)">Limpar fila</button>
+      <button class="ah-logout" onclick="openMinhaSenha()">Minha senha</button>
+      <button class="ah-logout" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="gtabs-bar">
+    <button class="gtab on" onclick="showGTab('ranking',this)">Ranking</button>
+    <button class="gtab" onclick="showGTab('supervisao',this)">Supervisão</button>
+    <button class="gtab" onclick="showGTab('fila',this)">Fila ao vivo</button>
+    <button class="gtab" onclick="showGTab('ausencia',this)" id="gtab-ausencia">Ausência</button>
+  </div>
+  <div class="gview on" id="gv-ranking"><div class="bwrap wide" id="rank-body"></div></div>
+  <div class="gview" id="gv-supervisao"><div class="bwrap wide" id="sup-body"></div></div>
+  <div class="gview" id="gv-fila"><div class="bwrap wide" id="fila-body"></div></div>
+  <div class="gview" id="gv-ausencia">
+    <div class="bwrap">
+      <div class="cfg-section" style="margin-top:1rem">
+        <div class="cfg-hd">
+          <span class="cfg-hd-title">Modo Ausência do Gerente</span>
+          <span id="ausencia-status-badge" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--green-l);color:var(--green)">Presente</span>
+        </div>
+        <div style="padding:1.25rem">
+          <p style="font-size:13px;color:var(--tx2);margin-bottom:1.25rem;line-height:1.6">Ao ativar o modo ausência, os consultores poderão finalizar vendas sem repique <strong>sem precisar do código</strong> de autorização. Desative quando retornar.</p>
+          <button id="btn-ausencia" class="abtn abt" style="width:100%" onclick="toggleAusencia()">Ativar modo ausência</button>
+          <p style="font-size:11px;color:var(--tx4);margin-top:.75rem;text-align:center">O modo ausência é desativado automaticamente quando o gerente fizer logout.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GESTOR ═══ -->
+<div class="scr" id="s-gest">
+  <div class="app-hdr">
+    <div class="ah-brand">
+      <div class="ah-logo-bar" style="background:var(--purple)"></div>
+      <div class="ah-texts"><div class="at-n" style="color:var(--purple)">Diretor</div><div class="at-s" id="dir-sub">Direção · Idealize — Todas as lojas</div></div>
+    </div>
+    <div class="ah-right">
+      <span class="ah-badge badge-gest">Diretor</span>
+      <button class="ah-exp" onclick="exportCSV()">Exportar CSV</button>
+      <button class="ah-logout" onclick="openMinhaSenha()">Minha senha</button>
+      <button class="ah-logout" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+  <div id="filter-bar-gest" style="display:none;background:var(--surface);border-bottom:2px solid var(--teal-b);padding:.625rem 1rem;overflow-x:auto;white-space:nowrap;position:sticky;top:52px;z-index:40">
+    <span style="font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.08em;margin-right:.75rem">Unidade</span>
+    <button class="loja-fbtn on" id="filter-bar-gest-all" onclick="setLojaFilter(null,'filter-bar-gest')">Rede</button>
+    <button class="loja-fbtn" id="filter-bar-gest-sv" onclick="setLojaFilter('sv','filter-bar-gest')">São Vicente</button>
+    <button class="loja-fbtn" id="filter-bar-gest-campinas" onclick="setLojaFilter('campinas','filter-bar-gest')">Campinas</button>
+    <button class="loja-fbtn" id="filter-bar-gest-sorocaba" onclick="setLojaFilter('sorocaba','filter-bar-gest')">Sorocaba</button>
+    <button class="loja-fbtn" id="filter-bar-gest-piracicaba" onclick="setLojaFilter('piracicaba','filter-bar-gest')">Piracicaba</button>
+  </div>
+  <div class="stabs-bar">
+    <button class="stab on" onclick="showSTab('ranking2',this)">Ranking</button>
+    <button class="stab" onclick="showSTab('supervisao2',this)">Supervisão</button>
+    <button class="stab" onclick="showSTab('fila2',this)">Fila ao vivo</button>
+    <button class="stab" onclick="showSTab('config',this)">Configurações</button>
+  </div>
+  <div class="sview on" id="sv-ranking2"><div class="bwrap wide" id="rank2-body"></div></div>
+  <div class="sview" id="sv-supervisao2"><div class="bwrap wide" id="sup2-body"></div></div>
+  <div class="sview" id="sv-fila2"><div class="bwrap wide" id="fila2-body"></div></div>
+  <div class="sview" id="sv-config"><div class="bwrap" id="config-body"></div></div>
+</div>
+
+
+
+
+
+
+
+
+
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════
+// SUPABASE — Óticas Idealize | Fila de Vez
+// Projeto: Fila Consultores | hqfxefdeivygcsetaknz
+// ════════════════════════════════════════════════
+
+const SB_URL  = 'https://hqfxefdeivygcsetaknz.supabase.co';
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxZnhlZmRlaXZ5Z2NzZXRha256Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MTExNjMsImV4cCI6MjA5NDI4NzE2M30.KRtG-iAMKxBbKcChcWe5n58kkLWBKahYCf3gKXQzDcg';
+const LOJA_NAMES = {
+  sv: 'São Vicente', campinas: 'Campinas',
+  sorocaba: 'Sorocaba', piracicaba: 'Piracicaba', santos: 'Santos'
+};
+const ALL_LOJAS = Object.keys(LOJA_NAMES);
+
+// LOJA do usuário logado (null para supervisor/diretor)
+let LOJA = 'sv';
+let LOJA_NAME = 'São Vicente';
+// Filtro de loja selecionado no painel do supervisor/diretor (null = todas)
+let LOJA_FILTER = null;
+
+function setLojaCtx(lojaCode) {
+  LOJA = lojaCode || null; // null para supervisor/diretor
+  LOJA_NAME = (LOJA ? LOJA_NAMES[LOJA] : 'Todas as lojas') || LOJA || 'Idealize';
+}
+
+// Retorna os registros filtrados pela loja ativa (LOJA_FILTER ou LOJA)
+function lojaAtiva() {
+  if (!SES) return LOJA;
+  const isSuperDir = SES.role==='supervisor'||SES.role==='diretor';
+  // Supervisor/Diretor: usa o filtro selecionado (null = todas)
+  if (isSuperDir) return LOJA_FILTER;
+  // Outros: sempre a loja do usuário
+  return SES.loja || LOJA;
+}
+
+// Filtra array de registros pela loja ativa
+function filtLoja(arr) {
+  const la = lojaAtiva();
+  if (!la) return arr; // null = todas
+  return arr.filter(r => r.loja === la);
+}
+
+// ── REST helpers ──
+const sbH = () => ({ 'Content-Type':'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY });
+const sbHP = () => ({ ...sbH(), 'Prefer': 'return=representation' });
+
+async function sbGet(table, params='') {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { headers: sbH() });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPost(table, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method:'POST', headers: sbHP(), body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPatch(table, params, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { method:'PATCH', headers: sbHP(), body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbDelete(table, params) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, { method:'DELETE', headers: sbH() });
+  if (!r.ok) throw new Error(await r.text());
+}
+async function sbUpsert(table, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Prefer': 'resolution=merge-duplicates,return=representation'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) {
+    const txt = await r.text();
+    throw new Error(txt);
+  }
+  return r.json();
+}
+
+// ── Realtime via polling (Supabase Realtime requer WebSocket — polling é mais simples no HTML puro) ──
+let _pollInterval = null;
+function startPolling() {
+  if (_pollInterval) clearInterval(_pollInterval);
+  _pollInterval = setInterval(async () => {
+    const isSuperDir = SES && (SES.role==='supervisor'||SES.role==='diretor');
+    if(isSuperDir){ await loadAllRecs(); await loadAllQueues(); }
+    else { await loadQueue(); await loadRecs(); }
+    const active = document.querySelector('.scr.on');
+    if (!active) return;
+    if (active.id === 's-cons' && SES) renderCons();
+    if (active.id === 's-ger' || active.id === 's-gest' || active.id === 's-sup') refreshMgrView();
+  }, 5000); // atualiza a cada 5 segundos
+}
+function stopPolling() {
+  if (_pollInterval) { clearInterval(_pollInterval); _pollInterval = null; }
+}
+function refreshMgrView() {
+  const active = document.querySelector('.scr.on');
+  if (!active) return;
+  const isGer  = active.id === 's-ger';
+  const isGest = active.id === 's-gest';
+  const isSup  = active.id === 's-sup';
+  if (!isGer && !isGest && !isSup) return;
+  const bodyMap = {
+    ranking:    isGest?'rank2-body':isSup?'rank-sup-body':'rank-body',
+    supervisao: isGest?'sup2-body':isSup?'sup-sup-body':'sup-body',
+    fila:       isGest?'fila2-body':isSup?'fila-sup-body':'fila-body'
+  };
+  const tabMap = {
+    ranking:    isGest?'sv-ranking2':isSup?'sv-sup-ranking':'gv-ranking',
+    supervisao: isGest?'sv-supervisao2':isSup?'sv-sup-supervisao':'gv-supervisao',
+    fila:       isGest?'sv-fila2':isSup?'sv-sup-fila':'gv-fila'
+  };
+  for (const [name, tabId] of Object.entries(tabMap)) {
+    const el = document.getElementById(tabId);
+    if (el && el.classList.contains('on')) {
+      if (name === 'fila') renderFilaView(bodyMap.fila, isGest);
+      if (name === 'ranking') renderRank(mgrP, bodyMap.ranking);
+      if (name === 'supervisao') renderSup(mgrP, bodyMap.supervisao);
+    }
+  }
+}
+
+// ════ DEFAULTS ════
+const DEF_USERS = [
+  {username:'daynara',   password:'1234',         role:'consultor', display_name:'Daynara',   loja:LOJA},
+  {username:'ana.paula', password:'1234',         role:'consultor', display_name:'Ana Paula', loja:LOJA},
+  {username:'carlos',    password:'1234',         role:'consultor', display_name:'Carlos',    loja:LOJA},
+  {username:'fernanda',  password:'1234',         role:'consultor', display_name:'Fernanda',  loja:LOJA},
+  {username:'gerente',   password:'idealize2025', role:'gerente',   display_name:'Gerente',   loja:LOJA},
+  {username:'supervisor',password:'super2025',    role:'supervisor',display_name:'Supervisor',loja:LOJA},
+  {username:'diego',      password:'admin2025',    role:'diretor',   display_name:'Diego',      loja:null},
+];
+const DEF_CONS = ['Daynara','Ana Paula','Carlos','Fernanda'];
+const DEF_CODE = '1234';
+
+// ════ SESSION ════
+let SES = null;
+const SES_KEY = 'iz_ses_v2';
+function saveSession(u) {
+  const exp = Date.now() + 12*60*60*1000; // 12h — sessão do expediente
+  console.log('[Idealize] Salvando sessão para:', u.username, '| expira em 12h');
+  localStorage.setItem(SES_KEY, JSON.stringify({
+    username: u.username,
+    password: u.password,
+    role: u.role,
+    display_name: u.display_name,
+    loja: u.loja,
+    consName: u.consName,
+    _loja: LOJA,
+    exp
+  }));
+}
+function clearSession() { localStorage.removeItem(SES_KEY); }
+function getSavedSession() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SES_KEY));
+    if (!d) return null;
+    // Sessão expirada → limpa e força login
+    if (d.exp && Date.now() > d.exp) { clearSession(); return null; }
+    return d;
+  } catch { return null; }
+}
+
+// ════ STATE ════
+let metP='day', mgrP='day', customDe='', customAte='', mgrCustomDe='', mgrCustomAte='';
+let selSit_=null, selMeio_=null, selRep_=null, authOk=false, _repPendente=null;
+let gerenteAusente=false; // modo ausência do gerente — libera sem código
+let pwdTargetUser=null;
+let _users=[], _cons=DEF_CONS, _authCode=DEF_CODE, _queue=[], _recs=[];
+
+// ════ LOAD ════
+async function loadUsers()  {
+  try {
+    const isSuperDir = SES && (SES.role==='supervisor'||SES.role==='diretor');
+    // Supervisor/Diretor: carrega todos; outros: só sua loja
+    const params = isSuperDir
+      ? 'order=loja,display_name'
+      : `loja=eq.${encodeURIComponent(LOJA)}&order=display_name`;
+    _users = await sbGet('iz_users', params);
+    // Remove duplicatas por username+loja
+    const seen = new Set();
+    _users = _users.filter(u => {
+      const key = u.username + '|' + (u.loja||'');
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
+    });
+  } catch { _users=DEF_USERS; }
+}
+async function loadConfig() {
+  try {
+    // Para supervisor/diretor, carrega config de todas as lojas
+    const isSuperDir = SES && (SES.role==='supervisor'||SES.role==='diretor');
+    if (isSuperDir) {
+      const r = await sbGet('iz_config', 'order=loja');
+      _allConfigs = r;
+      // Usa primeira loja como referência para auth_code global
+      if (r.length) _authCode = r[0].auth_code || DEF_CODE;
+      // Consolida todos os consultores de todas as lojas
+      _cons = [...new Set(r.flatMap(cfg => cfg.consultants || []))];
+    } else {
+      const r = await sbGet('iz_config', LOJA ? `loja=eq.${LOJA}` : 'order=loja');
+      if (r.length) {
+        _authCode = r[0].auth_code || DEF_CODE;
+        _cons = LOJA ? (r[0].consultants || DEF_CONS)
+                     : [...new Set(r.flatMap(cfg => cfg.consultants || []))];
+        _allConfigs = r;
+      }
+    }
+  } catch { _cons=DEF_CONS; _authCode=DEF_CODE; }
+}
+async function loadQueue()  {
+  try {
+    const params = LOJA ? `loja=eq.${LOJA}&order=joined_at` : `order=joined_at`;
+    _queue = await sbGet('iz_queue', params);
+  } catch {}
+}
+async function loadRecs() {
+  try {
+    const params = LOJA
+      ? `loja=eq.${LOJA}&order=created_at.desc&limit=500`
+      : `order=created_at.desc&limit=1000`;
+    _recs = await sbGet('iz_records', params);
+  } catch {}
+}
+
+// Carrega dados de TODAS as lojas (para Supervisor/Diretor)
+async function loadAllRecs() {
+  try { _recs = await sbGet('iz_records', `order=created_at.desc&limit=2000`); } catch {}
+}
+async function loadAllQueues() {
+  try { _queue = await sbGet('iz_queue', `order=joined_at`); } catch {}
+}
+async function loadAllUsers() {
+  try { _users = await sbGet('iz_users', `order=loja,display_name`); } catch { _users=DEF_USERS; }
+}
+async function loadAllConfigs() {
+  try {
+    const cfgs = await sbGet('iz_config', `order=loja`);
+    // Para painel global, usa consultores de todas as lojas
+    _allConfigs = cfgs;
+  } catch {}
+}
+let _allConfigs = [];
+
+async function saveConfig() {
+  try {
+    await sbUpsert('iz_config', { loja:LOJA, consultants:_cons, auth_code:_authCode, loja_name:LOJA_NAME });
+  } catch(e) { console.error('saveConfig:', e); }
+}
+
+// Getters
+const getUsers   = () => _users.length ? _users : DEF_USERS;
+const getCons = () => {
+  const la = lojaAtiva();
+  if (!la) return _cons; // null = rede — retorna todos consolidados
+  // Filtra consultores da loja ativa a partir dos configs
+  const cfg = _allConfigs.find(c => c.loja === la);
+  if (cfg) return cfg.consultants || [];
+  // Se não tem config desta loja, pega consultores dos usuários
+  return _users
+    .filter(u => u.role==='consultor' && u.loja===la)
+    .map(u => u.display_name);
+};
+const getQ       = () => _queue;
+const getRecs    = () => _recs;
+const getCode    = () => _authCode || DEF_CODE;
+
+// ════ INIT ════
+async function initApp() {
+  console.log('[Idealize build:20260526144253] initApp iniciado');
+  showLoading(true);
+
+  // 1. Verificar sessão salva PRIMEIRO — antes de qualquer chamada de rede
+  const saved = getSavedSession();
+
+  if (saved) {
+    console.log('[Idealize] Sessão encontrada:', saved.username, '| exp:', new Date(saved.exp).toLocaleTimeString());
+    // Restaura SES direto dos dados salvos — não depende do banco
+    SES = {
+      username:     saved.username,
+      password:     saved.password,
+      role:         saved.role,
+      display_name: saved.display_name,
+      loja:         saved.loja || null,
+      consName:     saved.role === 'consultor' ? saved.display_name : null
+    };
+    const isSD = SES.role === 'supervisor' || SES.role === 'diretor';
+    setLojaCtx(isSD ? null : (SES.loja || 'sv'));
+    LOJA_FILTER = null;
+
+    // Carrega dados em paralelo sem bloquear a restauração
+    try {
+      await Promise.all([
+        sbGet('iz_users','order=display_name').then(r => { if(r.length) _users = r; }),
+        loadConfig(),
+        loadQueue(),
+        loadRecs()
+      ]);
+    } catch(e) { console.warn('Init load parcial:', e); }
+
+    showLoading(false);
+    // Remove splash, remove bloqueio de login e mostra o painel
+    const splash = document.getElementById('loading-splash');
+    if (splash) splash.style.display = 'none';
+    document.documentElement.classList.remove('has-session');
+    const preStyle = document.getElementById('pre-auth-style');
+    if (preStyle) preStyle.remove();
+    startPolling();
+    await routeUser();
+    return;
+  }
+
+  // 2. Sem sessão — carrega usuários para login
+  console.log('[Idealize] Sem sessão — indo para login');
+  try {
+    const r = await sbGet('iz_users','order=display_name').catch(()=>[]);
+    _users = r.length ? r : DEF_USERS;
+  } catch(e) {
+    _users = DEF_USERS;
+  }
+
+  showLoading(false);
+  // Remove splash e mostra login
+  const splash2 = document.getElementById('loading-splash');
+  if (splash2) splash2.style.display = 'none';
+  document.documentElement.classList.remove('has-session');
+  const preStyle2 = document.getElementById('pre-auth-style');
+  if (preStyle2) preStyle2.remove();
+  document.getElementById('l-user').focus();
+}
+
+function showLoading(v) { document.getElementById('loading-bar').style.display = v?'block':'none'; }
+
+// ════ LOGIN ════
+async function doLogin() {
+  const u = document.getElementById('l-user').value.trim().toLowerCase();
+  const p = document.getElementById('l-pass').value;
+  const errEl = document.getElementById('login-err'), passEl = document.getElementById('l-pass');
+
+  // Busca local sem filtrar loja (supervisor/diretor têm loja null)
+  let user = getUsers().find(x => x.username===u && x.password===p);
+  if (!user) {
+    // Tenta buscar direto no banco
+    try {
+      // Busca sem filtro de loja — supervisor/diretor têm loja null
+      const r = await sbGet('iz_users', `username=eq.${encodeURIComponent(u)}&password=eq.${encodeURIComponent(p)}`);
+      if (r.length) user = r[0];
+    } catch {}
+  }
+  if (!user) { errEl.classList.add('on'); passEl.classList.add('err'); passEl.value=''; passEl.focus(); return; }
+  errEl.classList.remove('on'); passEl.classList.remove('err');
+  SES = { ...user, consName: user.role==='consultor'?user.display_name:null };
+  // Define contexto de loja pelo perfil do usuário
+  const isSuperDir = user.role==='supervisor' || user.role==='diretor';
+  setLojaCtx(isSuperDir ? null : (user.loja || 'sv'));
+  LOJA_FILTER = null; // reset filtro ao logar
+  saveSession(SES);
+  startPolling();
+  await routeUser();
+}
+
+async function routeUser() {
+  if (SES.role==='consultor') {
+    document.getElementById('c-hdr-n').textContent = SES.display_name;
+    document.querySelectorAll('.mtab').forEach((t,i)=>t.classList.toggle('on',i===0));
+    metP='day'; customDe=''; customAte='';
+    document.getElementById('cr-cons').classList.remove('on');
+    const cs = document.getElementById('cons-sub');
+    if (cs) cs.textContent = 'Consultor · Idealize ' + LOJA_NAME;
+    // Header do consultor mostra a loja
+    const cn = document.getElementById('c-hdr-n');
+    if (cn) cn.textContent = SES.display_name;
+    renderCons(); showScr('s-cons');
+  } else if (SES.role==='gerente') {
+    mgrP='day'; LOJA_FILTER=null;
+    const gs = document.getElementById('ger-sub');
+    if (gs) gs.textContent = 'Gerente · Idealize ' + LOJA_NAME;
+    showLojaFilterBar();
+    renderRank('day','rank-body'); renderSup('day','sup-body'); renderFilaView('fila-body',true);
+    showGTab('ranking',null); showScr('s-ger');
+  } else if (SES.role==='supervisor') {
+    mgrP='day'; LOJA_FILTER=null;
+    const ss = document.getElementById('sup-sub');
+    if (ss) ss.textContent = 'Supervisor · Todas as lojas';
+    showLojaFilterBar();
+    await loadAllRecs(); await loadAllQueues();
+    renderRank('day','rank-sup-body'); renderSup('day','sup-sup-body'); renderFilaView('fila-sup-body',true);
+    showSupTab('ranking',null); showScr('s-sup');
+  } else if (SES.role==='diretor') {
+    mgrP='day'; LOJA_FILTER=null;
+    const ds = document.getElementById('dir-sub');
+    if (ds) ds.textContent = 'Diretor · Todas as lojas';
+    showLojaFilterBar();
+    await loadAllRecs(); await loadAllQueues(); await loadAllUsers();
+    renderRank('day','rank2-body'); renderSup('day','sup2-body'); renderFilaView('fila2-body',true);
+    renderConfig(); showSTab('ranking2',null); showScr('s-gest');
+  }
+}
+
+function doLogout() {
+  stopPolling(); SES=null; clearSession(); gerenteAusente=false;
+  document.getElementById('l-user').value=''; document.getElementById('l-pass').value='';
+  showScr('s-login'); setTimeout(()=>document.getElementById('l-user').focus(),200);
+}
+
+const showScr = id => { document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on')); document.getElementById(id).classList.add('on'); };
+
+// ════ CONSULTOR ════
+function renderCons() {
+  const name=SES.consName, q=getQ();
+  const e=q.find(x=>x.consultant_name===name);
+  const inQ=q.filter(x=>x.status==='queue');
+  const pos=inQ.findIndex(x=>x.consultant_name===name);
+  const isNext=pos===0&&e?.status==='queue';
+  const hero=document.getElementById('hero');
+  hero.className='hero'; hero.querySelector('.h-pill')?.remove();
+  const eye=document.getElementById('h-eye'),ttl=document.getElementById('h-ttl'),sub=document.getElementById('h-sub');
+  if(!e){eye.textContent='Status atual';ttl.textContent='Fora da fila';sub.textContent='Toque abaixo para entrar na fila e começar a atender.';}
+  else if(e.status==='attending'){hero.classList.add('ha');eye.textContent='Em atendimento';ttl.textContent='Atendendo cliente';sub.textContent='Registre o resultado ao finalizar para retornar à fila.';}
+  else if(isNext){hero.classList.add('hn');eye.textContent='Sua vez';ttl.textContent='Próximo da fila';sub.textContent='Chame o cliente e inicie o atendimento agora.';hero.insertAdjacentHTML('beforeend',`<div class="h-pill">Posição #1</div>`);}
+  else{eye.textContent='Na fila';ttl.textContent=`${pos+1}º na fila`;sub.textContent=`Você ocupa a ${pos+1}ª posição. Aguarde.`;hero.insertAdjacentHTML('beforeend',`<div class="h-pill">Posição #${pos+1}</div>`);}
+  const ac=document.getElementById('act-col');
+  if(!e) ac.innerHTML=`<button class="abtn abt" onclick="enterQ()">Entrar na fila</button>`;
+  else if(e.status==='attending') ac.innerHTML=`<button class="abtn abt" onclick="openReg()">Finalizar e registrar</button>`;
+  else ac.innerHTML=`<button class="abtn abo" onclick="startAtt()">Iniciar atendimento</button><button class="abtn abr" onclick="leaveQ()">Sair da fila</button>`;
+  renderMet(); renderMiniQ();
+}
+
+function renderMiniQ() {
+  const q=getQ(),att=q.filter(x=>x.status==='attending'),inQ=q.filter(x=>x.status==='queue');
+  const all=[...att,...inQ],myName=SES.consName;
+  let h='';
+  all.forEach((e,i)=>{
+    const isA=e.status==='attending',isN=!isA&&i===att.length,isMe=e.consultant_name===myName;
+    const p=isA?'>':isN?'1':String(i-att.length+1);
+    h+=`<div class="mq-row"><span class="mq-pos">${p}</span><div class="mq-av ${isA?'o':isN?'t':''}">${ini(e.consultant_name)}</div><span class="mq-name ${isMe?'me':''}">${e.consultant_name}${isMe?' (você)':''}</span>${isA?`<span class="mq-tag">Atendendo</span>`:''}</div>`;
+  });
+  document.getElementById('mini-q').innerHTML=h||`<div style="text-align:center;padding:1.25rem;color:var(--tx4);font-size:13px">Nenhum consultor na fila</div>`;
+}
+
+function setMP(p,el){
+  metP=p;
+  document.querySelectorAll('#s-cons .mtab').forEach(t=>t.classList.remove('on')); el.classList.add('on');
+  const cr=document.getElementById('cr-cons');
+  if(p==='custom'){cr.classList.add('on');}else{cr.classList.remove('on');customDe='';customAte='';renderMet();}
+}
+function applyCustomCons(){
+  customDe=document.getElementById('cr-cons-de').value; customAte=document.getElementById('cr-cons-ate').value;
+  if(!customDe||!customAte){toast('Selecione as duas datas','err');return;} renderMet();
+}
+function renderMet() {
+  const base=getRecs().filter(r=>r.consultant_name===SES.consName);
+  const mr=filtP(base,metP,customDe,customAte);
+  const tot=mr.length,v=mr.filter(r=>r.situacao==='VENDA').length,p=mr.filter(r=>r.situacao==='PERDIDA').length;
+  const tx=tot>0?Math.round(v/tot*100):0;
+  const fat=mr.reduce((s,r)=>s+(r.valor||0),0),ent=mr.reduce((s,r)=>s+(r.entrada||0),0);
+  const tmed=v>0?fat/v:0;
+  const repSim=mr.filter(r=>r.repique==='SIM').length;
+  const txRepAtend=tot>0?Math.round(repSim/tot*100):0;
+  const txRepVenda=v>0?Math.round(repSim/v*100):0;
+  document.getElementById('met-body').innerHTML=`
+    <div class="mg">
+      <div class="mi"><div class="mv">${tot}</div><div class="ml">Atendimentos</div></div>
+      <div class="mi"><div class="mv t">${v}</div><div class="ml">Vendas</div></div>
+      <div class="mi"><div class="mv ${tx>=50?'t':'o'}">${tx}%</div><div class="ml">Conversão</div></div>
+      <div class="mi"><div class="mv r">${p}</div><div class="ml">Perdidas</div></div>
+      <div class="mi"><div class="mv b" style="font-size:14px">${fmtK(tmed)}</div><div class="ml">Ticket médio</div></div>
+      <div class="mi"><div class="mv o" style="font-size:13px">${fmt(ent)}</div><div class="ml">Comissão</div></div>
+      <div class="mi"><div class="mv ${txRepAtend>=30?'t':'o'}">${txRepAtend}%</div><div class="ml">Repique/Atend.</div></div>
+      <div class="mi"><div class="mv ${txRepVenda>=50?'t':'o'}">${txRepVenda}%</div><div class="ml">Repique/Venda</div></div>
+      <div class="mi w3"><div class="mv t" style="font-size:14px">${fmt(fat)}</div><div class="ml">Faturado</div></div>
+    </div>`;
+}
+
+// ════ FILA ACTIONS ════
+async function enterQ() {
+  const name = SES.consName;
+  if (_queue.find(x => x.consultant_name === name)) { toast('Você já está na fila','warn'); return; }
+  try {
+    // Remove qualquer entrada antiga deste consultor nesta loja
+    await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(name)}&loja=eq.${encodeURIComponent(LOJA)}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    // Insere nova entrada
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_queue`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ consultant_name: name, loja: LOJA, status: 'queue', joined_at: new Date().toISOString() })
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(err);
+    }
+    await loadQueue();
+    renderCons();
+    toast('Você entrou na fila', 'ok');
+  } catch(e) {
+    console.error('enterQ:', e);
+    toast('Erro ao entrar na fila. Verifique o console.', 'err');
+  }
+}
+async function leaveQ() {
+  if (!confirm('Confirma saída da fila?')) return;
+  try {
+    await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${encodeURIComponent(LOJA)}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    await loadQueue();
+    renderCons();
+    toast('Você saiu da fila');
+  } catch(e) { toast('Erro','err'); console.error('leaveQ:', e); }
+}
+async function startAtt() {
+  try {
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${encodeURIComponent(LOJA)}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ status: 'attending' })
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    await loadQueue();
+    renderCons();
+    toast('Bom atendimento');
+  } catch(e) { toast('Erro','err'); console.error('startAtt:', e); }
+}
+
+// ════ MODAL REGISTRO ════
+function openReg(){
+  selSit_=null;selMeio_=null;selRep_=null;authOk=false;
+  document.querySelectorAll('.sit-chip').forEach(c=>c.className='sit-chip');
+  ['t-ri','t-re','t-rsim','t-rnao'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='tbtn';});
+  ['m-val','m-ent','m-mot'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id).classList.remove('err');});
+  document.querySelectorAll('.emsg').forEach(e=>e.classList.remove('on'));
+  document.getElementById('fg-rep').style.display='none';
+  document.getElementById('auth-banner').classList.remove('on');
+  document.getElementById('mot-req').style.display='inline';
+  document.getElementById('mot-opt').style.display='none';
+  document.getElementById('m-mot').placeholder='Descreva o motivo da perda...';
+  document.getElementById('reg-sub').textContent=`${SES.consName} — campos com * são obrigatórios`;
+  document.getElementById('ov-reg').classList.add('on');
+}
+function selSit(s){
+  selSit_=s;selRep_=null;authOk=false;
+  document.querySelectorAll('.sit-chip').forEach(c=>c.className='sit-chip');
+  document.getElementById(s==='VENDA'?'sc-v':'sc-p').classList.add(s==='VENDA'?'sv':'sp');
+  document.getElementById('err-sit').classList.remove('on');
+  document.querySelectorAll('.sit-chip').forEach(c=>c.classList.remove('serr'));
+  document.getElementById('fg-rep').style.display='block';
+  document.getElementById('auth-banner').classList.remove('on');
+  document.getElementById('t-rsim').className='tbtn';
+  document.getElementById('t-rnao').className='tbtn';
+  document.getElementById('err-rep').classList.remove('on');
+  document.getElementById('tog-rep').querySelectorAll('.tbtn').forEach(b=>b.classList.remove('terr'));
+  document.getElementById('t-rnao').textContent=s==='PERDIDA'?'Não — requer autorização':'Não';
+  document.getElementById('t-rsim').textContent=s==='PERDIDA'?'Sim — requer autorização':'Sim';
+  const lost=s==='PERDIDA';
+  document.getElementById('mot-req').style.display=lost?'inline':'none';
+  document.getElementById('mot-opt').style.display=lost?'none':'inline';
+  document.getElementById('m-mot').placeholder=lost?'Descreva o motivo da perda...':'Observações (opcional)';
+
+  // PERDIDA: desabilita campos financeiros/comerciais (não fazem sentido)
+  const fields=['m-val','m-ent','m-cli','m-pro'];
+  fields.forEach(id=>{
+    const el=document.getElementById(id);
+    if(lost){
+      el.disabled=true;
+      el.value='';
+      el.style.opacity='0.4';
+      el.style.cursor='not-allowed';
+      el.style.background='var(--s3)';
+    } else {
+      el.disabled=false;
+      el.style.opacity='1';
+      el.style.cursor='';
+      el.style.background='';
+    }
+  });
+  // Também esconde os erros dos campos desabilitados quando PERDIDA
+  if(lost){
+    ['err-val','err-ent','err-cli','err-pro'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  }
+}
+function selMeio(m){
+  selMeio_=m;
+  document.getElementById('t-ri').className='tbtn'+(m==='RI'?' selt':'');
+  document.getElementById('t-re').className='tbtn'+(m==='RE'?' selt':'');
+  document.getElementById('err-meio').classList.remove('on');
+  document.getElementById('tog-meio').querySelectorAll('.tbtn').forEach(b=>b.classList.remove('terr'));
+}
+function selRep(r){
+  selRep_=r;authOk=false;
+  document.getElementById('t-rsim').className='tbtn'+(r==='SIM'?' selt':'');
+  document.getElementById('t-rnao').className='tbtn'+(r==='NÃO'?' selt':'');
+  document.getElementById('err-rep').classList.remove('on');
+  document.getElementById('auth-banner').classList.remove('on');
+}
+function trySelNao(){
+  if(selSit_==='PERDIDA'){document.getElementById('auth-inp').value='';document.getElementById('err-auth').classList.remove('on');document.getElementById('ov-auth').classList.add('on');}
+  else{selRep('NÃO');}
+}
+function tryNoRep(){trySelNao();}
+
+function trySelSim(){
+  if(selSit_==='PERDIDA'){
+    _repPendente='SIM';
+    document.getElementById('auth-inp').value='';
+    document.getElementById('err-auth').classList.remove('on');
+    document.getElementById('ov-auth').classList.add('on');
+  } else {
+    selRep('SIM');
+  }
+}
+function checkAuth(){
+  const c=document.getElementById('auth-inp').value.trim();
+  if(c===getCode()){
+    authOk=true;
+    closeOv('ov-auth');
+    // Define repique com o valor que estava pendente (SIM ou NÃO)
+    selRep_=_repPendente||'NÃO';
+    document.getElementById('t-rsim').className='tbtn'+(selRep_==='SIM'?' selt':'');
+    document.getElementById('t-rnao').className='tbtn'+(selRep_==='NÃO'?' selt':'');
+    document.getElementById('err-rep').classList.remove('on');
+    document.getElementById('auth-banner').classList.add('on');
+    document.getElementById('auth-banner').textContent=
+      selRep_==='SIM'
+        ? 'Autorizado pelo gerente — venda perdida com repique registrada'
+        : 'Autorizado pelo gerente — finalização sem repique liberada';
+    toast('Autorizado pelo gerente','ok');
+  } else {
+    document.getElementById('err-auth').classList.add('on');
+    document.getElementById('auth-inp').value='';
+    toast('Código incorreto','err');
+  }
+}
+function closeOv(id){document.getElementById(id).classList.remove('on');}
+
+async function submitReg(){
+  let ok=true;
+  if(!selSit_){document.getElementById('err-sit').classList.add('on');document.querySelectorAll('.sit-chip').forEach(c=>c.classList.add('serr'));ok=false;}
+  if(!selMeio_){document.getElementById('err-meio').classList.add('on');document.getElementById('tog-meio').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr'));ok=false;}
+  if(!selRep_){document.getElementById('err-rep').classList.add('on');document.getElementById('tog-rep').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr'));ok=false;}
+  if(selSit_==='PERDIDA'&&!authOk&&!gerenteAusente){toast('Necessária autorização do gerente para registrar perda','warn');return;}
+  // Valida campos financeiros apenas na VENDA
+  if(selSit_==='VENDA'){
+    [['m-val','err-val',v=>v.trim()!==''&&parseFloat(v)>=0],['m-ent','err-ent',v=>v.trim()!==''&&parseFloat(v)>=0]].forEach(([fid,eid,fn])=>{const el=document.getElementById(fid);if(!fn(el.value)){el.classList.add('err');document.getElementById(eid).classList.add('on');ok=false;}else{el.classList.remove('err');document.getElementById(eid).classList.remove('on');}});
+  }
+  const motEl=document.getElementById('m-mot');
+  if(selSit_==='PERDIDA'&&!motEl.value.trim()){motEl.classList.add('err');document.getElementById('err-mot').classList.add('on');ok=false;}
+  else{motEl.classList.remove('err');document.getElementById('err-mot').classList.remove('on');}
+  if(!ok){toast('Preencha os campos obrigatórios','err');return;}
+
+  const v=parseFloat(document.getElementById('m-val').value)||0;
+  const e=parseFloat(document.getElementById('m-ent').value)||0;
+  const now=new Date();
+  const rec={
+    loja:LOJA,
+    data:dStr(now),
+    hora:now.toTimeString().slice(0,5),
+    consultant_name:SES.consName,
+    situacao:selSit_,
+    meio:selMeio_,
+    repique:selRep_||'—',
+    rep_autorizado:selSit_==='PERDIDA'&&selRep_==='NÃO'?authOk:false,
+    valor:v, entrada:e,
+    pct:v>0?Math.round(e/v*100):0,
+    motivo:document.getElementById('m-mot').value.trim()
+  };
+  try {
+    await sbPost('iz_records', rec);
+    // Volta pro final da fila
+    await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(SES.consName)}&loja=eq.${encodeURIComponent(LOJA)}`, {
+      method: 'DELETE', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    await fetch(`${SB_URL}/rest/v1/iz_queue`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ consultant_name: SES.consName, loja: LOJA, status: 'queue', joined_at: new Date().toISOString() })
+    });
+    await loadQueue(); await loadRecs();
+    closeOv('ov-reg');
+    toast(selSit_==='VENDA'?'Venda registrada com sucesso':'Atendimento registrado','ok');
+    renderCons();
+  } catch(err){toast('Erro ao salvar','err');console.error(err);}
+}
+
+// ════ TABS ════
+function showGTab(tab,el){
+  document.querySelectorAll('.gtab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.gview').forEach(v=>v.classList.remove('on'));
+  document.getElementById('gv-'+tab).classList.add('on');
+  if(el)el.classList.add('on');
+  if(tab==='ranking')renderRank(mgrP,'rank-body');
+  if(tab==='supervisao')renderSup(mgrP,'sup-body');
+  if(tab==='fila')renderFilaView('fila-body',true);
+}
+
+function toggleAusencia(){
+  gerenteAusente=!gerenteAusente;
+  const btn=document.getElementById('btn-ausencia');
+  const badge=document.getElementById('ausencia-status-badge');
+  const tab=document.getElementById('gtab-ausencia');
+  if(gerenteAusente){
+    btn.textContent='Desativar modo ausência';
+    btn.className='abtn abr';
+    badge.textContent='Ausente';
+    badge.style.background='var(--orange-l)';
+    badge.style.color='var(--orange-dd)';
+    if(tab){tab.style.background='var(--orange-l)';tab.style.color='var(--orange-dd)';tab.style.borderBottomColor='var(--orange)';}
+    toast('Modo ausência ativado — consultores podem finalizar sem código','warn');
+  } else {
+    btn.textContent='Ativar modo ausência';
+    btn.className='abtn abt';
+    badge.textContent='Presente';
+    badge.style.background='var(--green-l)';
+    badge.style.color='var(--green)';
+    if(tab){tab.style.background='';tab.style.color='';tab.style.borderBottomColor='';}
+    toast('Modo ausência desativado','ok');
+  }
+}
+function showSupTab(tab,el){
+  document.querySelectorAll('.suptab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.supview').forEach(v=>v.classList.remove('on'));
+  document.getElementById('sv-sup-'+tab).classList.add('on');
+  if(el)el.classList.add('on');
+  if(tab==='ranking')   renderRank(mgrP,'rank-sup-body');
+  if(tab==='supervisao')renderSup(mgrP,'sup-sup-body');
+  if(tab==='fila')      renderFilaView('fila-sup-body',true);
+  if(tab==='usuarios')  renderSupUsuarios();
+}
+function showSTab(tab,el){
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.sview').forEach(v=>v.classList.remove('on'));
+  document.getElementById('sv-'+tab).classList.add('on');
+  if(el)el.classList.add('on');
+  if(tab==='ranking2')renderRank(mgrP,'rank2-body');
+  if(tab==='supervisao2')renderSup(mgrP,'sup2-body');
+  if(tab==='fila2')renderFilaView('fila2-body',true);
+  if(tab==='config')renderConfig();
+}
+
+// ════ PERIOD HTML ════
+function ptHTML(p,fnR,fnS,crId){
+  return`<div class="ptabs">
+    <button class="ptab ${p==='day'?'on':''}" onclick="${fnR}('day');${fnS}('day')">Hoje</button>
+    <button class="ptab ${p==='week'?'on':''}" onclick="${fnR}('week');${fnS}('week')">Semana</button>
+    <button class="ptab ${p==='month'?'on':''}" onclick="${fnR}('month');${fnS}('month')">Mês</button>
+    <button class="ptab custom-tab ${p==='custom'?'on':''}" onclick="openMgrCustom('${crId}','${fnR}','${fnS}')">Personalizado</button>
+  </div>
+  <div class="custom-range ${p==='custom'?'on':''}" id="${crId}">
+    <span class="cr-lbl">De</span><input type="date" class="cr-inp" id="${crId}-de" value="${mgrCustomDe}">
+    <span class="cr-lbl">até</span><input type="date" class="cr-inp" id="${crId}-ate" value="${mgrCustomAte}">
+    <button class="cr-apply" onclick="applyMgrCustom('${crId}','${fnR}','${fnS}')">Aplicar</button>
+  </div>`;}
+function openMgrCustom(crId,fnR,fnS){mgrP='custom';document.getElementById(crId).classList.add('on');}
+function applyMgrCustom(crId,fnR,fnS){
+  mgrCustomDe=document.getElementById(crId+'-de').value;mgrCustomAte=document.getElementById(crId+'-ate').value;
+  if(!mgrCustomDe||!mgrCustomAte){toast('Selecione as duas datas','err');return;}
+  window[fnR]('custom');window[fnS]('custom');
+}
+
+// ════ RANKING com taxas de repique e conversão ════
+function renderRank(p,bodyId){
+  if(p)mgrP=p;
+  const recs=filtLoja(getRecs()),cons=getCons(),all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
+  const tot=all.length,v=all.filter(r=>r.situacao==='VENDA').length;
+  const fat=all.reduce((s,r)=>s+(r.valor||0),0),ent=all.reduce((s,r)=>s+(r.entrada||0),0);
+  const tmed=v>0?fat/v:0,tx=tot>0?Math.round(v/tot*100):0;
+  const repAll=all.filter(r=>r.repique==='SIM').length;
+  const pLbl={day:'Hoje',week:'Esta semana',month:'Este mês',custom:mgrCustomDe&&mgrCustomAte?`${fmtDate(mgrCustomDe)} a ${fmtDate(mgrCustomAte)}`:'Período personalizado'};
+  const isGest=bodyId==='rank2-body',isSup=bodyId==='rank-sup-body';
+  const fnR=isGest?'rRankGest':isSup?'rRankSup':'rRankGer';
+  const fnS=isGest?'rSupGest':isSup?'rSupSup':'rSupGer';
+  const crId=isGest?'cr-rank2':isSup?'cr-rank-sup':'cr-rank';
+
+  // Consultores: combina lista do config + consultores com registros no período
+  const consFromRecs = [...new Set(all.map(r=>r.consultant_name).filter(Boolean))];
+  const allCons = [...new Set([...cons, ...consFromRecs])];
+
+  const rows=allCons.map(name=>{
+    const r2=all.filter(r=>r.consultant_name===name);
+    const t2=r2.length,v2=r2.filter(r=>r.situacao==='VENDA').length,p2=r2.filter(r=>r.situacao==='PERDIDA').length;
+    const tx2=t2>0?Math.round(v2/t2*100):0;
+    const f2=r2.reduce((s,r)=>s+(r.valor||0),0),c2=r2.reduce((s,r)=>s+(r.entrada||0),0);
+    const rep2=r2.filter(r=>r.repique==='SIM').length;
+    const txRepA=t2>0?Math.round(rep2/t2*100):0;
+    const txRepV=v2>0?Math.round(rep2/v2*100):0;
+    return{name,tot:t2,vend:v2,perd:p2,tx:tx2,fat:f2,tmed:v2>0?f2/v2:0,com:c2,rep:rep2,txRepA,txRepV};
+  }).sort((a,b)=>b.tx-a.tx||b.fat-a.fat);
+  const maxTx=Math.max(...rows.map(r=>r.tx),1);
+
+  document.getElementById(bodyId).innerHTML=`
+    ${ptHTML(mgrP,fnR,fnS,crId)}
+    <div class="ov-grid">
+      <div class="ov-card t"><div class="ov-lbl">Atendimentos</div><div class="ov-val">${tot}</div><div class="ov-sub">${pLbl[mgrP]}</div></div>
+      <div class="ov-card t"><div class="ov-lbl">Vendas</div><div class="ov-val t">${v}</div><div class="ov-sub">Conversão ${tx}%</div></div>
+      <div class="ov-card o"><div class="ov-lbl">Faturamento</div><div class="ov-val o" style="font-size:16px">${fmt(fat)}</div></div>
+      <div class="ov-card o"><div class="ov-lbl">Ticket médio</div><div class="ov-val o" style="font-size:16px">${fmt(tmed)}</div><div class="ov-sub">Comissão ${fmt(ent)}</div></div>
+    </div>
+    <div class="sec-lbl">Ranking por consultor — ${pLbl[mgrP]}</div>
+    ${rows.length===0?`<div style="text-align:center;padding:3rem;color:var(--tx4);font-size:13px;background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border)">Nenhum registro nesta unidade para o período selecionado</div>`:''}
+    ${rows.map((r,i)=>`<div class="rep-card">
+      <div class="rep-top">
+        <span style="font-family:var(--fm);font-size:12px;color:var(--tx4);min-width:22px">#${i+1}</span>
+        <div class="rep-av">${ini(r.name)}</div>
+        <div class="rep-info"><div class="rep-name">${r.name}</div><div class="rep-detail">${r.tot} atend. · ${r.vend} vendas · ${fmt(r.fat)}</div></div>
+        <div style="text-align:right"><div class="rep-tx">${r.tx}%</div><div class="rep-txl">conversão</div></div>
+      </div>
+      <div class="bar-bg"><div class="bar-fg" style="width:${Math.round(r.tx/maxTx*100)}%"></div></div>
+      <div class="rep-mets" style="grid-template-columns:repeat(6,1fr)">
+        <div class="rm"><div class="rm-v t">${r.vend}</div><div class="rm-l">Vendas</div></div>
+        <div class="rm"><div class="rm-v r">${r.perd}</div><div class="rm-l">Perdidas</div></div>
+        <div class="rm"><div class="rm-v o" style="font-size:11px">${fmt(r.tmed)}</div><div class="rm-l">Ticket</div></div>
+        <div class="rm"><div class="rm-v b" style="font-size:11px">${fmt(r.com)}</div><div class="rm-l">Comissão</div></div>
+        <div class="rm"><div class="rm-v ${r.txRepA>=30?'t':'o'}">${r.txRepA}%</div><div class="rm-l">Rep/Atend</div></div>
+        <div class="rm"><div class="rm-v ${r.txRepV>=50?'t':'o'}">${r.txRepV}%</div><div class="rm-l">Rep/Venda</div></div>
+      </div>
+    </div>`).join('')}`;
+}
+function rRankGer(p){renderRank(p,'rank-body');}
+function rRankSup(p){renderRank(p,'rank-sup-body');}
+function rRankGest(p){renderRank(p,'rank2-body');}
+
+// ════ SUPERVISÃO ════
+function renderSup(p,bodyId){
+  if(p)mgrP=p;
+  const recs=filtLoja(getRecs()),cons=getCons(),all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
+  const pLbl={day:'Hoje',week:'Esta semana',month:'Este mês',custom:mgrCustomDe&&mgrCustomAte?`${fmtDate(mgrCustomDe)} a ${fmtDate(mgrCustomAte)}`:'Período personalizado'};
+  const isGest=bodyId==='sup2-body',isSup=bodyId==='sup-sup-body';
+  const fnR=isGest?'rRankGest':isSup?'rRankSup':'rRankGer';
+  const fnS=isGest?'rSupGest':isSup?'rSupSup':'rSupGer';
+  const crId=isGest?'cr-sup2':isSup?'cr-sup-sup':'cr-sup';
+  const tot=all.length,vend=all.filter(r=>r.situacao==='VENDA').length,perd=all.filter(r=>r.situacao==='PERDIDA').length;
+  const tx=tot>0?Math.round(vend/tot*100):0;
+  const fat=all.reduce((s,r)=>s+(r.valor||0),0),com=all.reduce((s,r)=>s+(r.entrada||0),0);
+  const repTot=all.filter(r=>r.repique==='SIM').length;
+  const txRepG=tot>0?Math.round(repTot/tot*100):0;
+  // Combina consultores do config + consultores com registros
+  const consFromRecs2 = [...new Set(all.map(r=>r.consultant_name).filter(Boolean))];
+  const allCons2 = [...new Set([...cons, ...consFromRecs2])];
+
+  const rows=allCons2.map(name=>{
+    const r2=all.filter(r=>r.consultant_name===name);
+    const t2=r2.length,v2=r2.filter(r=>r.situacao==='VENDA').length,p2=r2.filter(r=>r.situacao==='PERDIDA').length;
+    const rep2=r2.filter(r=>r.repique==='SIM').length;
+    return{name,tot:t2,vend:v2,perd:p2,tx:t2>0?Math.round(v2/t2*100):0,fat:r2.reduce((s,r)=>s+(r.valor||0),0),com:r2.reduce((s,r)=>s+(r.entrada||0),0),txRepA:t2>0?Math.round(rep2/t2*100):0,txRepV:v2>0?Math.round(rep2/v2*100):0};
+  });
+  document.getElementById(bodyId).innerHTML=`
+    ${ptHTML(mgrP,fnR,fnS,crId)}
+    <div class="ov-grid">
+      <div class="ov-card t"><div class="ov-lbl">Total atendimentos</div><div class="ov-val">${tot}</div><div class="ov-sub">${pLbl[mgrP]}</div></div>
+      <div class="ov-card t"><div class="ov-lbl">Convertidos</div><div class="ov-val t">${vend}</div><div class="ov-sub">Taxa ${tx}%</div></div>
+      <div class="ov-card r"><div class="ov-lbl">Perdidos</div><div class="ov-val r">${perd}</div></div>
+      <div class="ov-card ${txRepG>=30?'t':'o'}"><div class="ov-lbl">Taxa de repique</div><div class="ov-val ${txRepG>=30?'t':'o'}">${txRepG}%</div><div class="ov-sub">${repTot} repiques</div></div>
+    </div>
+    <div class="sec-lbl">Resultados por consultor — ${pLbl[mgrP]}</div>
+    <div class="tbl-wrap"><table class="sup-tbl">
+      <thead><tr><th>Consultor</th><th class="nr">Atend.</th><th class="nr">Vendas</th><th class="nr">Perdas</th><th class="nr">Conversão</th><th class="nr">Rep/Atend</th><th class="nr">Rep/Venda</th><th class="nr">Faturado</th><th class="nr">Comissão</th></tr></thead>
+      <tbody>
+        ${rows.sort((a,b)=>b.tx-a.tx).map(r=>`<tr>
+          <td><div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:50%;background:var(--teal-l);border:1.5px solid var(--teal-b);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:10px;font-weight:800;color:var(--teal-dd)">${ini(r.name)}</div><span style="font-weight:600;font-size:13px">${r.name}</span></div></td>
+          <td class="nr"><strong>${r.tot}</strong></td>
+          <td class="nr"><span class="sbdg sbv">${r.vend}</span></td>
+          <td class="nr"><span class="sbdg sbp">${r.perd}</span></td>
+          <td class="nr"><span class="${r.tx>=60?'txg':r.tx>=40?'txa':'txr'}">${r.tx}%</span></td>
+          <td class="nr"><span class="${r.txRepA>=30?'txg':'txa'}">${r.txRepA}%</span></td>
+          <td class="nr"><span class="${r.txRepV>=50?'txg':'txa'}">${r.txRepV}%</span></td>
+          <td class="nr" style="font-size:12px">${fmt(r.fat)}</td>
+          <td class="nr" style="font-size:12px;color:var(--blue)">${fmt(r.com)}</td>
+        </tr>`).join('')}
+        <tr class="tot"><td><strong>TOTAL</strong></td><td class="nr"><strong>${tot}</strong></td><td class="nr"><strong>${vend}</strong></td><td class="nr"><strong>${perd}</strong></td><td class="nr"><strong class="${tx>=60?'txg':tx>=40?'txa':'txr'}">${tx}%</strong></td><td class="nr"><strong>${txRepG}%</strong></td><td class="nr">—</td><td class="nr"><strong>${fmt(fat)}</strong></td><td class="nr" style="color:var(--blue)"><strong>${fmt(com)}</strong></td></tr>
+      </tbody>
+    </table></div>
+    <div class="sec-lbl" style="margin-top:.25rem">Registros recentes</div>
+    <div class="tbl-wrap"><table class="sup-tbl">
+      <thead><tr><th>Data/Hora</th><th>Consultor</th><th>Loja</th><th>Situação</th><th>Origem</th><th>Repique</th><th class="nr">Valor</th><th class="nr">Comissão</th></tr></thead>
+      <tbody>${all.slice(0,60).map(r=>`<tr>
+        <td style="font-family:var(--fm);font-size:11px;color:var(--tx4)">${r.data?r.data.split('-').reverse().join('/'):'—'} ${r.hora||''}</td>
+        <td style="font-weight:600;font-size:12px">${r.consultant_name}</td>
+        <td><span class="sbdg ${r.situacao==='VENDA'?'sbv':'sbp'}">${r.situacao==='VENDA'?'Venda':'Perdida'}</span></td>
+        <td style="font-size:11px;color:var(--tx4)">${r.meio==='RI'?'Rec. Interna':'Rec. Externa'}</td>
+        <td style="font-size:11px;color:var(--tx4)">${r.repique==='SIM'?'Sim':r.repique==='NÃO'?'Não'+(r.rep_autorizado?' *':''):'—'}</td>
+        <td class="nr" style="font-size:12px">${r.valor?fmt(r.valor):'—'}</td>
+        <td class="nr" style="font-size:12px;color:var(--blue)">${r.entrada?fmt(r.entrada):'—'}</td>
+      </tr>`).join('')||`<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--tx4)">Nenhum registro no período</td></tr>`}
+      </tbody>
+    </table></div>
+    <p style="font-size:11px;color:var(--tx4);margin-top:4px">* Finalização sem repique autorizada</p>`;
+}
+function rSupGer(p){renderSup(p,'sup-body');}
+function rSupSup(p){renderSup(p,'sup-sup-body');}
+function rSupGest(p){renderSup(p,'sup2-body');}
+
+// ════ FILA AO VIVO ════
+function renderFilaView(bodyId,canClear){
+  const la=lojaAtiva();
+  console.log('[Idealize] renderFilaView | lojaAtiva:', la, '| LOJA_FILTER:', LOJA_FILTER, '| queue total:', getQ().length);
+  const allQ=getQ();
+  // Filtra fila pela loja ativa
+  const q=la?allQ.filter(x=>x.loja===la):allQ;
+  const cons=getCons(),recs=la?getRecs().filter(r=>r.loja===la):getRecs(),today=dStr(new Date());
+  const att=q.filter(x=>x.status==='attending'),inQ=q.filter(x=>x.status==='queue'),off=cons.filter(n=>!q.find(x=>x.consultant_name===n));
+  const mkCard=(e,st,pos)=>{
+    const mr=recs.filter(r=>r.consultant_name===e.consultant_name&&r.data===today);
+    const v=mr.filter(r=>r.situacao==='VENDA').length,t=mr.length;
+    const cls={next:'cn',queue:'',attending:'ca'};
+    const bdg={next:`<span class="qbdg qbn">Próximo</span>`,queue:`<span class="qbdg qbq">#${pos}</span>`,attending:`<span class="qbdg qba">Atendendo</span>`};
+    return`<div class="q-card ${cls[st]||''}"><div class="q-av">${ini(e.consultant_name)}</div><div class="q-info"><div class="q-name">${e.consultant_name}</div><div class="q-mini"><div class="qm">Hoje:<span class="qmv">${t}</span></div><div class="qm">Vendas:<span class="qmv t">${v}</span></div>${t>0?`<div class="qm">Conv:<span class="qmv ${Math.round(v/t*100)>=50?'t':'o'}">${Math.round(v/t*100)}%</span></div>`:''}</div></div>${bdg[st]}</div>`;
+  };
+  let h='';
+  if(att.length){h+=`<div class="sec-lbl">Em atendimento</div><div class="q-list">${att.map(e=>mkCard(e,'attending',null)).join('')}</div>`;}
+  if(inQ.length){h+=`<div class="sec-lbl">Na fila</div><div class="q-list">${inQ.map((e,i)=>mkCard(e,i===0?'next':'queue',i+1)).join('')}</div>`;}
+  if(off.length){h+=`<div class="sec-lbl">Fora da fila</div><div class="q-list">`;off.forEach(n=>{const mr=recs.filter(r=>r.consultant_name===n&&r.data===today);h+=`<div class="q-card co"><div class="q-av">${ini(n)}</div><div class="q-info"><div class="q-name">${n}</div><div class="q-sub">Fora da fila · ${mr.length} atend. hoje</div></div><span class="qbdg qbo">Inativo</span></div>`;});h+=`</div>`;}
+  if(!h)h=`<div style="text-align:center;padding:3rem;color:var(--tx4);font-size:13px">Nenhum consultor na fila</div>`;
+  if(canClear)h+=`<button class="danger-btn" style="margin-top:4px" onclick="clearQueue('${bodyId}')">Limpar fila — fim do expediente</button>`;
+  document.getElementById(bodyId).innerHTML=h;
+}
+async function clearQueue(bodyId){
+  if(!confirm('Limpar fila agora?\nTodos os consultores serão removidos da fila.'))return;
+  try{
+    // Determina qual loja limpar — se LOJA_FILTER está ativo usa ele, senão limpa tudo
+    const lojaLimpar = LOJA_FILTER || LOJA;
+    let params = lojaLimpar ? `loja=eq.${encodeURIComponent(lojaLimpar)}` : '';
+
+    // Usa fetch direto para garantir funcionamento
+    const url = `${SB_URL}/rest/v1/iz_queue${params?'?'+params:''}`;
+    const resp = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      }
+    });
+    if(!resp.ok){
+      const err = await resp.text();
+      throw new Error(err);
+    }
+    await loadQueue();
+    const isGest = bodyId.includes('2') || bodyId.includes('gest');
+    renderFilaView(bodyId, isGest || SES?.role==='diretor');
+    toast('Fila limpa com sucesso','ok');
+  }catch(e){
+    toast('Erro ao limpar fila','err');
+    console.error('clearQueue:',e);
+  }
+}
+
+// ════ CONFIGURAÇÕES (Diretor) ════
+function renderConfig(){
+  const cons=getCons(),users=getUsers();
+  document.getElementById('config-body').innerHTML=`
+    <div class="cfg-section">
+      <div class="cfg-hd"><span class="cfg-hd-title">Consultores da fila</span><span class="cfg-hd-count">${cons.length} cadastrado(s)</span></div>
+      ${cons.map((c,i)=>`<div class="cfg-row"><div class="cfg-av">${ini(c)}</div><div class="cfg-info"><div class="cfg-name">${c}</div><div class="cfg-meta"><span class="cfg-role-pill rp-cons">Consultor</span></div></div><div class="cfg-actions"><button class="cfg-btn cb-del" onclick="delCons(${i})">Remover</button></div></div>`).join('')}
+      <div class="cfg-add-block"><div class="cfg-add-title">Adicionar consultor à fila</div>
+        <div class="cfg-inp-row"><input class="cfg-inp" type="text" id="gi-cons" placeholder="Nome completo" style="flex:1"><button class="cfg-add-btn" onclick="addCons()">Adicionar</button></div>
+      </div>
+    </div>
+    <div class="cfg-section">
+      <div class="cfg-hd"><span class="cfg-hd-title">Usuários do sistema</span><span class="cfg-hd-count">${users.length} usuário(s)</span></div>
+      ${users.map((u,i)=>`<div class="cfg-row">
+        <div class="cfg-av ${u.role==='gerente'?'ger':u.role==='supervisor'?'ger':u.role==='diretor'?'gest':''}">${ini(u.display_name)}</div>
+        <div class="cfg-info"><div class="cfg-name">${u.display_name}</div>
+          <div class="cfg-meta">
+            <span class="cfg-role-pill ${u.role==='diretor'?'rp-gest':u.role==='supervisor'?'rp-sup':u.role==='gerente'?'rp-ger':'rp-cons'}">${u.role==='diretor'?'Diretor':u.role==='supervisor'?'Supervisor':u.role==='gerente'?'Gerente':'Consultor'}</span>
+            <span style="font-family:var(--fm);font-size:10px">@${u.username}</span>
+            <span style="font-size:10px;background:${u.loja?'var(--teal-m)':'var(--purple-m)'};color:${u.loja?'var(--teal-dd)':'var(--purple)'};padding:1px 7px;border-radius:99px;font-weight:600">${u.loja?(LOJA_NAMES[u.loja]||u.loja):'Rede'}</span>
+          </div>
+        </div>
+        <div class="cfg-actions">
+          <button class="cfg-btn cb-pwd" onclick="openPwd('${u.username}')">Senha</button>
+          ${u.role==='consultor'||u.role==='gerente'||u.role==='supervisor'?`<button class="cfg-btn cb-del" onclick="delUser('${u.username}')">Remover</button>`:'<span style="font-size:10px;color:var(--tx4);padding:0 4px">Fixo</span>'}
+        </div>
+      </div>`).join('')}
+      <div class="cfg-add-block"><div class="cfg-add-title">Criar novo usuário</div>
+        <div class="cfg-grid"><input class="cfg-inp" type="text" id="gu-name" placeholder="Nome completo"><input class="cfg-inp" type="text" id="gu-user" placeholder="usuario.login" autocapitalize="none" autocorrect="off"></div>
+        <div class="cfg-inp-row"><input class="cfg-inp" type="password" id="gu-pass" placeholder="Senha inicial" style="flex:1">
+          <select class="cfg-role-select" id="gu-role"><option value="consultor">Consultor</option><option value="gerente">Gerente</option><option value="supervisor">Supervisor</option><option value="diretor">Diretor</option></select>
+          <select class="cfg-role-select" id="gu-loja">
+            <option value="sv">São Vicente</option>
+            <option value="campinas">Campinas</option>
+            <option value="sorocaba">Sorocaba</option>
+            <option value="piracicaba">Piracicaba</option>
+            <option value="santos">Santos</option>
+          </select>
+          <button class="cfg-add-btn" id="btn-criar-user" onclick="addUser()">Criar</button>
+        </div>
+      </div>
+    </div>
+    <div class="cfg-section">
+      <div class="cfg-hd"><span class="cfg-hd-title">Código de autorização do gerente</span></div>
+      <div style="padding:1rem"><div class="auth-section">
+        <div class="auth-sec-title">Código atual (4 dígitos)</div>
+        <div class="auth-sec-row"><input type="password" id="new-code" class="auth-code-inp" maxlength="4" inputmode="numeric" placeholder="••••" onkeydown="if(event.key==='Enter')saveCode()"><button class="auth-save-btn" onclick="saveCode()">Salvar</button></div>
+        <p class="auth-sec-hint">Código para finalizar perdidas sem repique. Compartilhe apenas com gerentes.</p>
+      </div></div>
+    </div>
+    <div class="cfg-section">
+      <div class="cfg-hd"><span class="cfg-hd-title">Ações administrativas</span></div>
+      <div class="danger-area">
+        <button class="danger-btn" onclick="clearQueue('fila2-body')">Limpar fila agora</button>
+        <button class="danger-btn" onclick="removeConsultor()">Remover consultor do sistema</button>
+        <button class="danger-btn" onclick="deleteAllRecs()">Apagar todos os registros</button>
+      </div>
+    </div>`;
+}
+async function addCons(){
+  const inp=document.getElementById('gi-cons');
+  const name=inp.value.trim();
+  if(!name){toast('Digite o nome do consultor','err');return;}
+  if(_cons.map(x=>x.toLowerCase()).includes(name.toLowerCase())){toast('Consultor já cadastrado','err');return;}
+  try{
+    _cons.push(name);
+    // PATCH direto na config da loja
+    const cfgR = await sbGet('iz_config',`loja=eq.${encodeURIComponent(LOJA||'sv')}`);
+    if(cfgR.length){
+      const resp = await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(LOJA||'sv')}`,{
+        method:'PATCH',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+        body:JSON.stringify({consultants:_cons})
+      });
+      if(!resp.ok) throw new Error(await resp.text());
+    } else {
+      const resp = await fetch(`${SB_URL}/rest/v1/iz_config`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+        body:JSON.stringify({loja:LOJA||'sv',consultants:_cons,auth_code:_authCode||DEF_CODE,loja_name:LOJA_NAME})
+      });
+      if(!resp.ok) throw new Error(await resp.text());
+    }
+    inp.value='';
+    toast(`${name} adicionado à fila`,'ok');
+    await loadConfig();
+    renderConfig();
+  }catch(e){
+    _cons.pop(); // desfaz
+    toast('Erro ao salvar — verifique o console','err');
+    console.error('addCons:',e);
+  }
+}
+async function delCons(i){
+  const name=_cons[i];
+  if(!confirm(`Remover ${name} da fila?`))return;
+  try{
+    _cons.splice(i,1);
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(LOJA||'sv')}`,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify({consultants:_cons})
+    });
+    if(!resp.ok) throw new Error(await resp.text());
+    toast(`${name} removido da fila`,'ok');
+    renderConfig();
+  }catch(e){
+    _cons.splice(i,0,name); // desfaz
+    toast('Erro ao remover','err');
+    console.error('delCons:',e);
+  }
+}
+async function addUser(){
+  const btn = document.getElementById('btn-criar-user');
+  const name=document.getElementById('gu-name').value.trim();
+  const u=document.getElementById('gu-user').value.trim().toLowerCase();
+  const p=document.getElementById('gu-pass').value;
+  const role=document.getElementById('gu-role').value;
+  const lojaEl=document.getElementById('gu-loja');
+  const lojaRaw=lojaEl?lojaEl.value:'sv';
+  const lojaUser=(role==='supervisor'||role==='diretor')?null:lojaRaw;
+
+  // Validações
+  if(!name){toast('Informe o nome completo','err');return;}
+  if(!u){toast('Informe o nome de usuário','err');return;}
+  if(!p||p.length<4){toast('Senha deve ter ao menos 4 caracteres','err');return;}
+
+  // Feedback visual no botão
+  if(btn){btn.textContent='Salvando...';btn.disabled=true;}
+
+  try{
+    // Verificar duplicata no banco diretamente
+    let checkParams = `username=eq.${encodeURIComponent(u)}`;
+    if(lojaUser) checkParams += `&loja=eq.${encodeURIComponent(lojaUser)}`;
+    else checkParams += `&loja=is.null`;
+    const existing = await sbGet('iz_users', checkParams);
+    if(existing.length){ toast('Usuário já existe','err'); return; }
+
+    // Inserir usuário usando POST direto (mais confiável que upsert)
+    const nu={username:u,password:p,role,display_name:name,loja:lojaUser};
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_users`, {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':SB_KEY,
+        'Authorization':'Bearer '+SB_KEY,
+        'Prefer':'return=representation'
+      },
+      body:JSON.stringify(nu)
+    });
+    if(!resp.ok){
+      const errText = await resp.text();
+      console.error('addUser error:', errText);
+      throw new Error(errText);
+    }
+
+    // Se consultor: adiciona/atualiza config da loja
+    if(role==='consultor' && lojaUser){
+      try{
+        const cfgR = await sbGet('iz_config', `loja=eq.${encodeURIComponent(lojaUser)}`);
+        if(cfgR.length){
+          const cfg=cfgR[0];
+          const cons=cfg.consultants||[];
+          if(!cons.map(x=>x.toLowerCase()).includes(name.toLowerCase())){
+            cons.push(name);
+            await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(lojaUser)}`,{
+              method:'PATCH',
+              headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+              body:JSON.stringify({consultants:cons})
+            });
+          }
+        } else {
+          // Cria config nova para esta loja
+          await fetch(`${SB_URL}/rest/v1/iz_config`,{
+            method:'POST',
+            headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+            body:JSON.stringify({loja:lojaUser,consultants:[name],auth_code:DEF_CODE,loja_name:LOJA_NAMES[lojaUser]||lojaUser})
+          });
+        }
+      }catch(e){console.error('config update:', e);}
+    }
+
+    ['gu-name','gu-user','gu-pass'].forEach(id=>document.getElementById(id).value='');
+    toast(`Usuário ${name} criado com sucesso`,'ok');
+    await loadUsers();
+    await loadConfig();
+    renderConfig();
+  }catch(e){
+    const msg = e.message||'';
+    if(msg.includes('duplicate')||msg.includes('unique')){
+      toast('Usuário já existe nesta loja','err');
+    } else {
+      toast('Erro ao criar usuário — verifique o console','err');
+    }
+    console.error('addUser:', e);
+  } finally {
+    if(btn){btn.textContent='Criar';btn.disabled=false;}
+  }
+}
+async function delUser(username){
+  const u=_users.find(x=>x.username===username);
+  if(!u){toast('Usuário não encontrado','err');return;}
+  if(u.role==='diretor'||u.role==='supervisor'){toast('Não é possível remover este perfil de rede','err');return;}
+  if(!confirm(`Remover @${username}?`))return;
+  try{
+    // Busca o ID do usuário para deletar com precisão
+    const userToDelete = _users.find(x=>x.username===username);
+    if (!userToDelete) { toast('Usuário não encontrado','err'); return; }
+    // Monta filtro correto considerando loja null
+    let delFilter = `username=eq.${encodeURIComponent(username)}`;
+    if (userToDelete.loja) {
+      delFilter += `&loja=eq.${encodeURIComponent(userToDelete.loja)}`;
+    } else {
+      delFilter += `&loja=is.null`;
+    }
+    await sbDelete('iz_users', delFilter);
+    _users=_users.filter(x=>!(x.username===username && x.loja===userToDelete.loja));
+    toast('Removido');renderConfig();
+  }
+  catch(e){toast('Erro ao remover','err');console.error('delUser:',e);}
+}
+function openPwd(username){
+  const u = _users.find(x=>x.username===username);
+  // Supervisor não pode alterar senha de supervisor ou diretor
+  if(SES?.role==='supervisor' && (u?.role==='supervisor'||u?.role==='diretor')){
+    toast('Sem permissão para alterar senha deste perfil','err');
+    return;
+  }
+  pwdTargetUser=username;
+  document.getElementById('pwd-sub').textContent=`Alterar senha de ${u?.display_name} (@${username})`;
+  document.getElementById('pwd-new').value='';document.getElementById('pwd-conf').value='';
+  document.getElementById('err-pwd').classList.remove('on');document.getElementById('err-pwd2').classList.remove('on');
+  document.getElementById('ov-pwd').classList.add('on');
+}
+async function savePwd(){
+  const np=document.getElementById('pwd-new').value,cp=document.getElementById('pwd-conf').value;
+  let ok=true;
+  if(np.length<4){document.getElementById('err-pwd').classList.add('on');ok=false;}else document.getElementById('err-pwd').classList.remove('on');
+  if(np!==cp){document.getElementById('err-pwd2').classList.add('on');ok=false;}else document.getElementById('err-pwd2').classList.remove('on');
+  if(!ok)return;
+  try{
+    // Monta filtro correto para alterar senha (considera loja null)
+  const pwdUser = _users.find(x=>x.username===pwdTargetUser);
+  let pwdFilter = `username=eq.${encodeURIComponent(pwdTargetUser)}`;
+  if (pwdUser?.loja) {
+    pwdFilter += `&loja=eq.${encodeURIComponent(pwdUser.loja)}`;
+  } else {
+    pwdFilter += `&loja=is.null`;
+  }
+  await sbPatch('iz_users', pwdFilter, {password:np});
+    const u=_users.find(x=>x.username===pwdTargetUser);if(u)u.password=np;
+    closeOv('ov-pwd');toast('Senha alterada','ok');
+  }catch(e){toast('Erro ao alterar senha','err');}
+}
+async function saveCode(){
+  const code=document.getElementById('new-code').value.trim();
+  if(!/^\d{4}$/.test(code)){toast('Código deve ter exatamente 4 dígitos numéricos','err');return;}
+  try{
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(LOJA||'sv')}`,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify({auth_code:code})
+    });
+    if(!resp.ok) throw new Error(await resp.text());
+    _authCode=code;
+    document.getElementById('new-code').value='';
+    toast('Código de autorização atualizado','ok');
+  }catch(e){
+    toast('Erro ao salvar código','err');
+    console.error('saveCode:',e);
+  }
+}
+async function deleteAllRecs(){
+  if(!confirm('APAGAR TODOS OS REGISTROS?\nEsta ação não pode ser desfeita.'))return;
+  try{await sbDelete('iz_records',`loja=eq.${LOJA}`);_recs=[];toast('Registros apagados','warn');renderConfig();}
+  catch(e){toast('Erro','err');}
+}
+
+// ════ EXPORT CSV ════
+function exportCSV(){
+  const recs=getRecs();if(!recs.length){toast('Nenhum dado','err');return;}
+  const h='Data,Hora,Consultor,Situacao,Origem,Repique,Aut.Gerente,Valor,Entrada,Pct,Motivo\n';
+  const rows=recs.map(r=>[r.data,r.hora,r.consultant_name,r.situacao,r.meio==='RI'?'Receita Interna':'Receita Externa',r.repique,r.rep_autorizado?'Sim':'—',r.valor,r.entrada,r.pct,(r.motivo||'').replace(/,/g,' ')].join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+h+rows],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='idealize_sv_'+dStr(new Date())+'.csv';a.click();URL.revokeObjectURL(url);
+}
+
+// ════ HELPERS ════
+const ini=n=>n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+const dStr=d=>d.toISOString().slice(0,10);
+const fmtDate=s=>s?s.split('-').reverse().join('/'):'—';
+function filtP(recs,p,de,ate){
+  const now=new Date();
+  if(p==='day')return recs.filter(r=>r.data===dStr(now));
+  if(p==='week'){const d=new Date(now);d.setDate(now.getDate()-((now.getDay()+6)%7));return recs.filter(r=>r.data>=dStr(d));}
+  if(p==='month'){const ym=dStr(now).slice(0,7);return recs.filter(r=>r.data&&r.data.slice(0,7)===ym);}
+  if(p==='custom'&&de&&ate)return recs.filter(r=>r.data>=de&&r.data<=ate);
+  return recs;
+}
+const fmt=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtK=v=>v?'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}):'—';
+let toastT;
+function toast(msg,type=''){clearTimeout(toastT);const el=document.getElementById('toast');el.textContent=msg;el.className='toast'+(type?' '+type:'');el.classList.add('on');toastT=setTimeout(()=>el.classList.remove('on'),3200);}
+
+// ════ SUPERVISOR — salvar código ════
+async function saveSupCode(){
+  const c=document.getElementById('sup-code').value.trim();
+  if(!/^\d{4}$/.test(c)){toast('Código deve ter 4 dígitos','err');return;}
+  _authCode=c;await saveConfig();
+  document.getElementById('sup-code').value='';toast('Código atualizado','ok');
+}
+window.saveSupCode=saveSupCode;
+window.addUserSup=addUserSup;
+window.confirmLimparFila=confirmLimparFila;
+window.renderSupUsuarios=renderSupUsuarios;
+window.setLojaFilter=setLojaFilter;
+
+// ════ SELETOR DE LOJA (Supervisor/Diretor) ════
+function setLojaFilter(loja, barId) {
+  LOJA_FILTER = loja;
+  console.log('[Idealize v20260514060341] setLojaFilter:', loja, '| lojaAtiva:', lojaAtiva());
+  // Atualiza botões da barra correta
+  const bar = barId ? document.getElementById(barId) : document.querySelector('.loja-fbtn')?.closest('div');
+  if (bar) {
+    bar.querySelectorAll('.loja-fbtn').forEach(b => b.classList.remove('on'));
+    const btn = loja ? bar.querySelector(`[id$="-${loja}"]`) : bar.querySelector(`[id$="-all"]`);
+    if (btn) btn.classList.add('on');
+  }
+  // Re-renderiza a aba ativa
+  const active = document.querySelector('.scr.on');
+  if (!active) return;
+  if (active.id === 's-ger') {
+    const rv = document.querySelector('.gview.on');
+    if (rv?.id==='gv-ranking')    renderRank(mgrP,'rank-body');
+    if (rv?.id==='gv-supervisao') renderSup(mgrP,'sup-body');
+    if (rv?.id==='gv-fila')       renderFilaView('fila-body',true);
+  }
+  if (active.id === 's-sup') {
+    const rv = document.querySelector('.supview.on');
+    if (rv?.id==='sv-sup-ranking')    renderRank(mgrP,'rank-sup-body');
+    if (rv?.id==='sv-sup-supervisao') renderSup(mgrP,'sup-sup-body');
+    if (rv?.id==='sv-sup-fila')       renderFilaView('fila-sup-body',true);
+  }
+  if (active.id === 's-gest') {
+    const rv = document.querySelector('.sview.on');
+    if (rv?.id==='sv-ranking2')    renderRank(mgrP,'rank2-body');
+    if (rv?.id==='sv-supervisao2') renderSup(mgrP,'sup2-body');
+    if (rv?.id==='sv-fila2')       renderFilaView('fila2-body',true);
+  }
+}
+
+// Mostra barra de filtro de lojas para supervisor/diretor
+function showLojaFilterBar() {
+  const isSuperDir = SES && (SES.role==='supervisor'||SES.role==='diretor');
+  ['filter-bar-gest','filter-bar-sup'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isSuperDir ? 'block' : 'none';
+  });
+}
+
+// ════ REMOVER CONSULTOR DO SISTEMA ════
+async function removeConsultor() {
+  const nome = prompt('Nome exato do consultor a remover do sistema:');
+  if(!nome || !nome.trim()) return;
+  const n = nome.trim();
+
+  if(!confirm(`Remover "${n}" da fila, dos consultores e do banco?\nEsta ação não pode ser desfeita.`)) return;
+
+  let erros = [];
+
+  // 1. Remove da fila
+  try {
+    await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(n)}`, {
+      method:'DELETE', headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+  } catch(e){ erros.push('fila'); }
+
+  // 2. Remove do iz_config (lista de consultores)
+  try {
+    const cfgs = await sbGet('iz_config','order=loja');
+    for(const cfg of cfgs){
+      const cons = (cfg.consultants||[]).filter(x=>x.toLowerCase()!==n.toLowerCase());
+      if(cons.length !== (cfg.consultants||[]).length){
+        await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(cfg.loja)}`,{
+          method:'PATCH',
+          headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+          body:JSON.stringify({consultants:cons})
+        });
+      }
+    }
+  } catch(e){ erros.push('config'); }
+
+  // 3. Remove usuário do banco
+  try {
+    // Busca pelo display_name também
+    const users = await sbGet('iz_users', `display_name=eq.${encodeURIComponent(n)}`);
+    for(const u of users){
+      let f = `username=eq.${encodeURIComponent(u.username)}`;
+      if(u.loja) f+=`&loja=eq.${encodeURIComponent(u.loja)}`; else f+=`&loja=is.null`;
+      await fetch(`${SB_URL}/rest/v1/iz_users?${f}`,{
+        method:'DELETE', headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+      });
+    }
+  } catch(e){ erros.push('usuários'); }
+
+  if(erros.length){
+    toast(`Removido com avisos (${erros.join(', ')})`, 'warn');
+  } else {
+    toast(`${n} removido do sistema`, 'ok');
+  }
+
+  await loadUsers(); await loadConfig(); await loadQueue();
+  renderConfig();
+}
+
+// ════ MINHA SENHA ════
+function openMinhaSenha(){
+  if(!SES){ toast('Você precisa estar logado','err'); return; }
+  document.getElementById('ms-atual').value='';
+  document.getElementById('ms-nova').value='';
+  document.getElementById('ms-conf').value='';
+  ['err-ms-atual','err-ms-nova','err-ms-conf'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  document.getElementById('minha-senha-sub').textContent=`Alterar senha de ${SES.display_name} (@${SES.username})`;
+  document.getElementById('ov-minha-senha').classList.add('on');
+  setTimeout(()=>document.getElementById('ms-atual').focus(),200);
+}
+
+async function salvarMinhaSenha(){
+  const atual = document.getElementById('ms-atual').value;
+  const nova  = document.getElementById('ms-nova').value;
+  const conf  = document.getElementById('ms-conf').value;
+  let ok = true;
+
+  // Validar senha atual
+  if(atual !== SES.password){
+    document.getElementById('err-ms-atual').classList.add('on');
+    ok = false;
+  } else {
+    document.getElementById('err-ms-atual').classList.remove('on');
+  }
+
+  // Validar nova senha
+  if(nova.length < 4){
+    document.getElementById('err-ms-nova').classList.add('on');
+    ok = false;
+  } else {
+    document.getElementById('err-ms-nova').classList.remove('on');
+  }
+
+  // Validar confirmação
+  if(nova !== conf){
+    document.getElementById('err-ms-conf').classList.add('on');
+    ok = false;
+  } else {
+    document.getElementById('err-ms-conf').classList.remove('on');
+  }
+
+  if(!ok) return;
+
+  const btn = document.getElementById('btn-salvar-senha');
+  btn.textContent = 'Salvando...'; btn.disabled = true;
+
+  try{
+    // Monta filtro correto (loja null para sup/diretor)
+    let filter = `username=eq.${encodeURIComponent(SES.username)}`;
+    if(SES.loja) filter += `&loja=eq.${encodeURIComponent(SES.loja)}`;
+    else filter += `&loja=is.null`;
+
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_users?${filter}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({password: nova})
+    });
+
+    if(!resp.ok) throw new Error(await resp.text());
+
+    // Atualiza sessão local com nova senha
+    SES.password = nova;
+    saveSession(SES);
+
+    // Atualiza cache de usuários
+    const u = _users.find(x=>x.username===SES.username);
+    if(u) u.password = nova;
+
+    closeOv('ov-minha-senha');
+    toast('Senha alterada com sucesso','ok');
+  } catch(e){
+    toast('Erro ao salvar senha','err');
+    console.error('salvarMinhaSenha:',e);
+  } finally {
+    btn.textContent = 'Salvar nova senha'; btn.disabled = false;
+  }
+}
+
+// ════ PAINEL USUÁRIOS DO SUPERVISOR ════
+function renderSupUsuarios() {
+  const users = getUsers();
+  document.getElementById('sup-usuarios-body').innerHTML = `
+    <div class="cfg-section" style="margin-top:1rem">
+      <div class="cfg-hd">
+        <span class="cfg-hd-title">Usuários do sistema</span>
+        <span class="cfg-hd-count">${users.length} usuário(s)</span>
+      </div>
+      ${users.map((u,i) => `<div class="cfg-row">
+        <div class="cfg-av ${u.role==='gerente'?'ger':u.role==='supervisor'||u.role==='diretor'?'gest':''}">${ini(u.display_name)}</div>
+        <div class="cfg-info">
+          <div class="cfg-name">${u.display_name}</div>
+          <div class="cfg-meta">
+            <span class="cfg-role-pill ${u.role==='diretor'?'rp-gest':u.role==='supervisor'?'rp-sup':u.role==='gerente'?'rp-ger':'rp-cons'}">${u.role==='diretor'?'Diretor':u.role==='supervisor'?'Supervisor':u.role==='gerente'?'Gerente':'Consultor'}</span>
+            <span style="font-family:var(--fm);font-size:10px">@${u.username}</span>
+            <span style="font-size:10px;background:${u.loja?'var(--teal-m)':'var(--purple-m)'};color:${u.loja?'var(--teal-dd)':'var(--purple)'};padding:1px 7px;border-radius:99px;font-weight:600">${u.loja?(LOJA_NAMES[u.loja]||u.loja):'Rede'}</span>
+          </div>
+        </div>
+        <div class="cfg-actions">
+          ${u.role==='diretor'||u.role==='supervisor'?'<span style="font-size:10px;color:var(--tx4);padding:0 4px">Rede</span>':`<button class="cfg-btn cb-pwd" onclick="openPwd('${u.username}')">Senha</button>`}
+        </div>
+      </div>`).join('')}
+      <div class="cfg-add-block">
+        <div class="cfg-add-title">Criar novo usuário</div>
+        <div class="cfg-grid">
+          <input class="cfg-inp" type="text" id="sup-gu-name" placeholder="Nome completo">
+          <input class="cfg-inp" type="text" id="sup-gu-user" placeholder="usuario.login" autocapitalize="none" autocorrect="off">
+        </div>
+        <div class="cfg-inp-row">
+          <input class="cfg-inp" type="password" id="sup-gu-pass" placeholder="Senha inicial" style="flex:1">
+          <select class="cfg-role-select" id="sup-gu-role">
+            <option value="consultor">Consultor</option>
+            <option value="gerente">Gerente</option>
+          </select>
+          <select class="cfg-role-select" id="sup-gu-loja">
+            <option value="sv">São Vicente</option>
+            <option value="campinas">Campinas</option>
+            <option value="sorocaba">Sorocaba</option>
+            <option value="piracicaba">Piracicaba</option>
+            <option value="santos">Santos</option>
+          </select>
+          <button class="cfg-add-btn" id="btn-sup-criar-user" onclick="addUserSup()">Criar</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function addUserSup() {
+  const btn = document.getElementById('btn-sup-criar-user');
+  const name = document.getElementById('sup-gu-name').value.trim();
+  const u    = document.getElementById('sup-gu-user').value.trim().toLowerCase();
+  const p    = document.getElementById('sup-gu-pass').value;
+  const role = document.getElementById('sup-gu-role').value;
+  const loja = document.getElementById('sup-gu-loja').value;
+
+  if (!name) { toast('Informe o nome completo','err'); return; }
+  if (!u)    { toast('Informe o usuário','err'); return; }
+  if (!p || p.length < 4) { toast('Senha deve ter ao menos 4 caracteres','err'); return; }
+
+  if (btn) { btn.textContent = 'Salvando...'; btn.disabled = true; }
+
+  try {
+    // Verificar duplicata
+    let checkParams = `username=eq.${encodeURIComponent(u)}&loja=eq.${encodeURIComponent(loja)}`;
+    const existing = await sbGet('iz_users', checkParams);
+    if (existing.length) { toast('Usuário já existe nesta loja','err'); return; }
+
+    const nu = { username:u, password:p, role, display_name:name, loja };
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(nu)
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+
+    // Se consultor: adiciona ao config da loja
+    if (role === 'consultor') {
+      try {
+        const cfgR = await sbGet('iz_config', `loja=eq.${encodeURIComponent(loja)}`);
+        if (cfgR.length) {
+          const cons = cfgR[0].consultants || [];
+          if (!cons.map(x=>x.toLowerCase()).includes(name.toLowerCase())) {
+            cons.push(name);
+            await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(loja)}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal' },
+              body: JSON.stringify({ consultants: cons })
+            });
+          }
+        }
+      } catch(e) { console.error('config update:', e); }
+    }
+
+    ['sup-gu-name','sup-gu-user','sup-gu-pass'].forEach(id => document.getElementById(id).value = '');
+    toast(`${name} criado com sucesso`, 'ok');
+    await loadUsers();
+    renderSupUsuarios();
+  } catch(e) {
+    toast('Erro ao criar usuário','err');
+    console.error('addUserSup:', e);
+  } finally {
+    if (btn) { btn.textContent = 'Criar'; btn.disabled = false; }
+  }
+}
+
+// ════ LIMPAR FILA (Gerente/Supervisor) ════
+async function confirmLimparFila() {
+  if (!confirm('Limpar toda a fila agora?\nTodos os consultores serão removidos.')) return;
+  try {
+    // Determina qual loja limpar
+    const lojaLimpar = (SES?.role==='supervisor'||SES?.role==='diretor')
+      ? (LOJA_FILTER || null)
+      : LOJA;
+    const url = lojaLimpar
+      ? `${SB_URL}/rest/v1/iz_queue?loja=eq.${encodeURIComponent(lojaLimpar)}`
+      : `${SB_URL}/rest/v1/iz_queue`;
+    const resp = await fetch(url, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'return=minimal' }
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    await loadQueue();
+    toast('Fila limpa com sucesso', 'ok');
+    // Atualiza view da fila se estiver aberta
+    const active = document.querySelector('.scr.on');
+    if (active?.id === 's-ger') renderFilaView('fila-body', true);
+    if (active?.id === 's-sup') renderFilaView('fila-sup-body', true);
+    if (active?.id === 's-gest') renderFilaView('fila2-body', true);
+  } catch(e) {
+    toast('Erro ao limpar fila', 'err');
+    console.error('confirmLimparFila:', e);
+  }
+}
+
+// ════ EXPÕE FUNÇÕES PARA onclick no HTML ════
+window.doLogin=doLogin;
+window.doLogout=doLogout;
+window.enterQ=enterQ;
+window.leaveQ=leaveQ;
+window.startAtt=startAtt;
+window.openReg=openReg;
+window.selSit=selSit;
+window.selMeio=selMeio;
+window.selRep=selRep;
+window.trySelNao=trySelNao;
+window.trySelSim=trySelSim;
+window.tryNoRep=tryNoRep;
+window.checkAuth=checkAuth;
+window.closeOv=closeOv;
+window.submitReg=submitReg;
+window.setMP=setMP;
+window.applyCustomCons=applyCustomCons;
+window.showGTab=showGTab;
+window.showSupTab=showSupTab;
+window.showSTab=showSTab;
+window.toggleAusencia=toggleAusencia;
+window.openMgrCustom=openMgrCustom;
+window.applyMgrCustom=applyMgrCustom;
+window.rRankGer=rRankGer;
+window.rRankSup=rRankSup;
+window.rRankGest=rRankGest;
+window.rSupGer=rSupGer;
+window.rSupSup=rSupSup;
+window.rSupGest=rSupGest;
+window.renderFilaView=renderFilaView;
+window.clearQueue=clearQueue;
+window.addCons=addCons;
+window.delCons=delCons;
+window.addUser=addUser;
+window.delUser=delUser;
+window.openPwd=openPwd;
+window.savePwd=savePwd;
+window.saveCode=saveCode;
+window.exportCSV=exportCSV;
+window.deleteAllRecs=deleteAllRecs;
+window.removeConsultor=removeConsultor;
+window.openMinhaSenha=openMinhaSenha;
+window.salvarMinhaSenha=salvarMinhaSenha;
+window.renderConfig=renderConfig;
+window.saveSupCode=saveSupCode;
+window.addUserSup=addUserSup;
+window.confirmLimparFila=confirmLimparFila;
+window.renderSupUsuarios=renderSupUsuarios;
+window.setLojaFilter=setLojaFilter;
+
+// ════ INIT ════
+window.addEventListener('load', initApp);
+</script>
+
+
+<!-- ═══ MODAL OV-REG ═══ -->
+<div class="overlay" id="ov-reg">
+  <div class="modal">
+    <div class="m-hdl"></div>
+    <div class="m-title">Registrar Atendimento</div>
+    <div class="m-sub" id="reg-sub">Campos com * são obrigatórios</div>
+    <div class="fg">
+      <label>Situação <span class="req">*</span></label>
+      <div class="sit-grid">
+        <div class="sit-chip" id="sc-v" onclick="selSit('VENDA')"><div class="sc-ttl">Venda</div><div class="sc-dsc">Negócio fechado</div></div>
+        <div class="sit-chip" id="sc-p" onclick="selSit('PERDIDA')"><div class="sc-ttl">Perdida</div><div class="sc-dsc">Não converteu</div></div>
+      </div>
+      <div class="emsg" id="err-sit">Selecione a situação</div>
+    </div>
+    <div class="fg">
+      <label>Origem do cliente <span class="req">*</span></label>
+      <div class="tog" id="tog-meio">
+        <button class="tbtn" id="t-ri" onclick="selMeio('RI')">Receita Interna</button>
+        <button class="tbtn" id="t-re" onclick="selMeio('RE')">Receita Externa</button>
+      </div>
+      <div class="emsg" id="err-meio">Selecione a origem</div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Valor total (R$) <span class="req">*</span></label><input type="number" id="m-val" placeholder="0,00" min="0" step="0.01" inputmode="decimal"><div class="emsg" id="err-val">Informe o valor</div></div>
+      <div class="fg"><label>Entrada (R$) <span class="req">*</span></label><input type="number" id="m-ent" placeholder="0,00" min="0" step="0.01" inputmode="decimal"><div class="emsg" id="err-ent">Informe a entrada</div></div>
+    </div>
+    <div class="fg" id="fg-rep" style="display:none">
+      <label>Houve repique? <span class="req">*</span></label>
+      <div class="tog" id="tog-rep">
+        <button class="tbtn" id="t-rsim" onclick="trySelSim()">Sim</button>
+        <button class="tbtn" id="t-rnao" onclick="trySelNao()">Não</button>
+      </div>
+      <div class="emsg" id="err-rep">Informe sobre o repique</div>
+    </div>
+    <div class="auth-ok-banner" id="auth-banner">Autorizado pelo gerente — finalização sem repique liberada</div>
+    <div class="fg">
+      <label>Motivo / Observação <span class="req" id="mot-req">*</span><span id="mot-opt" style="display:none;color:var(--tx4);font-size:10px;font-weight:500;text-transform:none;letter-spacing:0">(opcional)</span></label>
+      <textarea id="m-mot" placeholder="Descreva o motivo da perda..."></textarea>
+      <div class="emsg" id="err-mot">Informe o motivo da perda</div>
+    </div>
+    <button class="abtn abt" style="width:100%;margin-top:4px" onclick="submitReg()">Salvar e voltar à fila</button>
+    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-reg')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL OV-AUTH ═══ -->
+<div class="overlay" id="ov-auth">
+  <div class="modal auth">
+    <div class="m-hdl"></div>
+    <div class="m-title">Autorização do Gerente</div>
+    <div class="m-sub">Toda venda perdida requer autorização do gerente. O código deve ser inserido presencialmente.</div>
+    <div class="m-warn">Insira o código de 4 dígitos para confirmar e liberar o retorno à fila. O código é de responsabilidade exclusiva do gerente.</div>
+    <div class="fg">
+      <label>Código do gerente</label>
+      <input type="password" id="auth-inp" class="auth-modal-inp" inputmode="numeric" maxlength="4" placeholder="••••" onkeydown="if(event.key==='Enter')checkAuth()">
+      <div class="emsg" id="err-auth">Código incorreto. Tente novamente.</div>
+    </div>
+    <button class="abtn abo" style="width:100%" onclick="checkAuth()">Confirmar</button>
+    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-auth')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL OV-PWD ═══ -->
+<div class="overlay" id="ov-pwd">
+  <div class="modal pwd">
+    <div class="m-hdl"></div>
+    <div class="m-title">Alterar Senha</div>
+    <div class="m-sub" id="pwd-sub">Nova senha para o usuário</div>
+    <div class="fg"><label>Nova senha <span class="req">*</span></label><input type="password" id="pwd-new" placeholder="Mínimo 4 caracteres"><div class="emsg" id="err-pwd">Senha deve ter ao menos 4 caracteres</div></div>
+    <div class="fg"><label>Confirmar senha <span class="req">*</span></label><input type="password" id="pwd-conf" placeholder="Repita a senha"><div class="emsg" id="err-pwd2">As senhas não coincidem</div></div>
+    <button class="abtn abt" style="width:100%;margin-top:4px" onclick="savePwd()">Salvar nova senha</button>
+    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-pwd')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL OV-MINHA-SENHA ═══ -->
+<div class="overlay" id="ov-minha-senha">
+  <div class="modal pwd">
+    <div class="m-hdl"></div>
+    <div class="m-title">Alterar minha senha</div>
+    <div class="m-sub" id="minha-senha-sub">Digite sua senha atual para confirmar</div>
+    <div class="fg">
+      <label>Senha atual <span class="req">*</span></label>
+      <input type="password" id="ms-atual" placeholder="Senha atual" autocomplete="current-password">
+      <div class="emsg" id="err-ms-atual">Senha atual incorreta</div>
+    </div>
+    <div class="fg">
+      <label>Nova senha <span class="req">*</span></label>
+      <input type="password" id="ms-nova" placeholder="Mínimo 4 caracteres" autocomplete="new-password">
+      <div class="emsg" id="err-ms-nova">Senha deve ter ao menos 4 caracteres</div>
+    </div>
+    <div class="fg">
+      <label>Confirmar nova senha <span class="req">*</span></label>
+      <input type="password" id="ms-conf" placeholder="Repita a nova senha" autocomplete="new-password">
+      <div class="emsg" id="err-ms-conf">As senhas não coincidem</div>
+    </div>
+    <button class="abtn abt" id="btn-salvar-senha" style="width:100%;margin-top:4px" onclick="salvarMinhaSenha()">Salvar nova senha</button>
+    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-minha-senha')">Cancelar</button>
+  </div>
+</div>
+
+</body>
+</html>
