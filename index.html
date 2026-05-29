@@ -452,8 +452,8 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 .rtab.on{background:var(--teal)!important;color:#fff!important;border-color:var(--teal)!important}
 
 
-.receita-row .sit-grid{grid-template-columns:1fr 1fr}
-.receita-row .sit-chip{min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.receita-row .sit-grid{grid-template-columns:1fr 1fr;margin-bottom:0}
+.receita-row .sit-chip{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.625rem .5rem}
 
 </style>
 <script>
@@ -1350,15 +1350,26 @@ function selRep(r){
   document.getElementById('err-rep').classList.remove('on');
   document.getElementById('auth-banner').classList.remove('on');
 }
+function temReceitaPerdida(){
+  // Verifica se alguma receita está marcada como PERDIDA
+  return [...document.querySelectorAll('.receita-row')].some(r => r.dataset.sit === 'PERDIDA');
+}
+
 function trySelNao(){
-  if(selSit_==='PERDIDA'){document.getElementById('auth-inp').value='';document.getElementById('err-auth').classList.remove('on');document.getElementById('ov-auth').classList.add('on');}
-  else{selRep('NÃO');}
+  if(temReceitaPerdida() && !gerenteAusente){
+    _repPendente = 'NÃO';
+    document.getElementById('auth-inp').value='';
+    document.getElementById('err-auth').classList.remove('on');
+    document.getElementById('ov-auth').classList.add('on');
+  } else {
+    selRep('NÃO');
+  }
 }
 function tryNoRep(){trySelNao();}
 
 function trySelSim(){
-  if(selSit_==='PERDIDA'){
-    _repPendente='SIM';
+  if(temReceitaPerdida() && !gerenteAusente){
+    _repPendente = 'SIM';
     document.getElementById('auth-inp').value='';
     document.getElementById('err-auth').classList.remove('on');
     document.getElementById('ov-auth').classList.add('on');
@@ -1419,7 +1430,11 @@ async function submitReg(){
 
   // Se houver alguma PERDIDA, precisa de autorização do gerente
   if(temPerdida && !authOk && !gerenteAusente){
-    toast('Necessária autorização do gerente para registrar perda','warn');
+    // Abre o modal de autorização automaticamente
+    document.getElementById('auth-inp').value='';
+    document.getElementById('err-auth').classList.remove('on');
+    document.getElementById('ov-auth').classList.add('on');
+    toast('Autorização do gerente necessária','warn');
     return;
   }
 
@@ -2718,6 +2733,7 @@ window.selMeio=selMeio;
 window.selRep=selRep;
 window.trySelNao=trySelNao;
 window.trySelSim=trySelSim;
+window.temReceitaPerdida=temReceitaPerdida;
 window.tryNoRep=tryNoRep;
 window.checkAuth=checkAuth;
 window.closeOv=closeOv;
