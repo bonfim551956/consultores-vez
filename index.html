@@ -563,6 +563,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
     <div class="ah-right">
       <span class="ah-badge" style="background:rgba(107,70,193,.12);color:#6B46C1">Supervisor</span>
       <button class="ah-exp" onclick="exportCSV()">Exportar CSV</button>
+      <button class="ah-logout" onclick="confirmLimparFila()" style="color:var(--red-d);border-color:rgba(217,48,37,.3)">Limpar fila</button>
       <button class="ah-logout" onclick="openMinhaSenha()">Minha senha</button>
       <button class="ah-logout" onclick="doLogout()">Sair</button>
     </div>
@@ -1120,8 +1121,7 @@ function renderCons() {
   const ac=document.getElementById('act-col');
   if(!e) ac.innerHTML=`<button class="abtn abt" onclick="enterQ()">Entrar na fila</button>`;
   else if(e.status==='attending') ac.innerHTML=`<button class="abtn abt" onclick="openReg()">Finalizar e registrar</button>`;
-  else if(isNext) ac.innerHTML=`<button class="abtn abo" onclick="startAtt()">Iniciar atendimento</button><button class="abtn abr" onclick="leaveQ()">Sair da fila</button>`;
-  else ac.innerHTML=`<button class="abtn abr" onclick="leaveQ()">Sair da fila</button>`;
+  else ac.innerHTML=`<button class="abtn abo" onclick="startAtt()">Iniciar atendimento</button><button class="abtn abr" onclick="leaveQ()">Sair da fila</button>`;
   renderMet(); renderMiniQ();
 }
 
@@ -1970,6 +1970,7 @@ async function saveSupCode(){
 }
 window.saveSupCode=saveSupCode;
 window.addUserSup=addUserSup;
+window.confirmLimparFila=confirmLimparFila;
 window.renderSupUsuarios=renderSupUsuarios;
 window.setLojaFilter=setLojaFilter;
 
@@ -2266,6 +2267,35 @@ async function addUserSup() {
   }
 }
 
+// ════ LIMPAR FILA (Gerente/Supervisor) ════
+async function confirmLimparFila() {
+  if (!confirm('Limpar toda a fila agora?\nTodos os consultores serão removidos.')) return;
+  try {
+    // Determina qual loja limpar
+    const lojaLimpar = (SES?.role==='supervisor'||SES?.role==='diretor')
+      ? (LOJA_FILTER || null)
+      : LOJA;
+    const url = lojaLimpar
+      ? `${SB_URL}/rest/v1/iz_queue?loja=eq.${encodeURIComponent(lojaLimpar)}`
+      : `${SB_URL}/rest/v1/iz_queue`;
+    const resp = await fetch(url, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'return=minimal' }
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    await loadQueue();
+    toast('Fila limpa com sucesso', 'ok');
+    // Atualiza view da fila se estiver aberta
+    const active = document.querySelector('.scr.on');
+    if (active?.id === 's-ger') renderFilaView('fila-body', false);
+    if (active?.id === 's-sup') renderFilaView('fila-sup-body', false);
+    if (active?.id === 's-gest') renderFilaView('fila2-body', true);
+  } catch(e) {
+    toast('Erro ao limpar fila', 'err');
+    console.error('confirmLimparFila:', e);
+  }
+}
+
 // ════ EXPÕE FUNÇÕES PARA onclick no HTML ════
 window.doLogin=doLogin;
 window.doLogout=doLogout;
@@ -2313,6 +2343,7 @@ window.salvarMinhaSenha=salvarMinhaSenha;
 window.renderConfig=renderConfig;
 window.saveSupCode=saveSupCode;
 window.addUserSup=addUserSup;
+window.confirmLimparFila=confirmLimparFila;
 window.renderSupUsuarios=renderSupUsuarios;
 window.setLojaFilter=setLojaFilter;
 
