@@ -433,6 +433,15 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   from { width: 20%; }
   to   { width: 100%; }
 }
+
+.receita-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:.75rem}
+.receita-row .fg{margin-bottom:0}
+.receita-row .rtype{grid-column:1/-1;display:flex;gap:6px;margin-bottom:4px}
+.receita-row .rtype button{flex:1;padding:6px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--surface);color:var(--tx3);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .15s}
+.receita-row .rtype button.selt{border-color:var(--teal);background:var(--teal-l);color:var(--teal-dd)}
+.receita-row .rtype button.terr{border-color:var(--red)}
+.rm-receita{width:32px;height:32px;border-radius:var(--r);background:var(--red-l);color:var(--red-d);border:none;cursor:pointer;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:flex-end}
+
 </style>
 <script>
 // Roda ANTES do HTML renderizar
@@ -1242,7 +1251,9 @@ function openReg(){
   selSit_=null;selMeio_=null;selRep_=null;authOk=false;
   document.querySelectorAll('.sit-chip').forEach(c=>c.className='sit-chip');
   ['t-ri','t-re','t-rsim','t-rnao'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='tbtn';});
-  ['m-val','m-ent','m-mot'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id).classList.remove('err');});
+  document.getElementById('m-mot').value='';
+  document.getElementById('m-mot').classList.remove('err');
+  resetReceitas();
   document.querySelectorAll('.emsg').forEach(e=>e.classList.remove('on'));
   document.getElementById('fg-rep').style.display='none';
   document.getElementById('auth-banner').classList.remove('on');
@@ -1353,17 +1364,23 @@ async function submitReg(){
   if(!selMeio_){document.getElementById('err-meio').classList.add('on');document.getElementById('tog-meio').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr'));ok=false;}
   if(!selRep_){document.getElementById('err-rep').classList.add('on');document.getElementById('tog-rep').querySelectorAll('.tbtn').forEach(b=>b.classList.add('terr'));ok=false;}
   if(selSit_==='PERDIDA'&&!authOk&&!gerenteAusente){toast('Necessária autorização do gerente para registrar perda','warn');return;}
-  // Valida campos financeiros apenas na VENDA
+  // Valida receitas apenas na VENDA
+  let receitasData = null;
   if(selSit_==='VENDA'){
-    [['m-val','err-val',v=>v.trim()!==''&&parseFloat(v)>=0],['m-ent','err-ent',v=>v.trim()!==''&&parseFloat(v)>=0]].forEach(([fid,eid,fn])=>{const el=document.getElementById(fid);if(!fn(el.value)){el.classList.add('err');document.getElementById(eid).classList.add('on');ok=false;}else{el.classList.remove('err');document.getElementById(eid).classList.remove('on');}});
+    receitasData = getReceitasData();
+    if(!receitasData || receitasData.length===0){
+      document.getElementById('err-val').classList.add('on');
+      ok=false;
+    } else {
+      document.getElementById('err-val').classList.remove('on');
+    }
   }
   const motEl=document.getElementById('m-mot');
   if(selSit_==='PERDIDA'&&!motEl.value.trim()){motEl.classList.add('err');document.getElementById('err-mot').classList.add('on');ok=false;}
   else{motEl.classList.remove('err');document.getElementById('err-mot').classList.remove('on');}
   if(!ok){toast('Preencha os campos obrigatórios','err');return;}
 
-  const v=parseFloat(document.getElementById('m-val').value)||0;
-  const e=parseFloat(document.getElementById('m-ent').value)||0;
+  // valores calculados pelas receitas dinâmicas
   const now=new Date();
   const rec={
     loja:LOJA,
@@ -1973,6 +1990,12 @@ async function saveSupCode(){
 window.saveSupCode=saveSupCode;
 window.addUserSup=addUserSup;
 window.confirmLimparFila=confirmLimparFila;
+window.addReceita=addReceita;
+window.rmReceita=rmReceita;
+window.selRTipo=selRTipo;
+window.toggleConsRanking=toggleConsRanking;
+window.renderConsRanking=renderConsRanking;
+window.resetReceitas=resetReceitas;
 window.renderSupUsuarios=renderSupUsuarios;
 window.setLojaFilter=setLojaFilter;
 
@@ -2298,6 +2321,163 @@ async function confirmLimparFila() {
   }
 }
 
+// ════ RECEITAS DINÂMICAS ════
+let _receitaCount = 0;
+
+function addReceita(tipo='', val='', ent='') {
+  _receitaCount++;
+  const id = _receitaCount;
+  const wrap = document.getElementById('receitas-list');
+  const div = document.createElement('div');
+  div.className = 'receita-row';
+  div.id = `receita-${id}`;
+  div.innerHTML = `
+    <div class="rtype">
+      <button type="button" id="rt-ri-${id}" onclick="selRTipo(${id},'RI')" class="${tipo==='RI'?'selt':''}">Receita Interna</button>
+      <button type="button" id="rt-re-${id}" onclick="selRTipo(${id},'RE')" class="${tipo==='RE'?'selt':''}">Receita Externa</button>
+    </div>
+    <div class="fg" style="margin-bottom:0">
+      <label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em">Valor (R$)</label>
+      <input type="number" id="rv-${id}" placeholder="0,00" min="0" step="0.01" inputmode="decimal"
+        style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);color:var(--tx);font-size:14px;font-family:var(--fb);padding:8px 10px;width:100%;outline:none"
+        value="${val}" oninput="calcTotaisReceita()">
+    </div>
+    <div class="fg" style="margin-bottom:0">
+      <label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em">Entrada (R$)</label>
+      <input type="number" id="re-${id}" placeholder="0,00" min="0" step="0.01" inputmode="decimal"
+        style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);color:var(--tx);font-size:14px;font-family:var(--fb);padding:8px 10px;width:100%;outline:none"
+        value="${ent}" oninput="calcTotaisReceita()">
+    </div>
+    ${id>1?`<button class="rm-receita" onclick="rmReceita(${id})" title="Remover">×</button>`:'<div></div>'}
+  `;
+  wrap.appendChild(div);
+  // Selecionar tipo se fornecido
+  if(tipo) selRTipo(id, tipo);
+}
+
+function selRTipo(id, tipo) {
+  document.getElementById(`rt-ri-${id}`).className = tipo==='RI'?'selt':'';
+  document.getElementById(`rt-re-${id}`).className = tipo==='RE'?'selt':'';
+  document.getElementById(`rt-ri-${id}`).dataset.val = tipo==='RI'?'RI':'';
+  document.getElementById(`rt-re-${id}`).dataset.val = tipo==='RE'?'RE':'';
+  // Marca no row o tipo selecionado
+  document.getElementById(`receita-${id}`).dataset.tipo = tipo;
+  // Remove classe de erro
+  [document.getElementById(`rt-ri-${id}`), document.getElementById(`rt-re-${id}`)].forEach(b=>b.classList.remove('terr'));
+}
+
+function rmReceita(id) {
+  const el = document.getElementById(`receita-${id}`);
+  if(el) el.remove();
+  calcTotaisReceita();
+}
+
+function calcTotaisReceita() {
+  // Mostra totais abaixo da lista quando há mais de 1 receita
+  const rows = document.querySelectorAll('.receita-row');
+  let totalVal = 0, totalEnt = 0;
+  rows.forEach(row => {
+    const id = row.id.replace('receita-','');
+    totalVal += parseFloat(document.getElementById(`rv-${id}`)?.value||0);
+    totalEnt += parseFloat(document.getElementById(`re-${id}`)?.value||0);
+  });
+  let totEl = document.getElementById('receita-totais');
+  if(rows.length > 1) {
+    if(!totEl){
+      totEl = document.createElement('div');
+      totEl.id = 'receita-totais';
+      totEl.style.cssText='display:flex;gap:8px;margin-top:4px;padding:.5rem .75rem;background:var(--teal-l);border-radius:var(--r);border:1px solid var(--teal-b)';
+      document.getElementById('receitas-wrap').appendChild(totEl);
+    }
+    totEl.innerHTML = `<span style="font-size:12px;color:var(--teal-dd);font-weight:700">Total: ${fmt(totalVal)}</span><span style="font-size:12px;color:var(--tx4);margin-left:auto">Entrada: ${fmt(totalEnt)}</span>`;
+  } else if(totEl) totEl.remove();
+}
+
+function getReceitasData() {
+  const rows = document.querySelectorAll('.receita-row');
+  const result = [];
+  let valid = true;
+  rows.forEach(row => {
+    const id = row.id.replace('receita-','');
+    const tipo = row.dataset.tipo || '';
+    const val  = parseFloat(document.getElementById(`rv-${id}`)?.value||0);
+    const ent  = parseFloat(document.getElementById(`re-${id}`)?.value||0);
+    if(!tipo) {
+      [document.getElementById(`rt-ri-${id}`), document.getElementById(`rt-re-${id}`)].forEach(b=>b.classList.add('terr'));
+      valid = false;
+    }
+    if(val <= 0) {
+      document.getElementById(`rv-${id}`).style.borderColor='var(--red)';
+      valid = false;
+    } else {
+      document.getElementById(`rv-${id}`).style.borderColor='';
+    }
+    result.push({tipo, val, ent});
+  });
+  return valid ? result : null;
+}
+
+function resetReceitas() {
+  _receitaCount = 0;
+  document.getElementById('receitas-list').innerHTML = '';
+  const totEl = document.getElementById('receita-totais');
+  if(totEl) totEl.remove();
+  addReceita(); // começa com 1 receita
+}
+
+// ════ RANKING DA LOJA PARA CONSULTOR ════
+let _consRankVisible = false;
+function toggleConsRanking(el) {
+  _consRankVisible = !_consRankVisible;
+  const body = document.getElementById('cons-rank-body');
+  const toggle = document.getElementById('cons-rank-toggle');
+  if(_consRankVisible) {
+    body.style.display = 'block';
+    toggle.textContent = '▼ Ocultar';
+    renderConsRanking();
+  } else {
+    body.style.display = 'none';
+    toggle.textContent = '▶ Ver';
+  }
+}
+
+function renderConsRanking() {
+  const body = document.getElementById('cons-rank-body');
+  if(!body || !_consRankVisible) return;
+  const recs = filtP(filtLoja(getRecs()), metP, customDe, customAte);
+  const cons = getCons();
+  const rows = cons.map(name => {
+    const r2 = recs.filter(r=>r.consultant_name===name);
+    const t2=r2.length, v2=r2.filter(r=>r.situacao==='VENDA').length;
+    const tx2=t2>0?Math.round(v2/t2*100):0;
+    const f2=r2.reduce((s,r)=>s+(r.valor||0),0);
+    const isMe = name === SES?.consName;
+    return {name,tot:t2,vend:v2,tx:tx2,fat:f2,isMe};
+  }).sort((a,b)=>b.tx-a.tx||b.fat-a.fat);
+  const maxTx = Math.max(...rows.map(r=>r.tx),1);
+
+  body.innerHTML = rows.map((r,i) => `
+    <div style="background:${r.isMe?'var(--teal-l)':'var(--surface)'};border:1.5px solid ${r.isMe?'var(--teal)':'var(--border)'};border-radius:var(--r-lg);padding:.875rem 1rem;margin-bottom:8px;box-shadow:var(--sh-sm)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span style="font-family:var(--fm);font-size:11px;color:var(--tx4);min-width:22px">#${i+1}</span>
+        <div style="width:32px;height:32px;border-radius:50%;background:${r.isMe?'var(--teal)':'var(--s2)'};border:2px solid ${r.isMe?'var(--teal-d)':'var(--border)'};display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:12px;font-weight:800;color:${r.isMe?'#fff':'var(--tx3)'}">${ini(r.name)}</div>
+        <div style="flex:1">
+          <div style="font-family:var(--fh);font-size:15px;font-weight:800;font-style:italic;color:${r.isMe?'var(--teal-dd)':'var(--tx)'}">
+            ${r.name}${r.isMe?' <span style="font-size:10px;background:var(--teal);color:#fff;padding:1px 6px;border-radius:99px;font-weight:700">você</span>':''}
+          </div>
+          <div style="font-size:11px;color:var(--tx4)">${r.tot} atend. · ${r.vend} vendas · ${fmt(r.fat)}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:var(--fm);font-size:20px;font-weight:500;color:${r.isMe?'var(--teal-dd)':'var(--tx)'}">${r.tx}%</div>
+          <div style="font-size:9px;color:var(--tx4);text-transform:uppercase;letter-spacing:.06em">conversão</div>
+        </div>
+      </div>
+      <div style="height:3px;background:var(--s3);border-radius:99px;overflow:hidden">
+        <div style="height:3px;background:${r.isMe?'var(--teal)':'var(--border-d)'};border-radius:99px;width:${Math.round(r.tx/maxTx*100)}%;transition:width .5s"></div>
+      </div>
+    </div>`).join('') || '<div style="text-align:center;padding:1.5rem;color:var(--tx4);font-size:13px">Nenhum registro no período</div>';
+}
+
 // ════ EXPÕE FUNÇÕES PARA onclick no HTML ════
 window.doLogin=doLogin;
 window.doLogout=doLogout;
@@ -2346,6 +2526,12 @@ window.renderConfig=renderConfig;
 window.saveSupCode=saveSupCode;
 window.addUserSup=addUserSup;
 window.confirmLimparFila=confirmLimparFila;
+window.addReceita=addReceita;
+window.rmReceita=rmReceita;
+window.selRTipo=selRTipo;
+window.toggleConsRanking=toggleConsRanking;
+window.renderConsRanking=renderConsRanking;
+window.resetReceitas=resetReceitas;
 window.renderSupUsuarios=renderSupUsuarios;
 window.setLojaFilter=setLojaFilter;
 
@@ -2376,9 +2562,14 @@ window.addEventListener('load', initApp);
       </div>
       <div class="emsg" id="err-meio">Selecione a origem</div>
     </div>
-    <div class="row2">
-      <div class="fg"><label>Valor total (R$) <span class="req">*</span></label><input type="number" id="m-val" placeholder="0,00" min="0" step="0.01" inputmode="decimal"><div class="emsg" id="err-val">Informe o valor</div></div>
-      <div class="fg"><label>Entrada (R$) <span class="req">*</span></label><input type="number" id="m-ent" placeholder="0,00" min="0" step="0.01" inputmode="decimal"><div class="emsg" id="err-ent">Informe a entrada</div></div>
+    <!-- RECEITAS DINÂMICAS -->
+    <div id="receitas-wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+        <label style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em">Receitas <span class="req">*</span></label>
+        <button type="button" onclick="addReceita()" style="font-size:11px;font-weight:700;color:var(--teal-dd);background:var(--teal-l);border:1px solid var(--teal-b);border-radius:var(--r);padding:4px 10px;cursor:pointer;font-family:var(--fb)">+ Adicionar receita</button>
+      </div>
+      <div id="receitas-list"></div>
+      <div class="emsg" id="err-val">Informe ao menos uma receita com valor</div>
     </div>
     <div class="fg" id="fg-rep" style="display:none">
       <label>Houve repique? <span class="req">*</span></label>
