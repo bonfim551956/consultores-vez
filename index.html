@@ -442,6 +442,11 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 .receita-row .rtype button.terr{border-color:var(--red)}
 .rm-receita{width:32px;height:32px;border-radius:var(--r);background:var(--red-l);color:var(--red-d);border:none;cursor:pointer;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:flex-end}
 
+
+.btn-edit-rec{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;background:var(--blue-l);color:var(--blue);font-family:var(--fb);transition:all .15s;white-space:nowrap}
+.btn-edit-rec:hover{background:var(--blue-m)}
+.edit-log{font-size:10px;color:var(--tx4);font-style:italic;margin-top:2px}
+
 </style>
 <script>
 // Roda ANTES do HTML renderizar
@@ -558,6 +563,16 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
       <div class="sec-lbl" style="margin-bottom:.875rem">Fila em tempo real</div>
       <div id="mini-q"></div>
     </div>
+
+    <!-- RANKING DA LOJA -->
+    <div class="mqw" style="margin-top:0">
+      <div class="sec-lbl" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleConsRanking()">
+        <span>Ranking da loja</span>
+        <span id="cons-rank-toggle" style="font-size:11px;color:var(--teal-dd);font-weight:700">▶ Ver</span>
+      </div>
+      <div id="cons-rank-body" style="display:none;margin-top:.75rem"></div>
+    </div>
+
   </div>
 </div>
 
@@ -1602,7 +1617,7 @@ function renderSup(p,bodyId){
     </table></div>
     <div class="sec-lbl" style="margin-top:.25rem">Registros recentes</div>
     <div class="tbl-wrap"><table class="sup-tbl">
-      <thead><tr><th>Data/Hora</th><th>Consultor</th><th>Loja</th><th>Situação</th><th>Origem</th><th>Repique</th><th class="nr">Valor</th><th class="nr">Comissão</th></tr></thead>
+      <thead><tr><th>Data/Hora</th><th>Consultor</th><th>Loja</th><th>Situação</th><th>Origem</th><th>Repique</th><th class="nr">Valor</th><th class="nr">Comissão</th><th></th></tr></thead>
       <tbody>${all.slice(0,60).map(r=>`<tr>
         <td style="font-family:var(--fm);font-size:11px;color:var(--tx4)">${r.data?r.data.split('-').reverse().join('/'):'—'} ${r.hora||''}</td>
         <td style="font-weight:600;font-size:12px">${r.consultant_name}</td>
@@ -1995,6 +2010,11 @@ window.rmReceita=rmReceita;
 window.selRTipo=selRTipo;
 window.toggleConsRanking=toggleConsRanking;
 window.renderConsRanking=renderConsRanking;
+window.openEditRec=openEditRec;
+window.salvarEdicaoRec=salvarEdicaoRec;
+window.selEditSit=selEditSit;
+window.selEditMeio=selEditMeio;
+window.selEditRep=selEditRep;
 window.resetReceitas=resetReceitas;
 window.renderSupUsuarios=renderSupUsuarios;
 window.setLojaFilter=setLojaFilter;
@@ -2427,7 +2447,7 @@ function resetReceitas() {
 
 // ════ RANKING DA LOJA PARA CONSULTOR ════
 let _consRankVisible = false;
-function toggleConsRanking(el) {
+function toggleConsRanking() {
   _consRankVisible = !_consRankVisible;
   const body = document.getElementById('cons-rank-body');
   const toggle = document.getElementById('cons-rank-toggle');
@@ -2444,8 +2464,13 @@ function toggleConsRanking(el) {
 function renderConsRanking() {
   const body = document.getElementById('cons-rank-body');
   if(!body || !_consRankVisible) return;
-  const recs = filtP(filtLoja(getRecs()), metP, customDe, customAte);
-  const cons = getCons();
+  // Filtra sempre pela loja do consultor logado
+  const lojaConsultor = SES?.loja || LOJA;
+  const recsLoja = getRecs().filter(r => r.loja === lojaConsultor);
+  const recs = filtP(recsLoja, metP, customDe, customAte);
+  // Pega consultores da loja do consultor
+  const cfgLoja = _allConfigs.find(x => x.loja === lojaConsultor);
+  const cons = cfgLoja ? (cfgLoja.consultants || []) : getCons();
   const rows = cons.map(name => {
     const r2 = recs.filter(r=>r.consultant_name===name);
     const t2=r2.length, v2=r2.filter(r=>r.situacao==='VENDA').length;
@@ -2476,6 +2501,112 @@ function renderConsRanking() {
         <div style="height:3px;background:${r.isMe?'var(--teal)':'var(--border-d)'};border-radius:99px;width:${Math.round(r.tx/maxTx*100)}%;transition:width .5s"></div>
       </div>
     </div>`).join('') || '<div style="text-align:center;padding:1.5rem;color:var(--tx4);font-size:13px">Nenhum registro no período</div>';
+}
+
+// ════ EDIÇÃO DE REGISTROS ════
+let _editSit = null, _editMeio = null, _editRep = null;
+
+function openEditRec(recId) {
+  // Só gerente, supervisor e diretor podem editar
+  if(!SES || !['gerente','supervisor','diretor'].includes(SES.role)){
+    toast('Sem permissão para editar registros','err');
+    return;
+  }
+  const rec = getRecs().find(r => String(r.id) === String(recId));
+  if(!rec){ toast('Registro não encontrado','err'); return; }
+
+  document.getElementById('edit-rec-id').value = recId;
+  document.getElementById('edit-rec-sub').textContent = `Editando registro de ${rec.consultant_name} — ${rec.data} ${rec.hora}`;
+  document.getElementById('edit-who').textContent = SES.display_name + ' (@' + SES.username + ')';
+  document.getElementById('edit-val').value = rec.valor || '';
+  document.getElementById('edit-ent').value = rec.entrada || '';
+  document.getElementById('edit-mot').value = rec.motivo || '';
+
+  // Situação
+  _editSit = rec.situacao;
+  document.querySelectorAll('#ov-edit-rec .sit-chip').forEach(c=>c.className='sit-chip');
+  if(rec.situacao==='VENDA') document.getElementById('esc-v').classList.add('sv');
+  else document.getElementById('esc-p').classList.add('sp');
+
+  // Meio
+  _editMeio = rec.meio;
+  document.getElementById('eri').className = 'tbtn'+(rec.meio==='RI'?' selt':'');
+  document.getElementById('ere').className = 'tbtn'+(rec.meio==='RE'?' selt':'');
+
+  // Repique
+  _editRep = rec.repique;
+  document.getElementById('erep-sim').className = 'tbtn'+(rec.repique==='SIM'?' selt':'');
+  document.getElementById('erep-nao').className = 'tbtn'+(rec.repique==='NÃO'?' selt':'');
+
+  document.getElementById('ov-edit-rec').classList.add('on');
+}
+
+function selEditSit(s){
+  _editSit=s;
+  document.querySelectorAll('#ov-edit-rec .sit-chip').forEach(c=>c.className='sit-chip');
+  document.getElementById(s==='VENDA'?'esc-v':'esc-p').classList.add(s==='VENDA'?'sv':'sp');
+}
+function selEditMeio(m){
+  _editMeio=m;
+  document.getElementById('eri').className='tbtn'+(m==='RI'?' selt':'');
+  document.getElementById('ere').className='tbtn'+(m==='RE'?' selt':'');
+}
+function selEditRep(r){
+  _editRep=r;
+  document.getElementById('erep-sim').className='tbtn'+(r==='SIM'?' selt':'');
+  document.getElementById('erep-nao').className='tbtn'+(r==='NÃO'?' selt':'');
+}
+
+async function salvarEdicaoRec(){
+  const recId = document.getElementById('edit-rec-id').value;
+  if(!recId){ toast('ID não encontrado','err'); return; }
+  if(!_editSit){ toast('Selecione a situação','err'); return; }
+  if(!_editMeio){ toast('Selecione a origem','err'); return; }
+
+  const btn = document.getElementById('btn-salvar-edicao');
+  btn.textContent='Salvando...'; btn.disabled=true;
+
+  const val = parseFloat(document.getElementById('edit-val').value)||0;
+  const ent = parseFloat(document.getElementById('edit-ent').value)||0;
+
+  const updates = {
+    situacao: _editSit,
+    meio: _editMeio,
+    repique: _editRep || '—',
+    valor: val,
+    entrada: ent,
+    pct: val>0?Math.round(ent/val*100):0,
+    motivo: document.getElementById('edit-mot').value.trim(),
+    edited_by: SES.display_name + ' (@' + SES.username + ')',
+    edited_at: new Date().toISOString()
+  };
+
+  try{
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_records?id=eq.${encodeURIComponent(recId)}`,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify(updates)
+    });
+    if(!resp.ok) throw new Error(await resp.text());
+
+    // Atualiza cache local
+    const idx = _recs.findIndex(r=>String(r.id)===String(recId));
+    if(idx>=0) _recs[idx] = {..._recs[idx], ...updates};
+
+    closeOv('ov-edit-rec');
+    toast('Registro atualizado com sucesso','ok');
+
+    // Re-renderiza a aba ativa
+    const active = document.querySelector('.scr.on');
+    if(active?.id==='s-ger') renderSup(mgrP,'sup-body');
+    if(active?.id==='s-sup') renderSup(mgrP,'sup-sup-body');
+    if(active?.id==='s-gest') renderSup(mgrP,'sup2-body');
+  }catch(e){
+    toast('Erro ao salvar edição','err');
+    console.error('salvarEdicaoRec:',e);
+  }finally{
+    btn.textContent='Salvar edição'; btn.disabled=false;
+  }
 }
 
 // ════ EXPÕE FUNÇÕES PARA onclick no HTML ════
@@ -2531,6 +2662,11 @@ window.rmReceita=rmReceita;
 window.selRTipo=selRTipo;
 window.toggleConsRanking=toggleConsRanking;
 window.renderConsRanking=renderConsRanking;
+window.openEditRec=openEditRec;
+window.salvarEdicaoRec=salvarEdicaoRec;
+window.selEditSit=selEditSit;
+window.selEditMeio=selEditMeio;
+window.selEditRep=selEditRep;
 window.resetReceitas=resetReceitas;
 window.renderSupUsuarios=renderSupUsuarios;
 window.setLojaFilter=setLojaFilter;
@@ -2643,6 +2779,58 @@ window.addEventListener('load', initApp);
     </div>
     <button class="abtn abt" id="btn-salvar-senha" style="width:100%;margin-top:4px" onclick="salvarMinhaSenha()">Salvar nova senha</button>
     <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-minha-senha')">Cancelar</button>
+  </div>
+</div>
+
+
+<!-- ═══ MODAL EDITAR REGISTRO ═══ -->
+<div class="overlay" id="ov-edit-rec">
+  <div class="modal pwd">
+    <div class="m-hdl"></div>
+    <div class="m-title">Editar Registro</div>
+    <div class="m-sub" id="edit-rec-sub">Edição registrada com seu login</div>
+    <input type="hidden" id="edit-rec-id">
+
+    <div class="fg">
+      <label>Situação <span class="req">*</span></label>
+      <div class="sit-grid">
+        <div class="sit-chip" id="esc-v" onclick="selEditSit('VENDA')"><div class="sc-ttl">Venda</div><div class="sc-dsc">Negócio fechado</div></div>
+        <div class="sit-chip" id="esc-p" onclick="selEditSit('PERDIDA')"><div class="sc-ttl">Perdida</div><div class="sc-dsc">Não converteu</div></div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Origem <span class="req">*</span></label>
+      <div class="tog">
+        <button class="tbtn" id="eri" onclick="selEditMeio('RI')">Receita Interna</button>
+        <button class="tbtn" id="ere" onclick="selEditMeio('RE')">Receita Externa</button>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="fg"><label>Valor (R$)</label><input type="number" id="edit-val" placeholder="0,00" min="0" step="0.01" inputmode="decimal"></div>
+      <div class="fg"><label>Entrada (R$)</label><input type="number" id="edit-ent" placeholder="0,00" min="0" step="0.01" inputmode="decimal"></div>
+    </div>
+
+    <div class="fg">
+      <label>Repique</label>
+      <div class="tog">
+        <button class="tbtn" id="erep-sim" onclick="selEditRep('SIM')">Sim</button>
+        <button class="tbtn" id="erep-nao" onclick="selEditRep('NÃO')">Não</button>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Motivo / Observação</label>
+      <textarea id="edit-mot" style="resize:none;min-height:64px" placeholder="Observação..."></textarea>
+    </div>
+
+    <div style="background:var(--orange-l);border:1px solid rgba(245,166,35,.3);border-radius:var(--r);padding:.75rem 1rem;margin-bottom:14px;font-size:12px;color:var(--orange-dd);font-weight:600">
+      Esta edição será registrada com seu login: <span id="edit-who" style="color:var(--teal-dd)"></span>
+    </div>
+
+    <button class="abtn abt" id="btn-salvar-edicao" style="width:100%;margin-top:4px" onclick="salvarEdicaoRec()">Salvar edição</button>
+    <button class="abtn abg" style="width:100%;margin-top:8px" onclick="closeOv('ov-edit-rec')">Cancelar</button>
   </div>
 </div>
 
