@@ -434,7 +434,8 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   to   { width: 100%; }
 }
 
-.receita-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:.75rem}
+.receita-row{display:block;margin-bottom:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:.75rem}
+.receita-row .receita-fields{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
 .receita-row .fg{margin-bottom:0}
 .receita-row .rtype{grid-column:1/-1;display:flex;gap:6px;margin-bottom:4px}
 .receita-row .rtype button{flex:1;padding:6px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--surface);color:var(--tx3);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .15s}
@@ -2409,31 +2410,35 @@ function addReceita(tipo='', val='', ent='', sit='') {
   div.className = 'receita-row';
   div.id = `receita-${id}`;
   div.innerHTML = `
-    <div class="sit-grid" style="margin-bottom:6px">
-      <div class="sit-chip" id="rs-v-${id}" onclick="selRSit(${id},'VENDA')">
-        <div class="sc-ttl">Venda</div><div class="sc-dsc">Negócio fechado</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-bottom:8px;grid-column:1/-1">
+      <div class="sit-chip" id="rs-v-${id}" onclick="selRSit(${id},'VENDA')" style="min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;box-sizing:border-box">
+        <div class="sc-ttl" style="font-size:16px;font-weight:800">Venda</div>
+        <div class="sc-dsc" style="font-size:11px;margin-top:2px">Negócio fechado</div>
       </div>
-      <div class="sit-chip" id="rs-p-${id}" onclick="selRSit(${id},'PERDIDA')">
-        <div class="sc-ttl">Perdida</div><div class="sc-dsc">Não converteu</div>
+      <div class="sit-chip" id="rs-p-${id}" onclick="selRSit(${id},'PERDIDA')" style="min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;box-sizing:border-box">
+        <div class="sc-ttl" style="font-size:16px;font-weight:800">Perdida</div>
+        <div class="sc-dsc" style="font-size:11px;margin-top:2px">Não converteu</div>
       </div>
     </div>
     <div class="rtype">
       <button type="button" id="rt-ri-${id}" onclick="selRTipo(${id},'RI')" class="${tipo==='RI'?'selt':''}">Receita Interna</button>
       <button type="button" id="rt-re-${id}" onclick="selRTipo(${id},'RE')" class="${tipo==='RE'?'selt':''}">Receita Externa</button>
     </div>
-    <div class="fg" style="margin-bottom:0">
-      <label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em">Valor (R$)</label>
-      <input type="number" id="rv-${id}" placeholder="0,00" min="0" step="0.01" inputmode="decimal"
-        style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);color:var(--tx);font-size:14px;font-family:var(--fb);padding:8px 10px;width:100%;outline:none"
-        value="${val}" oninput="calcTotaisReceita()">
+    <div class="receita-fields">
+      <div class="fg" style="margin-bottom:0">
+        <label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em">Valor (R$)</label>
+        <input type="number" id="rv-${id}" placeholder="0,00" min="0" step="0.01" inputmode="decimal"
+          style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);color:var(--tx);font-size:14px;font-family:var(--fb);padding:8px 10px;width:100%;outline:none;box-sizing:border-box"
+          value="${val}" oninput="calcTotaisReceita()">
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em">Entrada (R$)</label>
+        <input type="number" id="re-${id}" placeholder="0,00" min="0" step="0.01" inputmode="decimal"
+          style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);color:var(--tx);font-size:14px;font-family:var(--fb);padding:8px 10px;width:100%;outline:none;box-sizing:border-box"
+          value="${ent}" oninput="calcTotaisReceita()">
+      </div>
+      ${id>1?`<button class="rm-receita" onclick="rmReceita(${id})" title="Remover">×</button>`:'<div></div>'}
     </div>
-    <div class="fg" style="margin-bottom:0">
-      <label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em">Entrada (R$)</label>
-      <input type="number" id="re-${id}" placeholder="0,00" min="0" step="0.01" inputmode="decimal"
-        style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);color:var(--tx);font-size:14px;font-family:var(--fb);padding:8px 10px;width:100%;outline:none"
-        value="${ent}" oninput="calcTotaisReceita()">
-    </div>
-    ${id>1?`<button class="rm-receita" onclick="rmReceita(${id})" title="Remover">×</button>`:'<div></div>'}
   `;
   // Selecionar situação se fornecida
   if(sit) selRSit(id, sit);
