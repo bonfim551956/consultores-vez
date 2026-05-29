@@ -1285,23 +1285,21 @@ async function startAtt() {
 // ════ MODAL REGISTRO ════
 function openReg(){
   selSit_=null;selMeio_=null;selRep_=null;authOk=false;_repPendente=null;
-  document.querySelectorAll('.sit-chip').forEach(c=>c.className='sit-chip');
   ['t-rsim','t-rnao'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='tbtn';});
   const mot=document.getElementById('m-mot'); if(mot){mot.value='';mot.classList.remove('err');}
   resetReceitas();
   document.querySelectorAll('#ov-reg .emsg').forEach(e=>e.classList.remove('on'));
-  const fgRep=document.getElementById('fg-rep'); if(fgRep) fgRep.style.display='none';
+  const fgRep=document.getElementById('fg-rep'); if(fgRep) fgRep.style.display='block';
   const banner=document.getElementById('auth-banner'); if(banner) banner.classList.remove('on');
   const sub=document.getElementById('reg-sub'); if(sub) sub.textContent=`${SES.consName||SES.display_name} — campos com * são obrigatórios`;
   document.getElementById('ov-reg').classList.add('on');
 }
 function selSit(s){
   selSit_=s;selRep_=null;authOk=false;
-  document.querySelectorAll('.sit-chip').forEach(c=>c.className='sit-chip');
   document.getElementById(s==='VENDA'?'sc-v':'sc-p').classList.add(s==='VENDA'?'sv':'sp');
   document.getElementById('err-sit').classList.remove('on');
   document.querySelectorAll('.sit-chip').forEach(c=>c.classList.remove('serr'));
-  document.getElementById('fg-rep').style.display='block';
+  // repique sempre visível
   document.getElementById('auth-banner').classList.remove('on');
   document.getElementById('t-rsim').className='tbtn';
   document.getElementById('t-rnao').className='tbtn';
@@ -2370,13 +2368,13 @@ function addReceita(tipo='', val='', ent='', sit='') {
   div.className = 'receita-row';
   div.id = `receita-${id}`;
   div.innerHTML = `
-    <div style="display:flex;gap:6px;margin-bottom:6px">
-      <button type="button" id="rs-v-${id}" onclick="selRSit(${id},'VENDA')" 
-        style="flex:1;padding:7px 4px;font-size:12px;font-weight:700;font-family:var(--fb);border-radius:var(--r);cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--tx3);transition:all .15s"
-        class="">Venda</button>
-      <button type="button" id="rs-p-${id}" onclick="selRSit(${id},'PERDIDA')"
-        style="flex:1;padding:7px 4px;font-size:12px;font-weight:700;font-family:var(--fb);border-radius:var(--r);cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--tx3);transition:all .15s"
-        class="">Perdida</button>
+    <div class="sit-grid" style="margin-bottom:6px">
+      <div class="sit-chip" id="rs-v-${id}" onclick="selRSit(${id},'VENDA')">
+        <div class="sc-ttl">Venda</div><div class="sc-dsc">Negócio fechado</div>
+      </div>
+      <div class="sit-chip" id="rs-p-${id}" onclick="selRSit(${id},'PERDIDA')">
+        <div class="sc-ttl">Perdida</div><div class="sc-dsc">Não converteu</div>
+      </div>
     </div>
     <div class="rtype">
       <button type="button" id="rt-ri-${id}" onclick="selRTipo(${id},'RI')" class="${tipo==='RI'?'selt':''}">Receita Interna</button>
@@ -2404,12 +2402,11 @@ function addReceita(tipo='', val='', ent='', sit='') {
 }
 
 function selRSit(id, sit) {
-  document.getElementById(`rs-v-${id}`).style.background = sit==='VENDA' ? '#22c55e' : 'var(--surface)';
-  document.getElementById(`rs-v-${id}`).style.color = sit==='VENDA' ? '#fff' : 'var(--tx3)';
-  document.getElementById(`rs-v-${id}`).style.borderColor = sit==='VENDA' ? '#22c55e' : 'var(--border)';
-  document.getElementById(`rs-p-${id}`).style.background = sit==='PERDIDA' ? 'var(--red-d)' : 'var(--surface)';
-  document.getElementById(`rs-p-${id}`).style.color = sit==='PERDIDA' ? '#fff' : 'var(--tx3)';
-  document.getElementById(`rs-p-${id}`).style.borderColor = sit==='PERDIDA' ? 'var(--red-d)' : 'var(--border)';
+  // Usa as mesmas classes sv/sp dos sit-chip globais
+  const bv = document.getElementById(`rs-v-${id}`);
+  const bp = document.getElementById(`rs-p-${id}`);
+  if(bv) { bv.className = 'sit-chip' + (sit==='VENDA' ? ' sv' : ''); }
+  if(bp) { bp.className = 'sit-chip' + (sit==='PERDIDA' ? ' sp' : ''); }
   document.getElementById(`receita-${id}`).dataset.sit = sit;
 }
 
@@ -2762,14 +2759,7 @@ window.addEventListener('load', initApp);
     <div class="m-title">Registrar Atendimento</div>
     <div class="m-sub" id="reg-sub">Campos com * são obrigatórios</div>
 
-    <div class="fg">
-      <label>Situação <span class="req">*</span></label>
-      <div class="sit-grid">
-        <div class="sit-chip" id="sc-v" onclick="selSit('VENDA')"><div class="sc-ttl">Venda</div><div class="sc-dsc">Negócio fechado</div></div>
-        <div class="sit-chip" id="sc-p" onclick="selSit('PERDIDA')"><div class="sc-ttl">Perdida</div><div class="sc-dsc">Não converteu</div></div>
-      </div>
-      <div class="emsg" id="err-sit">Selecione a situação</div>
-    </div>
+
 
     <!-- RECEITAS DINÂMICAS -->
     <div id="receitas-wrap">
@@ -2781,7 +2771,7 @@ window.addEventListener('load', initApp);
       <div class="emsg" id="err-val">Informe ao menos uma receita com valor</div>
     </div>
 
-    <div class="fg" id="fg-rep" style="display:none">
+    <div class="fg" id="fg-rep">
       <label>Houve repique? <span class="req">*</span></label>
       <div class="tog" id="tog-rep">
         <button class="tbtn" id="t-rsim" onclick="trySelSim()">Sim</button>
