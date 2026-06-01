@@ -1461,7 +1461,7 @@ async function submitReg(){
     entrada: totalEntrada,
     pct: totalValor > 0 ? Math.round(totalEntrada/totalValor*100) : 0,
     motivo: document.getElementById('m-mot').value.trim(),
-    receitas: JSON.stringify(receitasData)
+    // receitas: JSON.stringify(receitasData) — desabilitado até coluna existir no banco
   };
 
   try {
@@ -1479,7 +1479,12 @@ async function submitReg(){
     closeOv('ov-reg');
     toast(situacaoFinal === 'VENDA' ? 'Venda registrada com sucesso!' : 'Atendimento registrado','ok');
     renderCons();
-  } catch(err){ toast('Erro ao salvar','err'); console.error('submitReg:',err); }
+  } catch(err){
+    const errMsg = err?.message || String(err);
+    toast('Erro ao salvar: ' + errMsg.slice(0,50), 'err');
+    console.error('submitReg error:', err);
+    console.error('Record que tentou salvar:', JSON.stringify(rec));
+  }
 }
 
 
@@ -1676,6 +1681,7 @@ function renderSup(p,bodyId){
       <tbody>${all.slice(0,60).map(r=>`<tr>
         <td style="font-family:var(--fm);font-size:11px;color:var(--tx4)">${r.data?r.data.split('-').reverse().join('/'):'—'} ${r.hora||''}</td>
         <td style="font-weight:600;font-size:12px">${r.consultant_name}</td>
+        <td style="font-size:11px"><span style="background:var(--teal-m);color:var(--teal-dd);padding:1px 7px;border-radius:99px;font-weight:600;font-size:10px">${LOJA_NAMES[r.loja]||r.loja||'—'}</span></td>
         <td><span class="sbdg ${r.situacao==='VENDA'?'sbv':'sbp'}">${r.situacao==='VENDA'?'Venda':'Perdida'}</span></td>
         <td style="font-size:11px;color:var(--tx4)">${r.meio==='RI'?'Rec. Interna':'Rec. Externa'}</td>
         <td style="font-size:11px;color:var(--tx4)">${r.repique==='SIM'?'Sim':r.repique==='NÃO'?'Não'+(r.rep_autorizado?' *':''):'—'}</td>
