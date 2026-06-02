@@ -1529,7 +1529,7 @@ function showSupTab(tab,el){
   if(el)el.classList.add('on');
   if(tab==='ranking')   renderRank(mgrP,'rank-sup-body');
   if(tab==='supervisao')renderSup(mgrP,'sup-sup-body');
-  if(tab==='fila')      renderFilaView('fila-sup-body',true);
+  if(tab==='fila')      { const _lf=LOJA_FILTER; loadAllQueues().then(()=>renderFilaView('fila-sup-body',true,_lf)); }
   if(tab==='usuarios')  renderSupUsuarios();
 }
 function showSTab(tab,el){
@@ -1718,9 +1718,8 @@ function rSupSup(p){renderSup(p,'sup-sup-body');}
 function rSupGest(p){renderSup(p,'sup2-body');}
 
 // ════ FILA AO VIVO ════
-function renderFilaView(bodyId,canClear){
-  const la=lojaAtiva();
-  console.log('[Idealize] renderFilaView | lojaAtiva:', la, '| LOJA_FILTER:', LOJA_FILTER, '| queue total:', getQ().length);
+function renderFilaView(bodyId,canClear,lojaForce){
+  const la = lojaForce !== undefined ? lojaForce : lojaAtiva();
   const allQ=getQ();
   // Filtra fila pela loja ativa
   const q=la?allQ.filter(x=>x.loja===la):allQ;
@@ -2123,19 +2122,19 @@ function setLojaFilter(loja, barId) {
     const rv = document.querySelector('.gview.on');
     if (rv?.id==='gv-ranking')    renderRank(mgrP,'rank-body');
     if (rv?.id==='gv-supervisao') renderSup(mgrP,'sup-body');
-    if (rv?.id==='gv-fila')       renderFilaView('fila-body',true);
+    if (rv?.id==='gv-fila')       { const _lf=LOJA_FILTER; loadAllQueues().then(()=>renderFilaView('fila-body',true,_lf)); }
   }
   if (active.id === 's-sup') {
     const rv = document.querySelector('.supview.on');
     if (rv?.id==='sv-sup-ranking')    renderRank(mgrP,'rank-sup-body');
     if (rv?.id==='sv-sup-supervisao') renderSup(mgrP,'sup-sup-body');
-    if (rv?.id==='sv-sup-fila')       { loadAllQueues().then(()=>renderFilaView('fila-sup-body',true)); }
+    if (rv?.id==='sv-sup-fila')       { const _lf=LOJA_FILTER; loadAllQueues().then(()=>renderFilaView('fila-sup-body',true,_lf)); }
   }
   if (active.id === 's-gest') {
     const rv = document.querySelector('.sview.on');
     if (rv?.id==='sv-ranking2')    renderRank(mgrP,'rank2-body');
     if (rv?.id==='sv-supervisao2') renderSup(mgrP,'sup2-body');
-    if (rv?.id==='sv-fila2')       { loadAllQueues().then(()=>renderFilaView('fila2-body',true)); }
+    if (rv?.id==='sv-fila2')       { const _lf=LOJA_FILTER; loadAllQueues().then(()=>renderFilaView('fila2-body',true,_lf)); }
   }
 }
 
@@ -2405,7 +2404,7 @@ async function confirmLimparFila() {
     // Determina qual loja limpar
     const lojaLimpar = (SES?.role==='supervisor'||SES?.role==='diretor')
       ? (LOJA_FILTER || null)
-      : LOJA;
+      : (SES?.loja || LOJA);
     const url = lojaLimpar
       ? `${SB_URL}/rest/v1/iz_queue?loja=eq.${encodeURIComponent(lojaLimpar)}`
       : `${SB_URL}/rest/v1/iz_queue`;
