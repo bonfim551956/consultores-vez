@@ -848,6 +848,7 @@ function refreshMgrView() {
   const isGer  = active.id === 's-ger';
   const isGest = active.id === 's-gest';
   const isSup  = active.id === 's-sup';
+  const isSuperDir = isGest || isSup;
   if (!isGer && !isGest && !isSup) return;
   const bodyMap = {
     ranking:    isGest?'rank2-body':isSup?'rank-sup-body':'rank-body',
@@ -862,7 +863,7 @@ function refreshMgrView() {
   for (const [name, tabId] of Object.entries(tabMap)) {
     const el = document.getElementById(tabId);
     if (el && el.classList.contains('on')) {
-      if (name === 'fila') renderFilaView(bodyMap.fila, isGest);
+      if (name === 'fila') { const _lf=LOJA_FILTER; renderFilaView(bodyMap.fila, isGest, isSuperDir?_lf:undefined); }
       if (name === 'ranking') renderRank(mgrP, bodyMap.ranking);
       if (name === 'supervisao') renderSup(mgrP, bodyMap.supervisao);
     }
@@ -1730,12 +1731,12 @@ function rSupGest(p){renderSup(p,'sup2-body');}
 
 // ════ FILA AO VIVO ════
 function renderFilaView(bodyId,canClear,lojaForce){
-  const la = lojaForce !== undefined ? lojaForce : lojaAtiva();
+  // Usa lojaForce se passado, senão LOJA_FILTER diretamente (sem lojaAtiva)
+  const isSuperDir = SES && (SES.role==='supervisor'||SES.role==='diretor');
+  const la = lojaForce !== undefined ? lojaForce : (isSuperDir ? LOJA_FILTER : (SES?.loja||LOJA));
   const allQ=getQ();
-  console.log('[FILA DEBUG] la='+la+' LOJA_FILTER='+LOJA_FILTER+' allQ.length='+allQ.length+' lojas='+[...new Set(allQ.map(x=>x.loja))].join(','));
   // Filtra fila pela loja ativa
   const q=la?allQ.filter(x=>x.loja===la):allQ;
-  console.log('[FILA DEBUG] q.length='+q.length+' nomes='+q.map(x=>x.consultant_name).join(','));
   // Passa la explicitamente para getCons
   const cfgLoja = la && _allConfigs && _allConfigs.find(cfg=>cfg.loja===la);
   const consFromCfg = cfgLoja ? (cfgLoja.consultants||[]) : [];
@@ -2801,7 +2802,9 @@ async function delRecord(recId) {
 async function reloadAndRenderFila(bodyId, canClear) {
   const lojaSnapshot = LOJA_FILTER; // captura ANTES do await
   await loadAllQueues();
+  // Passa snapshot explicitamente — ignora qualquer mudança de LOJA_FILTER durante o await
   renderFilaView(bodyId, canClear, lojaSnapshot);
+  console.log('[reloadAndRenderFila] bodyId='+bodyId+' lojaSnapshot='+lojaSnapshot);
 }
 
 // ════ EXPÕE FUNÇÕES PARA onclick no HTML ════
