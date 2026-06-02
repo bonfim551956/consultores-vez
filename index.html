@@ -1529,7 +1529,7 @@ function showSupTab(tab,el){
   if(el)el.classList.add('on');
   if(tab==='ranking')   renderRank(mgrP,'rank-sup-body');
   if(tab==='supervisao')renderSup(mgrP,'sup-sup-body');
-  if(tab==='fila')      { const _lf=LOJA_FILTER; loadAllQueues().then(()=>renderFilaView('fila-sup-body',true,_lf)); }
+  if(tab==='fila')      reloadAndRenderFila('fila-sup-body',true)
   if(tab==='usuarios')  renderSupUsuarios();
 }
 function showSTab(tab,el){
@@ -2086,6 +2086,7 @@ async function saveSupCode(){
 window.saveSupCode=saveSupCode;
 window.addUserSup=addUserSup;
 window.confirmLimparFila=confirmLimparFila;
+window.reloadAndRenderFila=reloadAndRenderFila;
 window.addReceita=addReceita;
 window.rmReceita=rmReceita;
 window.selRTipo=selRTipo;
@@ -2122,19 +2123,19 @@ function setLojaFilter(loja, barId) {
     const rv = document.querySelector('.gview.on');
     if (rv?.id==='gv-ranking')    renderRank(mgrP,'rank-body');
     if (rv?.id==='gv-supervisao') renderSup(mgrP,'sup-body');
-    if (rv?.id==='gv-fila')       { const _lf=LOJA_FILTER; loadAllQueues().then(()=>renderFilaView('fila-body',true,_lf)); }
+    if (rv?.id==='gv-fila')       reloadAndRenderFila('fila-body',true)
   }
   if (active.id === 's-sup') {
     const rv = document.querySelector('.supview.on');
     if (rv?.id==='sv-sup-ranking')    renderRank(mgrP,'rank-sup-body');
     if (rv?.id==='sv-sup-supervisao') renderSup(mgrP,'sup-sup-body');
-    if (rv?.id==='sv-sup-fila')       { const _lf=LOJA_FILTER; loadAllQueues().then(()=>renderFilaView('fila-sup-body',true,_lf)); }
+    if (rv?.id==='sv-sup-fila')       reloadAndRenderFila('fila-sup-body',true)
   }
   if (active.id === 's-gest') {
     const rv = document.querySelector('.sview.on');
     if (rv?.id==='sv-ranking2')    renderRank(mgrP,'rank2-body');
     if (rv?.id==='sv-supervisao2') renderSup(mgrP,'sup2-body');
-    if (rv?.id==='sv-fila2')       { const _lf=LOJA_FILTER; loadAllQueues().then(()=>renderFilaView('fila2-body',true,_lf)); }
+    if (rv?.id==='sv-fila2')       reloadAndRenderFila('fila2-body',true)
   }
 }
 
@@ -2778,6 +2779,13 @@ async function delRecord(recId) {
   }
 }
 
+// ════ HELPER: recarrega fila e renderiza com loja correta ════
+async function reloadAndRenderFila(bodyId, canClear) {
+  const lojaSnapshot = LOJA_FILTER; // captura ANTES do await
+  await loadAllQueues();
+  renderFilaView(bodyId, canClear, lojaSnapshot);
+}
+
 // ════ EXPÕE FUNÇÕES PARA onclick no HTML ════
 window.doLogin=doLogin;
 window.doLogout=doLogout;
@@ -2827,6 +2835,7 @@ window.renderConfig=renderConfig;
 window.saveSupCode=saveSupCode;
 window.addUserSup=addUserSup;
 window.confirmLimparFila=confirmLimparFila;
+window.reloadAndRenderFila=reloadAndRenderFila;
 window.addReceita=addReceita;
 window.rmReceita=rmReceita;
 window.selRTipo=selRTipo;
