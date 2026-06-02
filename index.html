@@ -1723,7 +1723,12 @@ function renderFilaView(bodyId,canClear,lojaForce){
   const allQ=getQ();
   // Filtra fila pela loja ativa
   const q=la?allQ.filter(x=>x.loja===la):allQ;
-  const cons=getCons(),recs=la?getRecs().filter(r=>r.loja===la):getRecs(),today=dStr(new Date());
+  // Passa la explicitamente para getCons
+  const cfgLoja = la && _allConfigs && _allConfigs.find(cfg=>cfg.loja===la);
+  const consFromCfg = cfgLoja ? (cfgLoja.consultants||[]) : [];
+  const consFromUsers = la ? _users.filter(u=>u.role==='consultor'&&u.loja===la).map(u=>u.display_name) : [];
+  const cons = la ? (consFromCfg.length ? consFromCfg : consFromUsers) : getCons();
+  const recs=la?getRecs().filter(r=>r.loja===la):getRecs(),today=dStr(new Date());
   const att=q.filter(x=>x.status==='attending'),inQ=q.filter(x=>x.status==='queue'),off=cons.filter(n=>!q.find(x=>x.consultant_name===n));
   const mkCard=(e,st,pos)=>{
     const mr=recs.filter(r=>r.consultant_name===e.consultant_name&&r.data===today);
