@@ -837,7 +837,7 @@ function startPolling() {
     if (!active) return;
     if (active.id === 's-cons' && SES) renderCons();
     if (active.id === 's-ger' || active.id === 's-gest' || active.id === 's-sup') refreshMgrView();
-  }, 5000); // atualiza a cada 5 segundos
+  }, 2000); // atualiza a cada 2 segundos
 }
 function stopPolling() {
   if (_pollInterval) { clearInterval(_pollInterval); _pollInterval = null; }
@@ -2129,13 +2129,13 @@ function setLojaFilter(loja, barId) {
     const rv = document.querySelector('.supview.on');
     if (rv?.id==='sv-sup-ranking')    renderRank(mgrP,'rank-sup-body');
     if (rv?.id==='sv-sup-supervisao') renderSup(mgrP,'sup-sup-body');
-    if (rv?.id==='sv-sup-fila')       renderFilaView('fila-sup-body',true);
+    if (rv?.id==='sv-sup-fila')       { loadAllQueues().then(()=>renderFilaView('fila-sup-body',true)); }
   }
   if (active.id === 's-gest') {
     const rv = document.querySelector('.sview.on');
     if (rv?.id==='sv-ranking2')    renderRank(mgrP,'rank2-body');
     if (rv?.id==='sv-supervisao2') renderSup(mgrP,'sup2-body');
-    if (rv?.id==='sv-fila2')       renderFilaView('fila2-body',true);
+    if (rv?.id==='sv-fila2')       { loadAllQueues().then(()=>renderFilaView('fila2-body',true)); }
   }
 }
 
