@@ -620,7 +620,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   <div id="filter-bar-sup" style="display:none;background:var(--surface);border-bottom:2px solid var(--teal-b);padding:.625rem 1rem;overflow-x:auto;white-space:nowrap;position:sticky;top:52px;z-index:40">
     <span style="font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.08em;margin-right:.75rem">Unidade</span>
     <button class="loja-fbtn on" id="filter-bar-sup-all" onclick="setLojaFilter(null,'filter-bar-sup')">Rede</button>
-    <button class="loja-fbtn" id="filter-bar-sup-sv" onclick="setLojaFilter('sv','filter-bar-sup')">São Vicente</button>
+    <button class="loja-fbtn" id="filter-bar-sup-sv" onclick="setLojaFilter('São Vicente','filter-bar-sup')">São Vicente</button>
     <button class="loja-fbtn" id="filter-bar-sup-campinas" onclick="setLojaFilter('campinas','filter-bar-sup')">Campinas</button>
     <button class="loja-fbtn" id="filter-bar-sup-sorocaba" onclick="setLojaFilter('sorocaba','filter-bar-sup')">Sorocaba</button>
     <button class="loja-fbtn" id="filter-bar-sup-piracicaba" onclick="setLojaFilter('piracicaba','filter-bar-sup')">Piracicaba</button>
@@ -714,7 +714,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
   <div id="filter-bar-gest" style="display:none;background:var(--surface);border-bottom:2px solid var(--teal-b);padding:.625rem 1rem;overflow-x:auto;white-space:nowrap;position:sticky;top:52px;z-index:40">
     <span style="font-size:10px;font-weight:700;color:var(--tx4);text-transform:uppercase;letter-spacing:.08em;margin-right:.75rem">Unidade</span>
     <button class="loja-fbtn on" id="filter-bar-gest-all" onclick="setLojaFilter(null,'filter-bar-gest')">Rede</button>
-    <button class="loja-fbtn" id="filter-bar-gest-sv" onclick="setLojaFilter('sv','filter-bar-gest')">São Vicente</button>
+    <button class="loja-fbtn" id="filter-bar-gest-sv" onclick="setLojaFilter('São Vicente','filter-bar-gest')">São Vicente</button>
     <button class="loja-fbtn" id="filter-bar-gest-campinas" onclick="setLojaFilter('campinas','filter-bar-gest')">Campinas</button>
     <button class="loja-fbtn" id="filter-bar-gest-sorocaba" onclick="setLojaFilter('sorocaba','filter-bar-gest')">Sorocaba</button>
     <button class="loja-fbtn" id="filter-bar-gest-piracicaba" onclick="setLojaFilter('piracicaba','filter-bar-gest')">Piracicaba</button>
@@ -757,7 +757,7 @@ const LOJA_NAMES = {
 const ALL_LOJAS = Object.keys(LOJA_NAMES);
 
 // LOJA do usuário logado (null para supervisor/diretor)
-let LOJA = 'sv';
+let LOJA = 'São Vicente';
 let LOJA_NAME = 'São Vicente';
 // Filtro de loja selecionado no painel do supervisor/diretor (null = todas)
 let LOJA_FILTER = null;
@@ -1037,7 +1037,7 @@ async function initApp() {
       consName:     saved.role === 'consultor' ? saved.display_name : null
     };
     const isSD = SES.role === 'supervisor' || SES.role === 'diretor';
-    setLojaCtx(isSD ? null : (SES.loja || 'sv'));
+    setLojaCtx(isSD ? null : (SES.loja || 'São Vicente'));
     LOJA_FILTER = null;
 
     // Carrega dados em paralelo sem bloquear a restauração
@@ -1104,7 +1104,7 @@ async function doLogin() {
   SES = { ...user, consName: user.role==='consultor'?user.display_name:null };
   // Define contexto de loja pelo perfil do usuário
   const isSuperDir = user.role==='supervisor' || user.role==='diretor';
-  setLojaCtx(isSuperDir ? null : (user.loja || 'sv'));
+  setLojaCtx(isSuperDir ? null : (user.loja || 'São Vicente'));
   LOJA_FILTER = null; // reset filtro ao logar
   saveSession(SES);
   startPolling();
@@ -1304,7 +1304,7 @@ function openReg(){
 }
 function selSit(s){
   selSit_=s;selRep_=null;authOk=false;
-  document.getElementById(s==='VENDA'?'sc-v':'sc-p').classList.add(s==='VENDA'?'sv':'sp');
+  document.getElementById(s==='VENDA'?'sc-v':'sc-p').classList.add(s==='VENDA'?'São Vicente':'sp');
   document.getElementById('err-sit').classList.remove('on');
   document.querySelectorAll('.sit-chip').forEach(c=>c.classList.remove('serr'));
   // repique sempre visível
@@ -1822,7 +1822,7 @@ function renderConfig(){
         <div class="cfg-inp-row"><input class="cfg-inp" type="password" id="gu-pass" placeholder="Senha inicial" style="flex:1">
           <select class="cfg-role-select" id="gu-role"><option value="consultor">Consultor</option><option value="gerente">Gerente</option><option value="supervisor">Supervisor</option><option value="diretor">Diretor</option></select>
           <select class="cfg-role-select" id="gu-loja">
-            <option value="sv">São Vicente</option>
+            <option value="São Vicente">São Vicente</option>
             <option value="campinas">Campinas</option>
             <option value="sorocaba">Sorocaba</option>
             <option value="piracicaba">Piracicaba</option>
@@ -1857,9 +1857,9 @@ async function addCons(){
   try{
     _cons.push(name);
     // PATCH direto na config da loja
-    const cfgR = await sbGet('iz_config',`loja=eq.${encodeURIComponent(LOJA||'sv')}`);
+    const cfgR = await sbGet('iz_config',`loja=eq.${encodeURIComponent(LOJA||'São Vicente')}`);
     if(cfgR.length){
-      const resp = await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(LOJA||'sv')}`,{
+      const resp = await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(LOJA||'São Vicente')}`,{
         method:'PATCH',
         headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
         body:JSON.stringify({consultants:_cons})
@@ -1869,7 +1869,7 @@ async function addCons(){
       const resp = await fetch(`${SB_URL}/rest/v1/iz_config`,{
         method:'POST',
         headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
-        body:JSON.stringify({loja:LOJA||'sv',consultants:_cons,auth_code:_authCode||DEF_CODE,loja_name:LOJA_NAME})
+        body:JSON.stringify({loja:LOJA||'São Vicente',consultants:_cons,auth_code:_authCode||DEF_CODE,loja_name:LOJA_NAME})
       });
       if(!resp.ok) throw new Error(await resp.text());
     }
@@ -1888,7 +1888,7 @@ async function delCons(i){
   if(!confirm(`Remover ${name} da fila?`))return;
   try{
     _cons.splice(i,1);
-    const resp = await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(LOJA||'sv')}`,{
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(LOJA||'São Vicente')}`,{
       method:'PATCH',
       headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
       body:JSON.stringify({consultants:_cons})
@@ -1909,7 +1909,7 @@ async function addUser(){
   const p=document.getElementById('gu-pass').value;
   const role=document.getElementById('gu-role').value;
   const lojaEl=document.getElementById('gu-loja');
-  const lojaRaw=lojaEl?lojaEl.value:'sv';
+  const lojaRaw=lojaEl?lojaEl.value:'São Vicente';
   const lojaUser=(role==='supervisor'||role==='diretor')?null:lojaRaw;
 
   // Validações
@@ -2048,7 +2048,7 @@ async function saveCode(){
   const code=document.getElementById('new-code').value.trim();
   if(!/^\d{4}$/.test(code)){toast('Código deve ter exatamente 4 dígitos numéricos','err');return;}
   try{
-    const resp = await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(LOJA||'sv')}`,{
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_config?loja=eq.${encodeURIComponent(LOJA||'São Vicente')}`,{
       method:'PATCH',
       headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
       body:JSON.stringify({auth_code:code})
@@ -2342,7 +2342,7 @@ function renderSupUsuarios() {
             <option value="gerente">Gerente</option>
           </select>
           <select class="cfg-role-select" id="sup-gu-loja">
-            <option value="sv">São Vicente</option>
+            <option value="São Vicente">São Vicente</option>
             <option value="campinas">Campinas</option>
             <option value="sorocaba">Sorocaba</option>
             <option value="piracicaba">Piracicaba</option>
@@ -2691,7 +2691,7 @@ function openEditRec(recId) {
   // Situação
   _editSit = rec.situacao;
   document.querySelectorAll('#ov-edit-rec .sit-chip').forEach(c=>c.className='sit-chip');
-  if(rec.situacao==='VENDA') document.getElementById('esc-v').classList.add('sv');
+  if(rec.situacao==='VENDA') document.getElementById('esc-v').classList.add('São Vicente');
   else document.getElementById('esc-p').classList.add('sp');
 
   // Meio
@@ -2710,7 +2710,7 @@ function openEditRec(recId) {
 function selEditSit(s){
   _editSit=s;
   document.querySelectorAll('#ov-edit-rec .sit-chip').forEach(c=>c.className='sit-chip');
-  document.getElementById(s==='VENDA'?'esc-v':'esc-p').classList.add(s==='VENDA'?'sv':'sp');
+  document.getElementById(s==='VENDA'?'esc-v':'esc-p').classList.add(s==='VENDA'?'São Vicente':'sp');
 }
 function selEditMeio(m){
   _editMeio=m;
