@@ -1556,11 +1556,27 @@ function ptHTML(p,fnR,fnS,crId){
     <span class="cr-lbl">até</span><input type="date" class="cr-inp" id="${crId}-ate" value="${mgrCustomAte}">
     <button class="cr-apply" onclick="applyMgrCustom('${crId}','${fnR}','${fnS}')">Aplicar</button>
   </div>`;}
-function openMgrCustom(crId,fnR,fnS){mgrP='custom';document.getElementById(crId).classList.add('on');}
+function openMgrCustom(crId,fnR,fnS){
+  mgrP='custom';
+  const cr = document.getElementById(crId);
+  if(cr){
+    cr.classList.add('on');
+    // Restaurar datas salvas se existirem
+    const deEl = document.getElementById(crId+'-de');
+    const ateEl = document.getElementById(crId+'-ate');
+    if(deEl && mgrCustomDe) deEl.value = mgrCustomDe;
+    if(ateEl && mgrCustomAte) ateEl.value = mgrCustomAte;
+  }
+}
 function applyMgrCustom(crId,fnR,fnS){
-  mgrCustomDe=document.getElementById(crId+'-de').value;mgrCustomAte=document.getElementById(crId+'-ate').value;
+  const deEl = document.getElementById(crId+'-de');
+  const ateEl = document.getElementById(crId+'-ate');
+  if(!deEl||!ateEl){toast('Erro: campos de data não encontrados','err');return;}
+  mgrCustomDe = deEl.value;
+  mgrCustomAte = ateEl.value;
   if(!mgrCustomDe||!mgrCustomAte){toast('Selecione as duas datas','err');return;}
-  window[fnR]('custom');window[fnS]('custom');
+  window[fnR]('custom');
+  window[fnS]('custom');
 }
 
 // ════ RANKING com taxas de repique e conversão ════
@@ -1687,7 +1703,12 @@ function renderSup(p,bodyId){
         <td style="font-size:11px;color:var(--tx4)">${r.repique==='SIM'?'Sim':r.repique==='NÃO'?'Não'+(r.rep_autorizado?' *':''):'—'}</td>
         <td class="nr" style="font-size:12px">${r.valor?fmt(r.valor):'—'}</td>
         <td class="nr" style="font-size:12px;color:var(--blue)">${r.entrada?fmt(r.entrada):'—'}</td>
-      </tr>`).join('')||`<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--tx4)">Nenhum registro no período</td></tr>`}
+        <td style="white-space:nowrap">
+          <button class="btn-edit-rec" onclick="openEditRec('${r.id}')">Editar</button>
+          ${SES?.role==='diretor'?`<button class="btn-edit-rec" onclick="delRecord('${r.id}')" style="background:var(--red-l);color:var(--red-d);margin-left:4px">Deletar</button>`:''}
+          ${r.edited_by?`<div class="edit-log">Edit: ${r.edited_by}</div>`:''}
+        </td>
+      </tr>`).join('')||`<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--tx4)">Nenhum registro no período</td></tr>`}
       </tbody>
     </table></div>
     <p style="font-size:11px;color:var(--tx4);margin-top:4px">* Finalização sem repique autorizada</p>`;
