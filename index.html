@@ -2075,6 +2075,7 @@ window.showConsTab=showConsTab;
 window.setConsRankP=setConsRankP;
 window.renderConsRanking=renderConsRanking;
 window.openEditRec=openEditRec;
+window.delRecord=delRecord;
 window.salvarEdicaoRec=salvarEdicaoRec;
 window.selEditSit=selEditSit;
 window.selEditMeio=selEditMeio;
@@ -2734,6 +2735,29 @@ async function salvarEdicaoRec(){
   }
 }
 
+// ════ DELETAR REGISTRO (só Diretor) ════
+async function delRecord(recId) {
+  if(SES?.role !== 'diretor') { toast('Sem permissão','err'); return; }
+  if(!confirm('Deletar este registro permanentemente?\nEsta ação não pode ser desfeita.')) return;
+  try {
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_records?id=eq.${encodeURIComponent(recId)}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'return=minimal' }
+    });
+    if(!resp.ok) throw new Error(await resp.text());
+    _recs = _recs.filter(r => String(r.id) !== String(recId));
+    toast('Registro deletado', 'ok');
+    // Re-renderiza aba ativa
+    const active = document.querySelector('.scr.on');
+    if(active?.id === 's-gest') renderSup(mgrP, 'sup2-body');
+    if(active?.id === 's-sup') renderSup(mgrP, 'sup-sup-body');
+    if(active?.id === 's-ger') renderSup(mgrP, 'sup-body');
+  } catch(e) {
+    toast('Erro ao deletar', 'err');
+    console.error('delRecord:', e);
+  }
+}
+
 // ════ EXPÕE FUNÇÕES PARA onclick no HTML ════
 window.doLogin=doLogin;
 window.doLogout=doLogout;
@@ -2792,6 +2816,7 @@ window.showConsTab=showConsTab;
 window.setConsRankP=setConsRankP;
 window.renderConsRanking=renderConsRanking;
 window.openEditRec=openEditRec;
+window.delRecord=delRecord;
 window.salvarEdicaoRec=salvarEdicaoRec;
 window.selEditSit=selEditSit;
 window.selEditMeio=selEditMeio;
