@@ -1582,7 +1582,13 @@ function applyMgrCustom(crId,fnR,fnS){
 // ════ RANKING com taxas de repique e conversão ════
 function renderRank(p,bodyId){
   if(p)mgrP=p;
-  const recs=filtLoja(getRecs()),cons=getCons(),all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
+  const la=lojaAtiva();
+  const recs=la?getRecs().filter(r=>r.loja===la):getRecs();
+  // Consultores da loja ativa
+  const cfgL=la&&_allConfigs&&_allConfigs.find(c=>c.loja===la);
+  const consL=cfgL?(cfgL.consultants||[]):la?_users.filter(u=>u.role==='consultor'&&u.loja===la).map(u=>u.display_name):getCons();
+  const cons=consL.length?consL:getCons();
+  const all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
   const tot=all.length,v=all.filter(r=>r.situacao==='VENDA').length;
   const fat=all.reduce((s,r)=>s+(r.valor||0),0),ent=all.reduce((s,r)=>s+(r.entrada||0),0);
   const tmed=v>0?fat/v:0,tx=tot>0?Math.round(v/tot*100):0;
@@ -1593,9 +1599,9 @@ function renderRank(p,bodyId){
   const fnS=isGest?'rSupGest':isSup?'rSupSup':'rSupGer';
   const crId=isGest?'cr-rank2':isSup?'cr-rank-sup':'cr-rank';
 
-  // Consultores: combina lista do config + consultores com registros no período
+  // Se tem loja ativa e cons está vazio, usar só quem tem registro
   const consFromRecs = [...new Set(all.map(r=>r.consultant_name).filter(Boolean))];
-  const allCons = [...new Set([...cons, ...consFromRecs])];
+  const allCons = la && cons.length===0 ? consFromRecs : [...new Set([...cons, ...consFromRecs])];
 
   const rows=allCons.map(name=>{
     const r2=all.filter(r=>r.consultant_name===name);
@@ -1644,7 +1650,12 @@ function rRankGest(p){renderRank(p,'rank2-body');}
 // ════ SUPERVISÃO ════
 function renderSup(p,bodyId){
   if(p)mgrP=p;
-  const recs=filtLoja(getRecs()),cons=getCons(),all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
+  const la=lojaAtiva();
+  const recs=la?getRecs().filter(r=>r.loja===la):getRecs();
+  const cfgL2=la&&_allConfigs&&_allConfigs.find(c=>c.loja===la);
+  const consL2=cfgL2?(cfgL2.consultants||[]):la?_users.filter(u=>u.role==='consultor'&&u.loja===la).map(u=>u.display_name):getCons();
+  const cons=consL2.length?consL2:getCons();
+  const all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
   const pLbl={day:'Hoje',week:'Esta semana',month:'Este mês',custom:mgrCustomDe&&mgrCustomAte?`${fmtDate(mgrCustomDe)} a ${fmtDate(mgrCustomAte)}`:'Período personalizado'};
   const isGest=bodyId==='sup2-body',isSup=bodyId==='sup-sup-body';
   const fnR=isGest?'rRankGest':isSup?'rRankSup':'rRankGer';
@@ -1657,7 +1668,7 @@ function renderSup(p,bodyId){
   const txRepG=tot>0?Math.round(repTot/tot*100):0;
   // Combina consultores do config + consultores com registros
   const consFromRecs2 = [...new Set(all.map(r=>r.consultant_name).filter(Boolean))];
-  const allCons2 = [...new Set([...cons, ...consFromRecs2])];
+  const allCons2 = la && cons.length===0 ? consFromRecs2 : [...new Set([...cons, ...consFromRecs2])];
 
   const rows=allCons2.map(name=>{
     const r2=all.filter(r=>r.consultant_name===name);
@@ -1721,8 +1732,10 @@ function rSupGest(p){renderSup(p,'sup2-body');}
 function renderFilaView(bodyId,canClear,lojaForce){
   const la = lojaForce !== undefined ? lojaForce : lojaAtiva();
   const allQ=getQ();
+  console.log('[FILA DEBUG] la='+la+' LOJA_FILTER='+LOJA_FILTER+' allQ.length='+allQ.length+' lojas='+[...new Set(allQ.map(x=>x.loja))].join(','));
   // Filtra fila pela loja ativa
   const q=la?allQ.filter(x=>x.loja===la):allQ;
+  console.log('[FILA DEBUG] q.length='+q.length+' nomes='+q.map(x=>x.consultant_name).join(','));
   // Passa la explicitamente para getCons
   const cfgLoja = la && _allConfigs && _allConfigs.find(cfg=>cfg.loja===la);
   const consFromCfg = cfgLoja ? (cfgLoja.consultants||[]) : [];
