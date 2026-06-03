@@ -1205,10 +1205,12 @@ function applyCustomCons(){
 function renderMet() {
   const base=getRecs().filter(r=>r.consultant_name===SES.consName);
   const mr=filtP(base,metP,customDe,customAte);
-  const tot=contAtend(mr),v=contVendas(mr),p=contPerdas(mr),vConv=contAtendComVenda(mr);
+  const tot=contAtend(mr),vConv=contAtendComVenda(mr),p=contPerdas(mr);
+  const v=vConv; // v exibido = atendimentos convertidos
   const tx=tot>0?Math.round(vConv/tot*100):0;
   const fat=mr.reduce((s,r)=>s+(r.valor||0),0),ent=mr.reduce((s,r)=>s+(r.entrada||0),0);
-  const tmed=v>0?fat/v:0;
+  const vRec=contVendas(mr);
+  const tmed=vRec>0?fat/vRec:0;
   const repSim=contRepiques(mr);
   const txRepAtend=tot>0?Math.round(repSim/tot*100):0;
   const txRepVenda=vConv>0?Math.round(repSim/vConv*100):0;
@@ -1645,9 +1647,10 @@ function renderRank(p,bodyId){
   const consL=cfgL?(cfgL.consultants||[]):la?_users.filter(u=>u.role==='consultor'&&u.loja===la).map(u=>u.display_name):getCons();
   const cons=consL.length?consL:getCons();
   const all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
-  const tot=contAtend(all),v=contVendas(all),v_conv=contAtendComVenda(all);
+  const tot=contAtend(all),v_conv=contAtendComVenda(all);
+  const v=v_conv; // vendas exibidas = atendimentos convertidos
   const fat=all.reduce((s,r)=>s+(r.valor||0),0),ent=all.reduce((s,r)=>s+(r.entrada||0),0);
-  const tmed=v>0?fat/v:0,tx=tot>0?Math.round(v_conv/tot*100):0;
+  const tmed=contVendas(all)>0?fat/contVendas(all):0,tx=tot>0?Math.round(v_conv/tot*100):0;
   const repAll=contRepiques(all);
   const pLbl={day:'Hoje',week:'Esta semana',month:'Este mês',custom:mgrCustomDe&&mgrCustomAte?`${fmtDate(mgrCustomDe)} a ${fmtDate(mgrCustomAte)}`:'Período personalizado'};
   const isGest=bodyId==='rank2-body',isSup=bodyId==='rank-sup-body';
@@ -1661,13 +1664,14 @@ function renderRank(p,bodyId){
 
   const rows=allCons.map(name=>{
     const r2=all.filter(r=>r.consultant_name===name);
-    const t2=contAtend(r2),v2=contVendas(r2),p2=contPerdas(r2),v2c=contAtendComVenda(r2);
+    const t2=contAtend(r2),v2c=contAtendComVenda(r2),p2=contPerdas(r2);
+    const v2rec=contVendas(r2); // receitas individuais para ticket médio
     const tx2=t2>0?Math.round(v2c/t2*100):0;
     const f2=r2.reduce((s,r)=>s+(r.valor||0),0),c2=r2.reduce((s,r)=>s+(r.entrada||0),0);
     const rep2=contRepiques(r2);
     const txRepA=t2>0?Math.round(rep2/t2*100):0;
     const txRepV=v2c>0?Math.round(rep2/v2c*100):0;
-    return{name,tot:t2,vend:v2,perd:p2,tx:tx2,fat:f2,tmed:v2>0?f2/v2:0,com:c2,rep:rep2,txRepA,txRepV};
+    return{name,tot:t2,vend:v2c,perd:p2,tx:tx2,fat:f2,tmed:v2rec>0?f2/v2rec:0,com:c2,rep:rep2,txRepA,txRepV};
   }).sort((a,b)=>b.tx-a.tx||b.fat-a.fat);
   const maxTx=Math.max(...rows.map(r=>r.tx),1);
 
@@ -1717,7 +1721,8 @@ function renderSup(p,bodyId){
   const fnR=isGest?'rRankGest':isSup?'rRankSup':'rRankGer';
   const fnS=isGest?'rSupGest':isSup?'rSupSup':'rSupGer';
   const crId=isGest?'cr-sup2':isSup?'cr-sup-sup':'cr-sup';
-  const tot=contAtend(all),vend=contVendas(all),perd=contPerdas(all),vendConv=contAtendComVenda(all);
+  const tot=contAtend(all),vendConv=contAtendComVenda(all),perd=contPerdas(all);
+  const vend=vendConv; // vendas = atendimentos convertidos (não receitas)
   const tx=tot>0?Math.round(vendConv/tot*100):0;
   const fat=all.reduce((s,r)=>s+(r.valor||0),0),com=all.reduce((s,r)=>s+(r.entrada||0),0);
   const repTot=contRepiques(all);
@@ -1728,9 +1733,9 @@ function renderSup(p,bodyId){
 
   const rows=allCons2.map(name=>{
     const r2=all.filter(r=>r.consultant_name===name);
-    const t2=contAtend(r2),v2=contVendas(r2),p2=contPerdas(r2),v2c=contAtendComVenda(r2);
+    const t2=contAtend(r2),v2c=contAtendComVenda(r2),p2=contPerdas(r2);
     const rep2=contRepiques(r2);
-    return{name,tot:t2,vend:v2,perd:p2,tx:t2>0?Math.round(v2c/t2*100):0,fat:r2.reduce((s,r)=>s+(r.valor||0),0),com:r2.reduce((s,r)=>s+(r.entrada||0),0),txRepA:t2>0?Math.round(rep2/t2*100):0,txRepV:v2c>0?Math.round(rep2/v2c*100):0};
+    return{name,tot:t2,vend:v2c,perd:p2,tx:t2>0?Math.round(v2c/t2*100):0,fat:r2.reduce((s,r)=>s+(r.valor||0),0),com:r2.reduce((s,r)=>s+(r.entrada||0),0),txRepA:t2>0?Math.round(rep2/t2*100):0,txRepV:v2c>0?Math.round(rep2/v2c*100):0};
   });
   document.getElementById(bodyId).innerHTML=`
     ${ptHTML(mgrP,fnR,fnS,crId)}
