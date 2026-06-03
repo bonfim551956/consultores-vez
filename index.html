@@ -1408,7 +1408,7 @@ function closeOv(id){document.getElementById(id).classList.remove('on');}
 async function submitReg(){
   let ok = true;
 
-  // Valida receitas (todas devem ter situação, tipo e valor)
+  // Valida receitas
   const receitasData = getReceitasData();
   if(!receitasData || receitasData.length === 0){
     document.getElementById('err-val').classList.add('on');
@@ -1434,7 +1434,6 @@ async function submitReg(){
 
   // Se houver alguma PERDIDA, precisa de autorização do gerente
   if(temPerdida && !authOk && !gerenteAusente){
-    // Abre o modal de autorização automaticamente
     document.getElementById('auth-inp').value='';
     document.getElementById('err-auth').classList.remove('on');
     document.getElementById('ov-auth').classList.add('on');
@@ -1442,49 +1441,69 @@ async function submitReg(){
     return;
   }
 
-  // Calcula totais
-  const totalValor  = receitasData.reduce((s,r) => s + (r.val||0), 0);
-  const totalEntrada= receitasData.reduce((s,r) => s + (r.ent||0), 0);
-  const situacaoFinal = temPerdida ? 'PERDIDA' : 'VENDA';
-  const meioFinal     = receitasData[0].tipo || 'RI';
+  const now   = new Date();
+  const data  = dStr(now);
+  const hora  = now.toTimeString().slice(0,5);
+  const nome  = SES.consName || SES.display_name;
+  const motivo= document.getElementById('m-mot').value.trim();
+  const rep   = selRep_ || '—';
+  const repAut= temPerdida && rep === 'NÃO' ? authOk : false;
 
-  const now = new Date();
-  const rec = {
-    loja: LOJA,
-    data: dStr(now),
-    hora: now.toTimeString().slice(0,5),
-    consultant_name: SES.consName || SES.display_name,
-    situacao: situacaoFinal,
-    meio: meioFinal,
-    repique: selRep_ || '—',
-    rep_autorizado: temPerdida && selRep_ === 'NÃO' ? authOk : false,
-    valor: totalValor,
-    entrada: totalEntrada,
-    pct: totalValor > 0 ? Math.round(totalEntrada/totalValor*100) : 0,
-    motivo: document.getElementById('m-mot').value.trim(),
-    // receitas: JSON.stringify(receitasData) — desabilitado até coluna existir no banco
-  };
+  // ── Salva UM REGISTRO POR RECEITA ──
+  const registros = receitasData.map(r => ({
+    loja           : LOJA,
+    data,
+    hora,
+    consultant_name: nome,
+    situacao       : r.sit || 'VENDA',
+    meio           : r.tipo || 'RI',
+    repique        : rep,
+    rep_autorizado : repAut,
+    valor          : r.val  || 0,
+    entrada        : r.ent  || 0,
+    pct            : (r.val||0) > 0 ? Math.round((r.ent||0)/(r.val||0)*100) : 0,
+    motivo
+  }));
 
   try {
-    await sbPost('iz_records', rec);
+    // Insere todos os registros de uma vez (array)
+    const resp = await fetch(`${SB_URL}/rest/v1/iz_records`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(registros)
+    });
+    if(!resp.ok) throw new Error(await resp.text());
+
     // Volta pro final da fila
-    await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(SES.consName||SES.display_name)}&loja=eq.${encodeURIComponent(LOJA)}`, {
+    await fetch(`${SB_URL}/rest/v1/iz_queue?consultant_name=eq.${encodeURIComponent(nome)}&loja=eq.${encodeURIComponent(LOJA)}`, {
       method: 'DELETE', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     });
     await fetch(`${SB_URL}/rest/v1/iz_queue`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ consultant_name: SES.consName||SES.display_name, loja: LOJA, status: 'queue', joined_at: new Date().toISOString() })
+      body: JSON.stringify({ consultant_name: nome, loja: LOJA, status: 'queue', joined_at: new Date().toISOString() })
     });
+
     await loadQueue(); await loadRecs();
     closeOv('ov-reg');
-    toast(situacaoFinal === 'VENDA' ? 'Venda registrada com sucesso!' : 'Atendimento registrado','ok');
+    const vendas = registros.filter(r=>r.situacao==='VENDA').length;
+    const perdas = registros.filter(r=>r.situacao==='PERDIDA').length;
+    toast(
+      registros.length === 1
+        ? (vendas ? 'Venda registrada!' : 'Atendimento registrado')
+        : `${registros.length} receitas registradas — ${vendas} venda(s), ${perdas} perda(s)`,
+      'ok'
+    );
     renderCons();
   } catch(err){
     const errMsg = err?.message || String(err);
     toast('Erro ao salvar: ' + errMsg.slice(0,50), 'err');
     console.error('submitReg error:', err);
-    console.error('Record que tentou salvar:', JSON.stringify(rec));
   }
 }
 
