@@ -1304,7 +1304,7 @@ function openReg(){
 }
 function selSit(s){
   selSit_=s;selRep_=null;authOk=false;
-  document.getElementById(s==='VENDA'?'sc-v':'sc-p').classList.add(s==='VENDA'?'São Vicente':'sp');
+  document.getElementById(s==='VENDA'?'sc-v':'sc-p').classList.add(s==='VENDA'?'sv':'sp');
   document.getElementById('err-sit').classList.remove('on');
   document.querySelectorAll('.sit-chip').forEach(c=>c.classList.remove('serr'));
   // repique sempre visível
@@ -2710,7 +2710,7 @@ function openEditRec(recId) {
   // Situação
   _editSit = rec.situacao;
   document.querySelectorAll('#ov-edit-rec .sit-chip').forEach(c=>c.className='sit-chip');
-  if(rec.situacao==='VENDA') document.getElementById('esc-v').classList.add('São Vicente');
+  if(rec.situacao==='VENDA') document.getElementById('esc-v').classList.add('sv');
   else document.getElementById('esc-p').classList.add('sp');
 
   // Meio
@@ -2729,7 +2729,7 @@ function openEditRec(recId) {
 function selEditSit(s){
   _editSit=s;
   document.querySelectorAll('#ov-edit-rec .sit-chip').forEach(c=>c.className='sit-chip');
-  document.getElementById(s==='VENDA'?'esc-v':'esc-p').classList.add(s==='VENDA'?'São Vicente':'sp');
+  document.getElementById(s==='VENDA'?'esc-v':'esc-p').classList.add(s==='VENDA'?'sv':'sp');
 }
 function selEditMeio(m){
   _editMeio=m;
