@@ -1205,13 +1205,13 @@ function applyCustomCons(){
 function renderMet() {
   const base=getRecs().filter(r=>r.consultant_name===SES.consName);
   const mr=filtP(base,metP,customDe,customAte);
-  const tot=mr.length,v=mr.filter(r=>r.situacao==='VENDA').length,p=mr.filter(r=>r.situacao==='PERDIDA').length;
-  const tx=tot>0?Math.round(v/tot*100):0;
+  const tot=contAtend(mr),v=contVendas(mr),p=contPerdas(mr),vConv=contAtendComVenda(mr);
+  const tx=tot>0?Math.round(vConv/tot*100):0;
   const fat=mr.reduce((s,r)=>s+(r.valor||0),0),ent=mr.reduce((s,r)=>s+(r.entrada||0),0);
   const tmed=v>0?fat/v:0;
-  const repSim=mr.filter(r=>r.repique==='SIM').length;
+  const repSim=contRepiques(mr);
   const txRepAtend=tot>0?Math.round(repSim/tot*100):0;
-  const txRepVenda=v>0?Math.round(repSim/v*100):0;
+  const txRepVenda=vConv>0?Math.round(repSim/vConv*100):0;
   document.getElementById('met-body').innerHTML=`
     <div class="mg">
       <div class="mi"><div class="mv">${tot}</div><div class="ml">Atendimentos</div></div>
@@ -1599,6 +1599,42 @@ function applyMgrCustom(crId,fnR,fnS){
   window[fnS]('custom');
 }
 
+// ════ HELPERS DE CONTAGEM ════
+// Conta atendimentos únicos: agrupa por data+hora+consultor
+function contAtend(recs) {
+  const keys = new Set(recs.map(r => `${r.data}|${r.hora}|${r.consultant_name}`));
+  return keys.size;
+}
+// Conta vendas (registros individuais com situacao=VENDA)
+function contVendas(recs) {
+  return recs.filter(r => r.situacao === 'VENDA').length;
+}
+// Conta perdas (registros individuais com situacao=PERDIDA)
+function contPerdas(recs) {
+  return recs.filter(r => r.situacao === 'PERDIDA').length;
+}
+// Repiques únicos por atendimento (não duplica por receita)
+function contRepiques(recs) {
+  const seen = new Set();
+  return recs.filter(r => {
+    if(r.repique !== 'SIM') return false;
+    const key = `${r.data}|${r.hora}|${r.consultant_name}`;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).length;
+}
+// Taxa de conversão: atendimentos que tiveram ao menos 1 VENDA
+function contAtendComVenda(recs) {
+  const grupos = {};
+  recs.forEach(r => {
+    const key = `${r.data}|${r.hora}|${r.consultant_name}`;
+    if(!grupos[key]) grupos[key] = [];
+    grupos[key].push(r);
+  });
+  return Object.values(grupos).filter(g => g.some(r => r.situacao === 'VENDA')).length;
+}
+
 // ════ RANKING com taxas de repique e conversão ════
 function renderRank(p,bodyId){
   if(p)mgrP=p;
@@ -1609,10 +1645,10 @@ function renderRank(p,bodyId){
   const consL=cfgL?(cfgL.consultants||[]):la?_users.filter(u=>u.role==='consultor'&&u.loja===la).map(u=>u.display_name):getCons();
   const cons=consL.length?consL:getCons();
   const all=filtP(recs,mgrP,mgrCustomDe,mgrCustomAte);
-  const tot=all.length,v=all.filter(r=>r.situacao==='VENDA').length;
+  const tot=contAtend(all),v=contVendas(all),v_conv=contAtendComVenda(all);
   const fat=all.reduce((s,r)=>s+(r.valor||0),0),ent=all.reduce((s,r)=>s+(r.entrada||0),0);
-  const tmed=v>0?fat/v:0,tx=tot>0?Math.round(v/tot*100):0;
-  const repAll=all.filter(r=>r.repique==='SIM').length;
+  const tmed=v>0?fat/v:0,tx=tot>0?Math.round(v_conv/tot*100):0;
+  const repAll=contRepiques(all);
   const pLbl={day:'Hoje',week:'Esta semana',month:'Este mês',custom:mgrCustomDe&&mgrCustomAte?`${fmtDate(mgrCustomDe)} a ${fmtDate(mgrCustomAte)}`:'Período personalizado'};
   const isGest=bodyId==='rank2-body',isSup=bodyId==='rank-sup-body';
   const fnR=isGest?'rRankGest':isSup?'rRankSup':'rRankGer';
@@ -1625,12 +1661,12 @@ function renderRank(p,bodyId){
 
   const rows=allCons.map(name=>{
     const r2=all.filter(r=>r.consultant_name===name);
-    const t2=r2.length,v2=r2.filter(r=>r.situacao==='VENDA').length,p2=r2.filter(r=>r.situacao==='PERDIDA').length;
-    const tx2=t2>0?Math.round(v2/t2*100):0;
+    const t2=contAtend(r2),v2=contVendas(r2),p2=contPerdas(r2),v2c=contAtendComVenda(r2);
+    const tx2=t2>0?Math.round(v2c/t2*100):0;
     const f2=r2.reduce((s,r)=>s+(r.valor||0),0),c2=r2.reduce((s,r)=>s+(r.entrada||0),0);
-    const rep2=r2.filter(r=>r.repique==='SIM').length;
+    const rep2=contRepiques(r2);
     const txRepA=t2>0?Math.round(rep2/t2*100):0;
-    const txRepV=v2>0?Math.round(rep2/v2*100):0;
+    const txRepV=v2c>0?Math.round(rep2/v2c*100):0;
     return{name,tot:t2,vend:v2,perd:p2,tx:tx2,fat:f2,tmed:v2>0?f2/v2:0,com:c2,rep:rep2,txRepA,txRepV};
   }).sort((a,b)=>b.tx-a.tx||b.fat-a.fat);
   const maxTx=Math.max(...rows.map(r=>r.tx),1);
@@ -1681,10 +1717,10 @@ function renderSup(p,bodyId){
   const fnR=isGest?'rRankGest':isSup?'rRankSup':'rRankGer';
   const fnS=isGest?'rSupGest':isSup?'rSupSup':'rSupGer';
   const crId=isGest?'cr-sup2':isSup?'cr-sup-sup':'cr-sup';
-  const tot=all.length,vend=all.filter(r=>r.situacao==='VENDA').length,perd=all.filter(r=>r.situacao==='PERDIDA').length;
-  const tx=tot>0?Math.round(vend/tot*100):0;
+  const tot=contAtend(all),vend=contVendas(all),perd=contPerdas(all),vendConv=contAtendComVenda(all);
+  const tx=tot>0?Math.round(vendConv/tot*100):0;
   const fat=all.reduce((s,r)=>s+(r.valor||0),0),com=all.reduce((s,r)=>s+(r.entrada||0),0);
-  const repTot=all.filter(r=>r.repique==='SIM').length;
+  const repTot=contRepiques(all);
   const txRepG=tot>0?Math.round(repTot/tot*100):0;
   // Combina consultores do config + consultores com registros
   const consFromRecs2 = [...new Set(all.map(r=>r.consultant_name).filter(Boolean))];
@@ -1692,9 +1728,9 @@ function renderSup(p,bodyId){
 
   const rows=allCons2.map(name=>{
     const r2=all.filter(r=>r.consultant_name===name);
-    const t2=r2.length,v2=r2.filter(r=>r.situacao==='VENDA').length,p2=r2.filter(r=>r.situacao==='PERDIDA').length;
-    const rep2=r2.filter(r=>r.repique==='SIM').length;
-    return{name,tot:t2,vend:v2,perd:p2,tx:t2>0?Math.round(v2/t2*100):0,fat:r2.reduce((s,r)=>s+(r.valor||0),0),com:r2.reduce((s,r)=>s+(r.entrada||0),0),txRepA:t2>0?Math.round(rep2/t2*100):0,txRepV:v2>0?Math.round(rep2/v2*100):0};
+    const t2=contAtend(r2),v2=contVendas(r2),p2=contPerdas(r2),v2c=contAtendComVenda(r2);
+    const rep2=contRepiques(r2);
+    return{name,tot:t2,vend:v2,perd:p2,tx:t2>0?Math.round(v2c/t2*100):0,fat:r2.reduce((s,r)=>s+(r.valor||0),0),com:r2.reduce((s,r)=>s+(r.entrada||0),0),txRepA:t2>0?Math.round(rep2/t2*100):0,txRepV:v2c>0?Math.round(rep2/v2c*100):0};
   });
   document.getElementById(bodyId).innerHTML=`
     ${ptHTML(mgrP,fnR,fnS,crId)}
@@ -1765,7 +1801,7 @@ function renderFilaView(bodyId,canClear,lojaForce){
   const att=q.filter(x=>x.status==='attending'),inQ=q.filter(x=>x.status==='queue'),off=cons.filter(n=>!q.find(x=>x.consultant_name===n));
   const mkCard=(e,st,pos)=>{
     const mr=recs.filter(r=>r.consultant_name===e.consultant_name&&r.data===today);
-    const v=mr.filter(r=>r.situacao==='VENDA').length,t=mr.length;
+    const v=contVendas(mr),t=contAtend(mr);
     const cls={next:'cn',queue:'',attending:'ca'};
     const bdg={next:`<span class="qbdg qbn">Próximo</span>`,queue:`<span class="qbdg qbq">#${pos}</span>`,attending:`<span class="qbdg qba">Atendendo</span>`};
     return`<div class="q-card ${cls[st]||''}"><div class="q-av">${ini(e.consultant_name)}</div><div class="q-info"><div class="q-name">${e.consultant_name}</div><div class="q-mini"><div class="qm">Hoje:<span class="qmv">${t}</span></div><div class="qm">Vendas:<span class="qmv t">${v}</span></div>${t>0?`<div class="qm">Conv:<span class="qmv ${Math.round(v/t*100)>=50?'t':'o'}">${Math.round(v/t*100)}%</span></div>`:''}</div></div>${bdg[st]}</div>`;
@@ -2653,15 +2689,16 @@ function renderConsRanking() {
   const cons = consFromCfg.length ? consFromCfg : (consFromUsers.length ? consFromUsers : consFromRecs);
   const rows = cons.map(name => {
     const r2  = recs.filter(r=>r.consultant_name===name);
-    const t2  = r2.length;
-    const v2  = r2.filter(r=>r.situacao==='VENDA').length;
-    const p2  = r2.filter(r=>r.situacao==='PERDIDA').length;
-    const tx2 = t2>0?Math.round(v2/t2*100):0;
+    const t2  = contAtend(r2);
+    const v2  = contVendas(r2);
+    const p2  = contPerdas(r2);
+    const v2c = contAtendComVenda(r2);
+    const tx2 = t2>0?Math.round(v2c/t2*100):0;
     const f2  = r2.reduce((s,r)=>s+(r.valor||0),0);
     const c2  = r2.reduce((s,r)=>s+(r.entrada||0),0);
-    const rep2= r2.filter(r=>r.repique==='SIM').length;
+    const rep2= contRepiques(r2);
     const isMe= name === SES?.consName;
-    return {name,tot:t2,vend:v2,perd:p2,tx:tx2,fat:f2,tmed:v2>0?f2/v2:0,com:c2,rep:rep2,txRepA:t2>0?Math.round(rep2/t2*100):0,txRepV:v2>0?Math.round(rep2/v2*100):0,isMe};
+    return {name,tot:t2,vend:v2,perd:p2,tx:tx2,fat:f2,tmed:v2>0?f2/v2:0,com:c2,rep:rep2,txRepA:t2>0?Math.round(rep2/t2*100):0,txRepV:v2c>0?Math.round(rep2/v2c*100):0,isMe};
   }).sort((a,b)=>b.tx-a.tx||b.fat-a.fat);
   const maxTx = Math.max(...rows.map(r=>r.tx),1);
 
