@@ -259,6 +259,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--tx);font-size:14px;-
 .nr{text-align:right;font-family:var(--fm)}
 .txg{color:var(--green);font-weight:700}.txa{color:var(--orange-d);font-weight:700}.txr{color:var(--red);font-weight:700}
 .sbdg{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;font-family:var(--fb)}
+.sbb{background:var(--orange-l);color:var(--orange-dd);border:1px solid var(--orange-l)}
 .sbv{background:var(--green-l);color:var(--green)}.sbp{background:var(--red-l);color:var(--red-d)}
 
 /* ── SETTINGS ── */
@@ -1408,6 +1409,12 @@ function checkAuth(){
 function closeOv(id){document.getElementById(id).classList.remove('on');}
 
 async function submitReg(){
+  // Evitar duplo envio
+  if(window._submitting){ toast('Aguarde...','warn'); return; }
+  window._submitting = true;
+  const btnSalvar = document.querySelector('#ov-reg .abtn.abt');
+  if(btnSalvar){ btnSalvar.disabled=true; btnSalvar.textContent='Salvando...'; }
+
   let ok = true;
 
   // Valida receitas
@@ -1506,6 +1513,10 @@ async function submitReg(){
     const errMsg = err?.message || String(err);
     toast('Erro ao salvar: ' + errMsg.slice(0,50), 'err');
     console.error('submitReg error:', err);
+  } finally {
+    window._submitting = false;
+    const btnS = document.querySelector('#ov-reg .abtn.abt');
+    if(btnS){ btnS.disabled=false; btnS.textContent='Salvar e voltar à fila'; }
   }
 }
 
@@ -1766,21 +1777,43 @@ function renderSup(p,bodyId){
     <div class="sec-lbl" style="margin-top:.25rem">Registros recentes</div>
     <div class="tbl-wrap"><table class="sup-tbl">
       <thead><tr><th>Data/Hora</th><th>Consultor</th><th>Loja</th><th>Situação</th><th>Origem</th><th>Repique</th><th class="nr">Valor</th><th class="nr">Comissão</th><th></th></tr></thead>
-      <tbody>${all.slice(0,60).map(r=>`<tr>
+      <tbody>${(()=>{
+        // Agrupar registros por data+hora+consultor (1 linha por atendimento)
+        const grupos={};
+        all.slice(0,120).forEach(r=>{
+          const key=`${r.data}|${r.hora}|${r.consultant_name}`;
+          if(!grupos[key]) grupos[key]={first:r,recs:[]};
+          grupos[key].recs.push(r);
+        });
+        return Object.values(grupos).slice(0,60).map(g=>{
+          const r=g.first, rs=g.recs;
+          const totalVal=rs.reduce((s,x)=>s+(x.valor||0),0);
+          const totalEnt=rs.reduce((s,x)=>s+(x.entrada||0),0);
+          const temVenda=rs.some(x=>x.situacao==='VENDA');
+          const temPerdida=rs.some(x=>x.situacao==='PERDIDA');
+          const sitLabel=temVenda&&temPerdida?'Mista':temVenda?'Venda':'Perdida';
+          const sitClass=temVenda&&!temPerdida?'sbv':temPerdida&&!temVenda?'sbp':'sbb';
+          const origens=[...new Set(rs.map(x=>x.meio==='RI'?'Rec. Interna':'Rec. Externa'))].join(' + ');
+          const recLabel=rs.length>1?`<span style="font-size:9px;background:var(--blue-l);color:var(--blue);padding:1px 5px;border-radius:99px;margin-left:4px">${rs.length} receitas</span>`:'';
+          const ids=rs.map(x=>x.id);
+          const editBy=rs.find(x=>x.edited_by)?.edited_by||'';
+          return `<tr>
         <td style="font-family:var(--fm);font-size:11px;color:var(--tx4)">${r.data?r.data.split('-').reverse().join('/'):'—'} ${r.hora||''}</td>
-        <td style="font-weight:600;font-size:12px">${r.consultant_name}</td>
+        <td style="font-weight:600;font-size:12px">${r.consultant_name}${recLabel}</td>
         <td style="font-size:11px"><span style="background:var(--teal-m);color:var(--teal-dd);padding:1px 7px;border-radius:99px;font-weight:600;font-size:10px">${LOJA_NAMES[r.loja]||r.loja||'—'}</span></td>
-        <td><span class="sbdg ${r.situacao==='VENDA'?'sbv':'sbp'}">${r.situacao==='VENDA'?'Venda':'Perdida'}</span></td>
-        <td style="font-size:11px;color:var(--tx4)">${r.meio==='RI'?'Rec. Interna':'Rec. Externa'}</td>
+        <td><span class="sbdg ${sitClass}">${sitLabel}</span></td>
+        <td style="font-size:11px;color:var(--tx4)">${origens}</td>
         <td style="font-size:11px;color:var(--tx4)">${r.repique==='SIM'?'Sim':r.repique==='NÃO'?'Não'+(r.rep_autorizado?' *':''):'—'}</td>
-        <td class="nr" style="font-size:12px">${r.valor?fmt(r.valor):'—'}</td>
-        <td class="nr" style="font-size:12px;color:var(--blue)">${r.entrada?fmt(r.entrada):'—'}</td>
+        <td class="nr" style="font-size:12px">${totalVal?fmt(totalVal):'—'}</td>
+        <td class="nr" style="font-size:12px;color:var(--blue)">${totalEnt?fmt(totalEnt):'—'}</td>
         <td style="white-space:nowrap">
-          <button class="btn-edit-rec" onclick="openEditRec('${r.id}')">Editar</button>
-          ${SES?.role==='diretor'?`<button class="btn-edit-rec" onclick="delRecord('${r.id}')" style="background:var(--red-l);color:var(--red-d);margin-left:4px">Deletar</button>`:''}
-          ${r.edited_by?`<div class="edit-log">Edit: ${r.edited_by}</div>`:''}
+          ${rs.map(x=>`<button class="btn-edit-rec" onclick="openEditRec('${x.id}')" style="margin-bottom:2px">${rs.length>1?'Edit receita':'Editar'}</button>`).join('')}
+          ${SES?.role==='diretor'?rs.map(x=>`<button class="btn-edit-rec" onclick="delRecord('${x.id}')" style="background:var(--red-l);color:var(--red-d);margin-left:4px">Del</button>`).join(''):''}
+          ${editBy?`<div class="edit-log">Edit: ${editBy}</div>`:''}
         </td>
-      </tr>`).join('')||`<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--tx4)">Nenhum registro no período</td></tr>`}
+      </tr>`;
+        }).join('');
+      })()||`<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--tx4)">Nenhum registro no período</td></tr>`}
       </tbody>
     </table></div>
     <p style="font-size:11px;color:var(--tx4);margin-top:4px">* Finalização sem repique autorizada</p>`;
